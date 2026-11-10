@@ -16,6 +16,8 @@ $pipeline = function_exists( 'pera_crm_get_pipeline_view_data' )
 	: array( 'columns' => array(), 'can_view_all' => false );
 
 $columns      = is_array( $pipeline['columns'] ?? null ) ? $pipeline['columns'] : array();
+$pipeline_filters = is_array( $pipeline['filters'] ?? null ) ? $pipeline['filters'] : array();
+$include_inactive = ! empty( $pipeline_filters['include_inactive'] );
 $total_items  = 0;
 
 foreach ( $columns as $column_data ) {
@@ -56,6 +58,19 @@ peracrm_frontend_render_shell_header();
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm crm-layout">
       <div class="crm-layout__main">
+      <form method="get" class="crm-pipeline-visibility-filter" aria-label="<?php esc_attr_e( 'Pipeline visibility', 'peracrm' ); ?>">
+        <?php foreach ( array( 'q', 'stage', 'advisor' ) as $filter_key ) :
+          $filter_value = isset( $pipeline_filters[ $filter_key ] ) && is_scalar( $pipeline_filters[ $filter_key ] ) ? (string) $pipeline_filters[ $filter_key ] : '';
+          if ( '' === $filter_value ) { continue; }
+        ?>
+          <input type="hidden" name="<?php echo esc_attr( $filter_key ); ?>" value="<?php echo esc_attr( $filter_value ); ?>" />
+        <?php endforeach; ?>
+        <label for="crm-pipeline-include-inactive">
+          <input type="checkbox" id="crm-pipeline-include-inactive" name="include_inactive" value="1" <?php checked( $include_inactive ); ?> onchange="this.form.submit()" />
+          <?php esc_html_e( 'Include inactive leads', 'peracrm' ); ?>
+        </label>
+        <noscript><button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Apply', 'peracrm' ); ?></button></noscript>
+      </form>
       <section class="crm-pipeline-board-wrap" aria-label="<?php echo esc_attr__( 'Pipeline board', 'peracrm' ); ?>">
         <div class="crm-pipeline-board">
           <?php foreach ( $columns as $column ) : ?>

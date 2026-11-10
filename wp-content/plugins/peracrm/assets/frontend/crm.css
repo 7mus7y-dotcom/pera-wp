@@ -9634,3 +9634,21 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
     max-height: 200px;
   }
 }
+
+/* Pipeline: visibility filter above the stage board. */
+.crm-page--pipeline .crm-pipeline-visibility-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.crm-page--pipeline .crm-pipeline-visibility-filter label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.crm-page--pipeline .crm-pipeline-visibility-filter input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
