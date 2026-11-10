@@ -131,6 +131,16 @@ final class PeraCRM_Internal_Campaign_Runtime
                 || !peracrm_campaign_recipient_withdrawal_service() || !peracrm_sns_http_service()) {
                 throw new RuntimeException('rehearsal_http_configuration');
             }
+            $http=PERACRM_SES_SNS_HTTP;
+            $operations=defined('PERACRM_SES_EVENT_OPERATIONS')?PERACRM_SES_EVENT_OPERATIONS:null;
+            if (!is_array($http) || !is_array($operations) || ($http['topic']??null)!==($operations['topic']??null)) {
+                throw new RuntimeException('rehearsal_http_configuration');
+            }
+            foreach (['account'=>'account_id','blog'=>'blog_id','deployment'=>'deployment','region'=>'region',
+                'configuration_set'=>'configuration_set','configuration_version'=>'configuration_version'] as $key=>$field) {
+                if (($http[$key]??null)!==($this->deployment->binding()[$field]??null)
+                    || ($operations[$key]??null)!==($http[$key]??null)) { throw new RuntimeException('rehearsal_http_configuration'); }
+            }
             $credentials=$this->deployment->credentials();
             (new PeraCRM_SES_Operator_API($pins,'PeraCRMCampaignRehearsal',$credentials))->attest();
         }

@@ -62,6 +62,9 @@ worker_fixture_target(static function () {
     prepared_expect($service->send($job,$proposal['binding'])===['state'=>'disabled'] && $transport->calls===0,
         'rehearsal has an independent explicit opt-in');
     define('PERACRM_CAMPAIGN_REHEARSAL',true);
+    prepared_reject(fn()=>(new PeraCRM_Internal_Campaign_Runtime($adapter))->send($job,$proposal['binding']));
+    prepared_expect(PeraCRM_Internal_Campaign_Runtime::status()['state']==='unused',
+        'native sending requires configured HTTP dependencies before consuming authority');
     prepared_reject(fn()=>$service->send($job,str_repeat('0',64)));
     prepared_expect(PeraCRM_Internal_Campaign_Runtime::status()['state']==='unused' && $transport->calls===0,
         'stale proposal does not consume authority');
