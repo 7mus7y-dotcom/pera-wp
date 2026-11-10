@@ -3,6 +3,7 @@ define('ABSPATH',__DIR__);
 function get_current_blog_id() { return 2; }
 function peracrm_get_target_blog_id() { return 2; }
 function is_multisite() { return true; }
+function peracrm_campaigns_schema_ready() { return $GLOBALS['deployment_schema_ready']??true; }
 function home_url($path='') { return $GLOBALS['deployment_home']??'https://example.org/crm/'; }
 require __DIR__.'/deployment-fixture.php';
 function deployment_expect(bool $ok,string $label): void
@@ -108,3 +109,14 @@ foreach (['http://example.org/','https://example.org:443/','https://user@example
     deployment_expect(peracrm_campaign_deployment_service()->checks()['deployment_scope']==='unavailable','unsafe or cloned configured host denied');
 }
 echo "PASS campaign deployment adapters\n";
+
+deployment_expect($d->internalWithdrawal() instanceof PeraCRM_CampaignRecipientWithdrawal,
+    'explicit verification adapter needs neither send permission nor output keys');
+$verificationOnly=$v; unset($verificationOnly['identity'],$verificationOnly['encryption']);
+deployment_expect($make($m,$verificationOnly)->internalWithdrawal() instanceof PeraCRM_CampaignRecipientWithdrawal,
+    'verification-only adapter does not acquire provider credentials');
+deployment_expect($retained->internalWithdrawal() instanceof PeraCRM_CampaignRecipientWithdrawal,
+    'retained historical keys remain available to unsubscribe verification');
+$GLOBALS['deployment_schema_ready']=false;
+deployment_reject(fn()=>$d->internalWithdrawal(),'schema mismatch cannot activate internal verification');
+$GLOBALS['deployment_schema_ready']=true;

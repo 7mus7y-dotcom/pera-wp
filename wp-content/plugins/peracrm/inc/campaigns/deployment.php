@@ -140,6 +140,20 @@ final class PeraCRM_Campaign_Deployment
         } else { new PeraCRM_CampaignOutputCipher($v['keys'],$v['active']); }
         return $v;
     }
+    /** Verification keys may be retained beyond issuance expiry. This adapter
+     * cannot issue a token and restricts both human and machine use to our inbox. */
+    public function internalWithdrawal(): PeraCRM_CampaignRecipientWithdrawal
+    {
+        $this->requireScope();
+        $binding=$this->binding();
+        if (!peracrm_campaigns_schema_ready()) { throw new RuntimeException('withdrawal_scope'); }
+        $keys=$this->ring('signing',false)['keys'];
+        require_once __DIR__.'/recipient-withdrawal.php';
+        return new PeraCRM_CampaignRecipientWithdrawal(
+            new PeraCRM_CampaignRecipientPersistence($binding['deployment'],$binding['blog_id']),
+            $keys,$binding['deployment'],true);
+    }
+
     public function checks(): array
     {
         $out=array_fill_keys(['deployment_scope','provider_identity','token_signing_keys','output_encryption_keys'],'unavailable');

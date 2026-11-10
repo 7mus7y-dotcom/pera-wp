@@ -9,13 +9,14 @@ final class PeraCRM_CampaignRecipientWithdrawal
     private $keys;
     private $verifier;
     private $deployment;
+    private bool $internalOnly;
 
-    public function __construct(PeraCRM_CampaignRecipientPersistence $store, #[\SensitiveParameter] array $keys, string $deployment)
+    public function __construct(PeraCRM_CampaignRecipientPersistence $store, #[\SensitiveParameter] array $keys, string $deployment, bool $internalOnly=false)
     {
         peracrm_campaign_recipient_require(!isset($this->store));
         $this->verifier = new PeraCRM_CampaignRecipientTokens($keys, (string)array_key_first($keys), $deployment, [$store,'activeBinding']);
         $this->store = $store; $this->keys = $keys;
-        $this->deployment = $deployment;
+        $this->deployment = $deployment; $this->internalOnly=$internalOnly;
     }
 
     /** Read-only display authorization. Never acquire the inserting mailbox mutex. */
@@ -25,6 +26,7 @@ final class PeraCRM_CampaignRecipientWithdrawal
             if (strlen($token) > 256) { return false; }
             $data = $this->store->locate(hash('sha256', $token));
             return $data !== null && $data['purpose'] === 'unsubscribe'
+                && (!$this->internalOnly || ($data['binding']['mailbox']??null)==='info@peraproperty.com')
                 && $this->verifier->verify($token, 'unsubscribe', $data['binding'], time());
         } catch (Throwable $error) { return false; }
     }
@@ -44,7 +46,7 @@ final class PeraCRM_CampaignRecipientWithdrawal
         $confirmed = $type === 'application/x-www-form-urlencoded' && ($machine
             ? $body === 'List-Unsubscribe=One-Click'
             : is_array($body) && ($body['confirm'] ?? null) === 'withdraw');
-        if (!$confirmed || !$this->store->withdrawToken($token, $this->keys, $this->deployment)) { return $failed; }
+        if (!$confirmed || ($this->internalOnly && !$this->valid($token)) || !$this->store->withdrawToken($token, $this->keys, $this->deployment)) { return $failed; }
         return [200, 'Your permission to receive marketing email has been withdrawn.'];
     }
     public function __debugInfo(): array { return ['service'=>'peracrm_recipient_withdrawal','redacted'=>true]; }
@@ -52,13 +54,17 @@ final class PeraCRM_CampaignRecipientWithdrawal
     public function __unserialize(array $data): void { throw new LogicException('recipient_service_unavailable'); }
 }
 
-/** Activation is intentionally blocked. A future reviewed factory must settle
- * old-mailbox/deletion policy, verification-key retention and host-log redaction.
- * There is no filter, option, secret lookup or staff/worker issuance fallback.
- */
+/** Explicit deployment-bound verification only. No token issuance, send authority,
+ * credential discovery or caller-provided mailbox. Off unless configured. */
 function peracrm_campaign_recipient_withdrawal_service(): ?PeraCRM_CampaignRecipientWithdrawal
 {
-    return null;
+    if (!defined('PERACRM_CAMPAIGN_WITHDRAWAL_HTTP') || PERACRM_CAMPAIGN_WITHDRAWAL_HTTP!==true) { return null; }
+    try {
+        require_once __DIR__.'/deployment.php';
+        $deployment=peracrm_campaign_deployment_service();
+        if (!$deployment) { return null; }
+        return $deployment->internalWithdrawal();
+    } catch (Throwable $error) { return null; }
 }
 
 /** Both production and disposable HTTP fixtures use this exact response boundary. */
