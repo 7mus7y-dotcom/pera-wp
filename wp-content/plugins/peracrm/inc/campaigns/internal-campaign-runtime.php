@@ -153,7 +153,7 @@ final class PeraCRM_Internal_Campaign_Runtime
             $claims=$worker->claim($job,1);
             if (count($claims)!==1 || $claims[0]['mailbox']!==self::MAILBOX) { throw new RuntimeException('rehearsal_claim'); }
             $native=$this->transport??new PeraCRM_Campaign_SES_SDK_Transport($preparation->scope(),$this->deployment->credentials());
-            $guarded=new PeraCRM_Internal_Campaign_Transport($native,fn()=>$this->authorizeSend(),$this->transport===null);
+            $guarded=new PeraCRM_Internal_Campaign_Transport($native,fn()=>$this->authorizeSend());
             $result=$worker->submitPrepared($claims[0],$preparation,new PeraCRM_Campaign_SES_Mapper($preparation->scope(),$guarded),
                 new PeraCRM_Campaign_Worker_Preflight($budget,static fn()=>time()));
             $worker->completion($job);
@@ -211,11 +211,11 @@ final class PeraCRM_Internal_Campaign_Runtime
     public function __serialize(): array { throw new LogicException('rehearsal_serialization_disabled'); }
 }
 
-/** Final per-request guard plus optional public unsubscribe read preflight. */
+/** Final fixed-recipient guard. No extra network call after worker authorization. */
 final class PeraCRM_Internal_Campaign_Transport implements PeraCRM_Campaign_SES_Transport
 {
     private bool $used=false;
-    public function __construct(private PeraCRM_Campaign_SES_Transport $native,private Closure $authorize,private bool $http=true) {}
+    public function __construct(private PeraCRM_Campaign_SES_Transport $native,private Closure $authorize) {}
     public function send(#[SensitiveParameter] array $request,array $options): array
     {
         ($this->authorize)();
@@ -224,23 +224,6 @@ final class PeraCRM_Internal_Campaign_Transport implements PeraCRM_Campaign_SES_
             throw new RuntimeException('rehearsal_recipient');
         }
         $this->used=true;
-        if ($this->http) {
-            $header=$request['Content']['Simple']['Headers'][0]??[];
-            $url=trim($header['Value']??'','<>');
-            $parts=parse_url($url);
-            if (($header['Name']??null)!=='List-Unsubscribe' || ($parts['scheme']??null)!=='https'
-                || ($parts['host']??null)!=='www.peraproperty.com'
-                || !in_array($parts['path']??null,['/email-unsubscribe/','/email-unsubscribe/one-click/'],true)
-                || array_intersect(['port','user','pass','fragment'],array_keys($parts))) { throw new RuntimeException('rehearsal_link'); }
-            // The machine route accepts POST only. Check the human confirmation
-            // for this same token; GET must not withdraw permission.
-            $url=str_replace('/email-unsubscribe/one-click/','/email-unsubscribe/',$url);
-            $response=wp_safe_remote_get($url,['timeout'=>5,'redirection'=>0,'sslverify'=>true,'limit_response_size'=>8192]);
-            if (is_wp_error($response) || wp_remote_retrieve_response_code($response)!==200
-                || !str_contains(wp_remote_retrieve_body($response),'Opening this page makes no changes.')) {
-                throw new RuntimeException('rehearsal_link');
-            }
-        }
         ($this->authorize)();
         return $this->native->send($request,$options);
     }

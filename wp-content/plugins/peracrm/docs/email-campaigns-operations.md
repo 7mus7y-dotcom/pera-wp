@@ -1115,11 +1115,13 @@ count; do not assume the topic guarantees a single recipient. Keep
 
 The real path uses the existing frozen renderer, token registry, encrypted
 output, prepared worker, final consent/suppression checks and SES mapper.
-Immediately before native transport, it checks the public human unsubscribe
-confirmation with a non-mutating GET using the prepared token, rejects redirects
-and other hosts, and checks the fixed sender and recipient again. This GET may
-appear in host/WAF logs: protect those logs and keep this to the authorized
-internal token. The check has no authority to withdraw consent.
+Immediately before native transport, it checks the fixed sender and recipient
+again. Public route sanity probes run before authorization is consumed and
+contain no token or real event. No additional HTTP preflight is inserted
+between the worker's final consent/suppression fence and SES submission.
+Verify the actual token-bearing public link manually in the received message;
+this rehearsal does not claim an HTTP click from the local handler tests.
+Protect host/WAF query-string logs before that manual link test.
 
 Confirm the Yahoo inbox message, text/HTML/link/Reply-To and one-click headers,
 then manually test unsubscribe and verify the subscriber becomes ineligible.
