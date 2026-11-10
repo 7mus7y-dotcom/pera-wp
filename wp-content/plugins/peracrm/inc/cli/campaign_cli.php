@@ -11,6 +11,8 @@ function peracrm_campaign_cli($operation, $args, $assoc)
         if (in_array($operation,['quota-refresh','internal-probe'],true)) { $allowed=['format','confirm']; }
         if ($operation==='budget-recover') { $allowed=['format','version','confirm']; }
         if ($operation==='suppression-sync') { $allowed=['format','pages','confirm','restart']; }
+        if ($operation==='rehearsal-proposal') { $allowed=['format','job']; }
+        if ($operation==='rehearsal-send') { $allowed=['format','job','binding','confirm']; }
         if ($args || array_diff(array_keys($assoc), $allowed)) { throw new InvalidArgumentException(); }
         $format=$assoc['format'] ?? 'json';
         if (!in_array($format,['json','text'],true)) { throw new InvalidArgumentException(); }
@@ -43,6 +45,17 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             $data=$service->suppression_sync($pages,$restart);
             if ($data['state']==='disabled') { $exit=2; }
             elseif ($data['state']==='failed' || !empty($data['stale'])) { $exit=4; }
+        } elseif (in_array($operation,['rehearsal-proposal','rehearsal-send','rehearsal-status'],true)) {
+            $job=0;
+            if ($operation!=='rehearsal-status') {
+                if (!is_string($assoc['job']??null) || preg_match('/\A[1-9][0-9]{0,9}\z/',$assoc['job'])!==1) { throw new InvalidArgumentException(); }
+                $job=(int)$assoc['job'];
+            }
+            if ($operation==='rehearsal-send' && (($assoc['confirm']??null)!=='send-one-to-yahoo'
+                || !is_string($assoc['binding']??null) || preg_match('/\A[a-f0-9]{64}\z/',$assoc['binding'])!==1)) { throw new InvalidArgumentException(); }
+            $data=$service->rehearsal($operation,$job,$assoc['binding']??'');
+            if (($data['state']??null)==='disabled') { $exit=2; }
+            elseif ($operation==='rehearsal-send' && ($data['delivery_state']??null)!=='accepted') { $exit=4; }
         } elseif ($operation==='internal-probe') {
             $confirmation=$assoc['confirm']??null;
             $attempt=match ($confirmation) {
@@ -88,6 +101,6 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
 }
-foreach (['readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','internal-probe-status','fixture-run','fixture-recover'] as $operation) {
+foreach (['readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','internal-probe-status','rehearsal-proposal','rehearsal-send','rehearsal-status','fixture-run','fixture-recover'] as $operation) {
     WP_CLI::add_command('peracrm campaigns '.$operation, static function ($args,$assoc) use ($operation) { peracrm_campaign_cli($operation,$args,$assoc); });
 }

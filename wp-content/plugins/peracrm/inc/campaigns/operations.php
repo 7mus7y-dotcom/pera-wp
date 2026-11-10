@@ -192,6 +192,25 @@ class PeraCRM_Campaign_Operations
             return $status?PeraCRM_SES_Internal_Probe::status():PeraCRM_SES_Internal_Probe::run($attempt);
         });
     }
+    public function rehearsal(string $operation,int $job=0,string $binding=''): array
+    {
+        $this->authorize_read();
+        return $this->context(static function () use ($operation,$job,$binding) {
+            require_once __DIR__.'/internal-campaign-runtime.php';
+            PeraCRM_SES_Operator::authorize();
+            if ($operation==='rehearsal-status') { return PeraCRM_Internal_Campaign_Runtime::status(); }
+            $deployment=peracrm_campaign_deployment_service();
+            if (!$deployment) { return ['state'=>'disabled']; }
+            if ($operation==='rehearsal-send') {
+                if (!defined('PERACRM_CAMPAIGN_REHEARSAL_IDENTITY') || !is_array(PERACRM_CAMPAIGN_REHEARSAL_IDENTITY)) {
+                    return ['state'=>'disabled'];
+                }
+                $deployment=$deployment->withTemporaryIdentity(PERACRM_CAMPAIGN_REHEARSAL_IDENTITY);
+            }
+            $service=new PeraCRM_Internal_Campaign_Runtime($deployment);
+            return $operation==='rehearsal-proposal'?$service->proposal($job):$service->send($job,$binding);
+        });
+    }
     /** Production has no concrete worker/provider. Gate precedes every delivery read/write. */
     public function invoke(bool $recover_only = false, array $bounds = []): array
     {

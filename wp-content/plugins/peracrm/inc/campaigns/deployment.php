@@ -140,6 +140,18 @@ final class PeraCRM_Campaign_Deployment
         } else { new PeraCRM_CampaignOutputCipher($v['keys'],$v['active']); }
         return $v;
     }
+    /** Explicit command-scoped identity composition. The persistent HTTP key
+     * bundle and the ordinary factory are never modified or given credentials. */
+    public function withTemporaryIdentity(#[\SensitiveParameter] array $identity): self
+    {
+        $this->requireScope();
+        $copy=new self($this->manifest,array_replace($this->material,['identity'=>$identity]),$this->clock,$this->runtime);
+        $credentials=$copy->credentials();
+        if (!$credentials->getSecurityToken() || $credentials->getExpiration()===null
+            || $credentials->getExpiration()>time()+3600) { throw new RuntimeException('deployment_identity'); }
+        return $copy;
+    }
+
     /** Verification keys may be retained beyond issuance expiry. This adapter
      * cannot issue a token and restricts both human and machine use to our inbox. */
     public function internalWithdrawal(): PeraCRM_CampaignRecipientWithdrawal

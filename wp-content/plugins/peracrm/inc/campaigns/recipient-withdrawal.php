@@ -26,7 +26,7 @@ final class PeraCRM_CampaignRecipientWithdrawal
             if (strlen($token) > 256) { return false; }
             $data = $this->store->locate(hash('sha256', $token));
             return $data !== null && $data['purpose'] === 'unsubscribe'
-                && (!$this->internalOnly || ($data['binding']['mailbox']??null)==='info@peraproperty.com')
+                && (!$this->internalOnly || in_array($data['binding']['mailbox']??null,['info@peraproperty.com','mus7y@yahoo.co.uk'],true))
                 && $this->verifier->verify($token, 'unsubscribe', $data['binding'], time());
         } catch (Throwable $error) { return false; }
     }
