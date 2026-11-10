@@ -141,6 +141,7 @@ final class PeraCRM_Internal_Campaign_Runtime
                 if (($http[$key]??null)!==($this->deployment->binding()[$field]??null)
                     || ($operations[$key]??null)!==($http[$key]??null)) { throw new RuntimeException('rehearsal_http_configuration'); }
             }
+            self::requirePublicEndpoints();
             $credentials=$this->deployment->credentials();
             (new PeraCRM_SES_Operator_API($pins,'PeraCRMCampaignRehearsal',$credentials))->attest();
         }
@@ -162,6 +163,22 @@ final class PeraCRM_Internal_Campaign_Runtime
             throw new RuntimeException('rehearsal_interrupted');
         } finally { $this->active=false; }
         return self::status();
+    }
+    /** No bearer or real event is transmitted by this pre-consumption probe. */
+    private static function requirePublicEndpoints(): void
+    {
+        $get=wp_safe_remote_get('https://www.peraproperty.com/email-unsubscribe/',
+            ['timeout'=>5,'redirection'=>0,'sslverify'=>true,'limit_response_size'=>8192]);
+        if (is_wp_error($get) || wp_remote_retrieve_response_code($get)!==400
+            || !str_contains(wp_remote_retrieve_body($get),'Please use the original withdrawal link.')) {
+            throw new RuntimeException('rehearsal_http_unavailable');
+        }
+        $post=wp_safe_remote_post('https://www.peraproperty.com/peracrm-ses-sns/',
+            ['timeout'=>5,'redirection'=>0,'sslverify'=>true,'limit_response_size'=>1024,
+                'headers'=>['Content-Type'=>'application/json'],'body'=>'{}']);
+        if (is_wp_error($post) || wp_remote_retrieve_response_code($post)!==400) {
+            throw new RuntimeException('rehearsal_http_unavailable');
+        }
     }
     private function authorizeSend(): void
     {

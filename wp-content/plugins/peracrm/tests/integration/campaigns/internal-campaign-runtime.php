@@ -7,6 +7,23 @@ worker_fixture_target(static function () {
     global $wpdb;
     $wpdb->query('SET timestamp=0');
     wp_set_current_user((int)get_option('campaign_fixture_administrator'));
+    $endpointCheck=new ReflectionMethod(PeraCRM_Internal_Campaign_Runtime::class,'requirePublicEndpoints');
+    $endpointMode='ready'; $requests=[];
+    $http=static function ($pre,$args,$url) use (&$endpointMode,&$requests) {
+        $requests[]=[$url,$args['body']??null];
+        $withdraw=str_ends_with($url,'/email-unsubscribe/');
+        $status=($endpointMode==='withdraw-unavailable' && $withdraw)?503:
+            (($endpointMode==='sns-blocked' && !$withdraw)?403:400);
+        return ['response'=>['code'=>$status,'message'=>'Fixture'],'headers'=>[],
+            'body'=>$withdraw?'Please use the original withdrawal link.':'Request unavailable.','cookies'=>[]];
+    };
+    add_filter('pre_http_request',$http,999,3);
+    try {
+        $endpointCheck->invoke(null);
+        foreach (['withdraw-unavailable','sns-blocked'] as $endpointMode) { prepared_reject(fn()=>$endpointCheck->invoke(null)); }
+        prepared_expect(!array_filter($requests,static fn($r)=>str_contains($r[0],'token=') || !in_array($r[1],[null,'{}'],true)),
+            'pre-consumption public checks contain no token or real event');
+    } finally { remove_filter('pre_http_request',$http,999); }
     $config=peracrm_campaign_configuration(true); $oldConfig=$config['document'];
     $doc=$oldConfig;
     $doc['senders']=[['id'=>'rehearsal','name'=>'Rehearsal fixture','email'=>'info@peraproperty.com','reply_to'=>'info@peraproperty.com','approved'=>true]];

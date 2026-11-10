@@ -1089,6 +1089,10 @@ count; do not assume the topic guarantees a single recipient. Keep
    `ses:FromAddress=info@peraproperty.com`, and only
    `ses:Recipients=mus7y@yahoo.co.uk` with the recipient condition required.
    The runtime independently verifies the actual account and role with STS.
+   Before consuming authorization it also checks that the public withdrawal
+   route rejects a missing token and the SNS route rejects an empty JSON
+   object, using only requests without credentials or tokens. A 404, 503,
+   redirect, or WAF rejection blocks before claiming the campaign.
    This role is separate from the fixed inbox-probe and read-only roles.
 4. Refresh suppression and quota with the read role first. The existing
    diagnostic 20/day cap is enough for this single recipient; do not increase
