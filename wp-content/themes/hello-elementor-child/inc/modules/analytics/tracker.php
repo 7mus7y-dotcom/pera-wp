@@ -284,6 +284,36 @@ if ( ! function_exists( 'pera_analytics_get_request_country' ) ) {
 	}
 }
 
+/**
+ * Reject tracking records with runaway archive pagination embedded in filters.
+ * This only affects analytics ingestion; it does not block page requests or crawlers.
+ * Examine both the current URL and the referring URL because the tracker reports
+ * the current page path separately from the full (potentially malformed) URL.
+ */
+if ( ! function_exists( 'pera_analytics_has_runaway_pagination_url' ) ) {
+	function pera_analytics_has_runaway_pagination_url( string $url ): bool {
+		if ( '' === $url ) {
+			return false;
+		}
+		$query = wp_parse_url( $url, PHP_URL_QUERY );
+		if ( ! is_string( $query ) || '' === $query ) {
+			return false;
+		}
+		parse_str( $query, $args );
+		foreach ( $args as $value ) {
+			if ( ! is_string( $value ) ) {
+				continue;
+			}
+			// Legitimate archive filters never contain embedded pagination paths.
+			// Require at least two to avoid rejecting unusual but harmless values.
+			if ( preg_match_all( '~(?:/|%2f)page(?:/|%2f)[0-9]+(?:/|%2f)~i', $value ) >= 2 ) {
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
 if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 	function pera_analytics_handle_track_request(): void {
 		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) ) ) : '';
@@ -323,6 +353,10 @@ if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 		if ( '' === $referer && isset( $_SERVER['HTTP_REFERER'] ) ) {
 			$referer = esc_url_raw( wp_unslash( (string) $_SERVER['HTTP_REFERER'] ) );
 		}
+		if ( pera_analytics_has_runaway_pagination_url( $page_url ) || pera_analytics_has_runaway_pagination_url( $referer ) ) {
+			wp_send_json_success( array( 'tracked' => false, 'reason' => 'malformed_pagination' ) );
+		}
+
 		$source    = pera_analytics_classify_referer_source( $referer, pera_analytics_normalize_host( $site_host ) );
 		$country   = pera_analytics_get_request_country();
 
