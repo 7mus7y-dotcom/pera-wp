@@ -42,6 +42,15 @@ if ( ! function_exists( 'pera_render_property_pagination' ) ) {
       $base = pera_ml_url( home_url( trailingslashit( ltrim( $base, '/' ) ) ) );
     }
 
+    // Keep query parameters out of the path used to construct pretty permalinks.
+    // paginate_links() receives legitimate filter arguments separately via add_args.
+    // Otherwise /page/N/ can be appended inside a query value (e.g. _specials),
+    // producing unbounded, malformed archive URLs when crawlers follow pagination.
+    $base_parts = wp_parse_url( $base );
+    if ( is_array( $base_parts ) && isset( $base_parts['query'] ) ) {
+      $base = strtok( $base, '?#' );
+    }
+
     $format = '';
 
     if ( get_option( 'permalink_structure' ) ) {
