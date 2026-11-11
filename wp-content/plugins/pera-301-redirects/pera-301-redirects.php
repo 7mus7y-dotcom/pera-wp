@@ -735,3 +735,62 @@ function pera_redirects_execute_redirect()
     exit;
 }
 add_action('template_redirect', 'pera_redirects_execute_redirect', 1);
+
+/**
+ * Recover historical suffix-free URLs for standard blog posts only.
+ * Runs after the explicit redirect manager and only for genuine 404s.
+ * Pages, property CPTs, archives and language-prefixed routes are excluded.
+ */
+function pera_redirects_legacy_blog_post_redirect()
+{
+    if (!is_404() || is_admin() || wp_doing_ajax() || wp_doing_cron() || (defined('REST_REQUEST') && REST_REQUEST)) {
+        return;
+    }
+
+    $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper((string) $_SERVER['REQUEST_METHOD']) : '';
+    if ($method !== 'GET' && $method !== 'HEAD') {
+        return;
+    }
+
+    $uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash((string) $_SERVER['REQUEST_URI']) : '';
+    $path = wp_parse_url($uri, PHP_URL_PATH);
+    // Only legacy root-level article slugs; never property, page or localized routes.
+    if (!is_string($path) || !preg_match('~^/([a-z0-9]+(?:-[a-z0-9]+)*)/?$~D', $path, $matches)) {
+        return;
+    }
+    $slug = $matches[1];
+
+    // Do not treat an already-suffixed URL as a legacy source.
+    if (preg_match('/_[0-9]+$/', $slug)) {
+        return;
+    }
+
+    // Exact post_name match, published standard posts only. No fuzzy matching.
+    $posts = get_posts(array(
+        'name' => $slug,
+        'post_type' => 'post',
+        'post_status' => 'publish',
+        'posts_per_page' => 2,
+        'suppress_filters' => true,
+        'no_found_rows' => true,
+    ));
+    if (count($posts) !== 1) {
+        return;
+    }
+
+    $post = $posts[0];
+    $destination = get_permalink($post->ID);
+    if (!is_string($destination) || $destination === '') {
+        return;
+    }
+
+    $destination_path = wp_parse_url($destination, PHP_URL_PATH);
+    // This fallback is exclusively for canonical blog permalinks ending _POST_ID.
+    if (!is_string($destination_path) || !preg_match('~^/' . preg_quote($slug, '~') . '_' . (int) $post->ID . '/?$~D', $destination_path)) {
+        return;
+    }
+
+    wp_safe_redirect($destination, 301, 'Pera Legacy Blog Permalink');
+    exit;
+}
+add_action('template_redirect', 'pera_redirects_legacy_blog_post_redirect', 2);
