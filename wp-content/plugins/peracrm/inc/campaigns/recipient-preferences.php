@@ -69,7 +69,7 @@ function peracrm_campaign_recipient_preferences_service(): ?PeraCRM_CampaignReci
 function peracrm_campaign_recipient_preferences_respond(?PeraCRM_CampaignRecipientPreferences $service): void
 {
     peracrm_subscribers_private_headers();
-    header("Content-Security-Policy: default-src 'none'; style-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+    header('Content-Security-Policy: '.peracrm_campaign_public_page_csp());
     header('Content-Type: text/html; charset=UTF-8');
     $method=$_SERVER['REQUEST_METHOD']??'';
     if (!peracrm_subscribers_on_authoritative_domain()) { status_header(400); if ($method!=='HEAD') { echo 'Request unavailable.'; } return; }

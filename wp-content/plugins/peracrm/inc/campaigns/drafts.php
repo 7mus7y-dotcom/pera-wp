@@ -1,5 +1,6 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
+require_once __DIR__.'/presentation.php';
 
 function peracrm_campaign_drafts_require($write = false, $configuration = false)
 {

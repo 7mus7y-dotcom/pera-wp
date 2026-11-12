@@ -1,6 +1,7 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 require_once __DIR__.'/recipient-persistence.php';
+require_once __DIR__.'/presentation.php';
 
 /** Explicitly injected verification keys. No provisioning, issuance or production factory. */
 final class PeraCRM_CampaignRecipientWithdrawal
@@ -71,7 +72,7 @@ function peracrm_campaign_recipient_withdrawal_service(): ?PeraCRM_CampaignRecip
 function peracrm_campaign_recipient_withdrawal_respond(?PeraCRM_CampaignRecipientWithdrawal $service, bool $machine): void
 {
     peracrm_subscribers_private_headers();
-    header("Content-Security-Policy: default-src 'none'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+    header('Content-Security-Policy: '.peracrm_campaign_public_page_csp());
     header('Content-Type: text/html; charset=UTF-8');
     $method = $_SERVER['REQUEST_METHOD'] ?? '';
     // Explicit route authority check precedes any token read or mutation.
@@ -86,11 +87,13 @@ function peracrm_campaign_recipient_withdrawal_respond(?PeraCRM_CampaignRecipien
     if ($status === 405) { header('Allow: '.($machine ? 'POST' : 'GET, HEAD, POST')); }
     if ($method === 'HEAD') { return; }
     if ($machine) { echo $status === 200 ? 'Withdrawal recorded.' : 'Request unavailable.'; return; }
-    // No theme hooks, scripts, analytics, stylesheets or third-party assets.
-    echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><title>Email withdrawal</title></head><body><main><h1>Email withdrawal</h1>';
+    // Branded HTML remains self-contained. Machine responses above remain plain text.
+    $success=$status===200 && $message!=='confirm';
+    $title=$message==='confirm'?'Unsubscribe from Pera Property':($success?"You're unsubscribed":($status===503?'Please try again shortly':'This link is unavailable'));
+    peracrm_campaign_public_page_start($title,'Your email choices',$success?'success':($status===200?'neutral':'error'));
     if ($message === 'confirm') {
-        echo '<p>Opening this page makes no changes. Confirm to stop all marketing email.</p><form method="post" action="'.esc_url(home_url('/email-unsubscribe/')).'">';
+        echo '<p>You are in control of the emails you receive from Pera Property.</p><p class="email-note">Opening this page makes no changes. Confirm to stop all marketing email.</p><form class="email-form" method="post" action="'.esc_url(home_url('/email-unsubscribe/')).'">';
         echo '<input type="hidden" name="token" value="'.esc_attr($token).'"><button type="submit" name="confirm" value="withdraw">Unsubscribe from all marketing email</button></form>';
-    } else { echo '<p role="status">'.esc_html($message).'</p>'; }
-    echo '</main></body></html>';
+    } else { echo '<p role="status">'.esc_html($message).'</p>'; if ($success) { echo '<p class="email-note">You will no longer receive marketing email from Pera Property. No further action is needed.</p>'; } }
+    peracrm_campaign_public_page_end();
 }

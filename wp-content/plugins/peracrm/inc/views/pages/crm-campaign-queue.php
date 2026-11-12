@@ -9,9 +9,9 @@ peracrm_frontend_render_shell_header();
 <main id="primary" class="site-main crm-page crm-page--campaigns">
 <?php peracrm_frontend_render_partial('crm-header',['title'=>'Operational queue','active_view'=>'campaigns']); ?>
 <section class="content-panel content-panel--overlap-hero"><div class="content-panel-box border-dm crm-layout"><div class="crm-layout__main peracrm-campaigns peracrm-queue">
-<nav class="peracrm-campaign-actions" aria-label="Queue navigation"><a href="<?php echo esc_url(peracrm_campaign_drafts_url()); ?>">Campaigns</a><a href="<?php echo esc_url(peracrm_campaign_queue_url()); ?>">Queue overview</a><?php if ($campaign) : ?><a href="<?php echo esc_url(peracrm_campaign_drafts_url($campaign.'/')); ?>">Campaign #<?php echo (int)$campaign; ?></a><a href="<?php echo esc_url(peracrm_campaign_queue_url($campaign)); ?>">Published revisions and campaign jobs</a><?php endif; ?></nav>
+<nav class="peracrm-campaign-actions campaign-nav" aria-label="Queue navigation"><a href="<?php echo esc_url(peracrm_campaign_drafts_url()); ?>">Campaigns</a><a href="<?php echo esc_url(peracrm_campaign_queue_url()); ?>">Queue overview</a><?php if ($campaign) : ?><a href="<?php echo esc_url(peracrm_campaign_drafts_url($campaign.'/')); ?>">Campaign #<?php echo (int)$campaign; ?></a><a href="<?php echo esc_url(peracrm_campaign_queue_url($campaign)); ?>">Published revisions and campaign jobs</a><?php endif; ?></nav>
 <p class="crm-notice peracrm-queue-disabled" role="note"><strong>Dispatch disabled — scheduled work will not send.</strong></p>
-<p>Queue preparation and lifecycle intent only. Sending, real intake and public collection remain disabled.</p>
+<p class="campaign-intro">Prepare and inspect delivery jobs. Ordinary dispatch and scheduling remain disabled.</p>
 <?php try {
 if ($campaign && !peracrm_campaign_draft_get($campaign)) { throw new RuntimeException(); }
 if ($job) {
