@@ -66,15 +66,15 @@ const fixture = `<style>${css}</style><style>
         assert(Math.abs(rect.y + rect.height - 800) < 1, 'fixed mobile bottom');
         assert(rect.height >= 65 && rect.height <= 90, 'compact height');
         const enquire = await bar.locator('a[href="#contact-form"]').boundingBox();
-        const whatsapp = await page.locator('#floating-whatsapp').boundingBox();
+        const whatsapp = await bar.locator('.property-sticky-summary__whatsapp').boundingBox();
         assert(Math.abs(enquire.height - whatsapp.height) < 1, 'mobile action heights match');
         const inner = await bar.locator('.property-sticky-summary__inner').boundingBox();
         assert.equal(Math.round(inner.x), 16, '16px mobile side padding');
-        assert.equal(await bar.locator('#floating-whatsapp').count(), 1);
+        assert.equal(await bar.locator('.property-sticky-summary__whatsapp').count(), 1);
         assert.equal(await page.locator('#floating-whatsapp').count(), 1);
-        assert.equal(await page.locator('#floating-whatsapp').evaluate(e => e === window.originalWhatsApp), true);
-        await page.locator('#floating-whatsapp').click();
-        assert.equal(await page.evaluate(() => window.waClicks), 1, 'original click listener survives');
+        assert.equal(await page.locator('#floating-whatsapp').isHidden(), true, 'global floating control hidden while sticky mobile action is visible');
+        assert.equal(await bar.locator('.property-sticky-summary__whatsapp').getAttribute('href'), 'https://wa.me/905452054356');
+        assert(await bar.locator('.property-sticky-summary__whatsapp').evaluate(e => e.classList.contains('btn--green')), 'shared green button variant retained');
         assert.equal(await page.locator('#floating-whatsapp').evaluate(e => e.outerHTML), attributes, 'all URL and tracking attributes preserved');
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no document overflow');
         assert(await bar.evaluate(e => [...e.querySelectorAll('a')].every(a => { const r = a.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; })), 'actions fit');
@@ -109,6 +109,7 @@ const fixture = `<style>${css}</style><style>
       await page.evaluate(() => document.getElementById('language-toggle').setAttribute('aria-expanded','false')); await visible(true);
       await page.evaluate(() => document.body.classList.add('is-nav-open')); await visible(false);
       assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1);
+      assert.equal(await page.locator('#floating-whatsapp').isVisible(), true);
       await page.evaluate(() => document.body.classList.remove('is-nav-open')); await visible(true);
       await page.evaluate(() => document.getElementById('cookie-banner').classList.add('cookie-banner--visible')); await visible(false);
       await page.evaluate(() => document.getElementById('cookie-banner').classList.remove('cookie-banner--visible')); await visible(true);

@@ -3222,6 +3222,7 @@ text-decoration:underline;
   text-decoration: none;
   transition: all 0.25s ease;
 }
+.floating-whatsapp[hidden] { display: none; }
 .floating-whatsapp:hover {
   background: #ffffff;
   color: var(--brand);
@@ -5690,27 +5691,11 @@ ol.pretty-list li::before {
   .property-sticky-summary__price { font-size: var(--fs-ui-md); line-height: 1.25; }
   .property-sticky-summary__type { display: none; }
   .property-sticky-summary__actions { gap: var(--space-xs); flex-shrink: 0; max-width: 60%; }
-  .property-sticky-summary__actions .btn {
-    padding: var(--space-xs);
-    min-height: 44px;
-    max-width: 100px;
-    font-size: var(--fs-ui-xs);
-    overflow-wrap: anywhere;
-    text-align: center;
+  .property-sticky-summary__actions .btn { min-height: 44px; }
+  .property-sticky-summary__whatsapp {
+    display: inline-flex;
+    padding-inline: var(--space-sm);
   }
-  .property-sticky-summary__whatsapp { display: flex; }
-  .property-sticky-summary .floating-whatsapp {
-    position: static;
-    width: 44px;
-    min-height: 44px;
-    height: auto;
-    background: var(--brand-green);
-    border-radius: var(--radius);
-    box-shadow: none;
-    transition: none;
-    transform: none;
-  }
-  .property-sticky-summary .floating-whatsapp__tooltip { display: none; }
 }
 
 /* Regional Guides discovery map. Leaflet remains below the site navigation. */

@@ -817,7 +817,25 @@ $has_further_reading = ! empty( $post_ids );
         <?php endif; ?>
       </div>
       <div class="property-sticky-summary__actions">
-        <span class="property-sticky-summary__whatsapp"></span>
+        <a
+          class="btn btn--solid btn--green property-sticky-summary__whatsapp"
+          href="<?php echo esc_url( $wa_url ); ?>"
+          target="_blank"
+          rel="noopener"
+          data-whatsapp="1"
+          data-whatsapp-type="property_detail_sticky"
+          data-track-channel="whatsapp"
+          data-track-intent="high"
+          data-track-source="template"
+          data-track-context="property_detail"
+          data-track-ga4-event="whatsapp_click"
+          data-track-crm-event="whatsapp_click"
+        >
+          <svg class="icon" aria-hidden="true" width="18" height="18">
+            <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
+          </svg>
+          <span class="screen-reader-text"><?php echo esc_html( pera_ml_ui( 'WhatsApp', 'theme.template.single_property.whatsapp' ) ); ?></span>
+        </a>
         <a class="btn btn--solid btn--blue" href="#contact-form"><?php echo esc_html( pera_ml_ui( 'Enquire', 'theme.template.single_property.enquire' ) ); ?></a>
       </div>
     </div>

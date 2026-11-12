@@ -14,9 +14,6 @@
     trigger.style.cssText = 'position:absolute;inset-inline-start:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
     document.body.appendChild(trigger);
     var mobile = window.matchMedia('(max-width: 768px)');
-    var slot = bar.querySelector('.property-sticky-summary__whatsapp');
-    var home = document.createComment('Floating WhatsApp home');
-    if (floating) floating.before(home);
     var headerBottom = 0;
     var triggerObserver;
     var formObserver;
@@ -27,14 +24,9 @@
       var blocked = document.body.matches('.is-nav-open, .is-lightbox-open, .pera-offer-video-modal-open') ||
         document.querySelector('.cookie-banner--visible, dialog[open], #site-header [aria-expanded="true"], #site-header .is-open');
       var visible = pastHeader && !formVisible && !blocked;
-      // Move the original node: preserve its URL, translated label, tracking and listeners.
-      if (floating) {
-        if (visible && mobile.matches) {
-          if (floating.parentNode !== slot) slot.appendChild(floating);
-        } else if (floating.parentNode === slot) {
-          home.after(floating);
-        }
-      }
+      // The sticky bar has its own standard button; avoid showing the global
+      // floating control beside it on mobile.
+      if (floating) floating.hidden = visible && mobile.matches;
       if (!visible && bar.contains(document.activeElement)) {
         header.querySelector('a, button')?.focus({ preventScroll: true });
       }
