@@ -3,6 +3,21 @@ require_once __DIR__.'/ses-suppression-fixture.php';
 require_once WP_PLUGIN_DIR.'/peracrm/inc/campaigns/event-processing.php';
 function processing_service(array $v): PeraCRM_SES_Processing { return new PeraCRM_SES_Processing(sns_verifier($v),$v['deployment'],get_current_blog_id(),ses_event_scope()); }
 function processing_scope(array $v): string { return hash('sha256',json_encode(['provider'=>'ses_sns','deployment'=>$v['deployment'],'blog'=>get_current_blog_id()]+$v['scope'],JSON_THROW_ON_ERROR)); }
+/** MySQL can release a disconnected session's named lock asynchronously.
+ * Wait only in this fault fixture; never release a different session's lock.
+ */
+function processing_wait_disconnected_lock(array $v): void {
+    global $wpdb;
+    $lock='peracrm-events-'.substr(hash('sha256',processing_scope($v)),0,48);
+    $deadline=hrtime(true)+2_000_000_000;
+    do {
+        $free=$wpdb->get_var($wpdb->prepare('SELECT IS_FREE_LOCK(%s)',$lock));
+        if ($wpdb->last_error!=='' || $free===null) { throw new RuntimeException('Could not inspect the disconnected fixture lock.'); }
+        if ((string)$free==='1') { return; }
+        usleep(10000);
+    } while (hrtime(true)<$deadline);
+    throw new RuntimeException('Disconnected fixture session retained its processing lock.');
+}
 function processing_receive(array $v,array $event,int $n): string {
     $id=ses_event_id($n); (new PeraCRM_SNS_Receipts(sns_verifier($v),$v['deployment'],get_current_blog_id()))->receive(ses_event_body($v,$event,$id),$v['now']); return $id;
 }
@@ -58,6 +73,7 @@ peracrm_with_target_blog(static function () {
             add_filter('query',$filter); $result=$service->redrive(1); remove_filter('query',$filter);
             sns_expect($fired && $result['result']==='blocked','downstream/progress interruption surfaced '.$point.' '.(int)$reconnect);
             sns_expect($service->health()['pending_processing']+$service->health()['failed_processing']===1,'interrupted progress remains actionable');
+            if ($reconnect) { processing_wait_disconnected_lock($v); }
             sns_expect($service->redrive(1)['completed']===1,'rollback/reconnection resumes '.$point.' '.(int)$reconnect);
             $row=peracrm_campaigns_repository_identity($seed['binding']['mailbox']);
             sns_expect((int)$row['hard_bounce']===1,'resumed suppression persisted');

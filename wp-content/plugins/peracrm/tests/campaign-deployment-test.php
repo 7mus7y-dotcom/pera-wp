@@ -120,3 +120,12 @@ deployment_expect($retained->internalWithdrawal() instanceof PeraCRM_CampaignRec
 $GLOBALS['deployment_schema_ready']=false;
 deployment_reject(fn()=>$d->internalWithdrawal(),'schema mismatch cannot activate internal verification');
 $GLOBALS['deployment_schema_ready']=true;
+
+$composed=$make($m,$verificationOnly)->withTemporaryIdentity($v['identity']);
+deployment_expect($composed->credentials()->account()===$m['account_id']
+    && $make($m,$verificationOnly)->checks()['provider_identity']==='unavailable',
+    'temporary identity composition preserves the credential-free original');
+$longIdentity=$v['identity']; $longIdentity['expires_at']=time()+7200;
+deployment_reject(fn()=>$d->withTemporaryIdentity($longIdentity),'rehearsal identity lifetime is bounded');
+$staticIdentity=$v['identity']; $staticIdentity['session_token']=null;
+deployment_reject(fn()=>$d->withTemporaryIdentity($staticIdentity),'rehearsal composition requires a temporary role session');

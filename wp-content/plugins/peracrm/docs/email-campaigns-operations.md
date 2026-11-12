@@ -1057,3 +1057,82 @@ and arrange authenticated event intake. Those paths remain disabled here.
 Verify the actual unsubscribe link and SES bounce/complaint events before any
 customer rollout. A future campaign budget must support at least 5,000 eligible
 deliveries per day; the existing 20/day cap remains diagnostic only.
+
+## Single-recipient real campaign rehearsal
+
+After the independent inbox probe and handler test, the rehearsal CLI can submit
+one real frozen campaign delivery to `mus7y@yahoo.co.uk`. It never enables the
+ordinary dispatch gate, cron, batch sending, worker recovery, or arbitrary
+recipients. The required campaign is a normally reviewed, published and fully
+materialized queue job with exactly one held recipient, no prior attempt or
+lease, and an approved sender. A wide or changed audience fails closed.
+
+Use the ordinary CRM editor to prepare a campaign whose audience contains
+only the `internal-rehearsal` topic. Verify the actual frozen recipient and job
+count; do not assume the topic guarantees a single recipient. Keep
+`info@peraproperty.com` unsubscribed after its successful handler test.
+
+1. Scope the retained deployment/key configuration to this host. The internal
+   withdrawal verifier now accepts only the two reviewed internal mailboxes
+   `info@peraproperty.com` and `mus7y@yahoo.co.uk`. Enable its HTTP route
+   explicitly with retained signing keys; do not put AWS credentials in the
+   web configuration. Keep the existing authenticated SNS HTTP intake pinned
+   to the exact production topic/configuration-set/account/region/blog. Verify
+   host-log handling before testing bearer links.
+2. With an administrator WP-CLI actor and private deployment pins, run
+   `peracrm campaigns rehearsal-proposal --job=<job-id>`.
+   This returns a recipient, count and SHA-256 binding, not a send permit.
+   Review them. Any frozen row or configuration revision change invalidates it.
+3. Use a dedicated short-lived `PeraCRMCampaignRehearsal` role with
+   `ses:SendEmail` restricted to the actual sender identity ARN, the
+   `peracrm-campaigns` configuration set in Stockholm,
+   `ses:FromAddress=info@peraproperty.com`, and only
+   `ses:Recipients=mus7y@yahoo.co.uk` with the recipient condition required.
+   The runtime independently verifies the actual account and role with STS.
+   Before consuming authorization it also checks that the public withdrawal
+   route rejects a missing token and the SNS route rejects an empty JSON
+   object, using only requests without credentials or tokens. A 404, 503,
+   redirect, or WAF rejection blocks before claiming the campaign.
+   This role is separate from the fixed inbox-probe and read-only roles.
+4. Refresh suppression and quota with the read role first. The existing
+   diagnostic 20/day cap is enough for this single recipient; do not increase
+   it to activate a customer campaign. All fresh-sync, quota, breaker, pending
+   latch, consent, immutable output and acceptance checks remain in effect.
+5. Supply the temporary session as `PERACRM_CAMPAIGN_REHEARSAL_IDENTITY`,
+   using the existing identity array fields, only in a protected CLI loader.
+   Load the retained key bundle separately as before. The command composes an
+   isolated deployment adapter without modifying the key file or introducing
+   credentials into the ordinary HTTP factory.
+6. Opt in for this command with `PERACRM_CAMPAIGN_REHEARSAL=true`. Run
+   `peracrm campaigns rehearsal-send --job=<job-id> --binding=<proposal-hash> --confirm=send-one-to-yahoo`.
+   A unique site ledger consumes this single authorization before any claim.
+   No replay, resume or additional permit is provided, even for timeout,
+   interruption or known rejection. Remove temporary credentials afterward.
+7. Use `peracrm campaigns rehearsal-status` without credentials to inspect
+   the saved job, outcome and recipient delivery state. If interrupted, inspect
+   the real queue, budget latch and acceptance/event records; never clear them
+   or send again. Restore of an older backup does not authorize replay.
+
+The real path uses the existing frozen renderer, token registry, encrypted
+output, prepared worker, final consent/suppression checks and SES mapper.
+Immediately before native transport, it checks the fixed sender and recipient
+again. Public route sanity probes run before authorization is consumed and
+contain no token or real event. No additional HTTP preflight is inserted
+between the worker's final consent/suppression fence and SES submission.
+Verify the actual token-bearing public link manually in the received message;
+this rehearsal does not claim an HTTP click from the local handler tests.
+Protect host/WAF query-string logs before that manual link test.
+
+Confirm the Yahoo inbox message, text/HTML/link/Reply-To and one-click headers,
+then manually test unsubscribe and verify the subscriber becomes ineligible.
+Inspect authenticated campaign SNS events and their exact durable matching.
+A received email alone does not validate bounce/complaint handling: exercise
+that separately with reviewed simulator recipients and permissions. This
+rehearsal cannot send to simulator or customer addresses. Public preference
+editing is still disabled; do not treat this as a full production launch.
+
+Local fixtures use the real campaign/queue tables and injected transport to
+exercise this flow without AWS. They cover opt-in, wrong recipient, stale
+binding and replay rejection. All provider and host observations still need
+live evidence. A future customer rollout must set a cap with headroom above
+5,000 eligible deliveries/day; AWS's higher limit does not enable dispatch.
