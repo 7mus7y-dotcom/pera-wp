@@ -29,6 +29,7 @@ function render_summary( $section, $mode = 'single', $price = 299000, $size = '6
     $selected_size_text = $size;
     $hero_bed_label_v2 = $beds;
     $title = 'Large Furnished Studio · Bomonti';
+    $wa_url = 'https://wa.me/905452054356';
     $GLOBALS['enqueues'] = 0;
     ob_start(); eval( '?>' . $section ); return ob_get_clean();
 }
@@ -60,6 +61,8 @@ $type_html = render_summary( $section, 'single', 299000, '69 m²', '', 'Apartmen
 check_summary( false !== strpos( $type_html, ' · Apartment' ), 'existing translated property type used when beds unavailable' );
 check_summary( false === strpos( $type_html, 'Large Furnished Studio' ), 'no sticky title' );
 check_summary( false !== strpos( $type_html, 'card-shell property-sticky-summary' ), 'existing card design system reused' );
+check_summary( false !== strpos( $type_html, 'btn btn--solid btn--green property-sticky-summary__whatsapp' ), 'sticky WhatsApp action reuses shared button classes' );
+check_summary( false !== strpos( $type_html, 'btn btn--solid btn--blue' ), 'sticky enquiry action reuses shared button classes' );
 if ( in_array( '--type-fixture', $argv, true ) ) { echo $type_html; exit; }
 if ( in_array( '--normal-fixture', $argv, true ) ) {
     $_GET = array(); echo render_summary( $section ); exit;
