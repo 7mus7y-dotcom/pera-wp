@@ -59,6 +59,18 @@ peracrm_with_target_blog(static function () {
         $body=ses_event_body($v,['eventType'=>'FutureUnsupported'],ses_event_id(1730+$n));
         sns_expect(sns_http_request($body,'POST',$type)[0]===202,'HTTP durable unsupported quarantine '.$type);
     }
+    $unicode='Pera — 中文 العربية 🏠';
+    $body=sns_body($v,['MessageId'=>ses_event_id(1735),'Subject'=>$unicode,
+        'Message'=>json_encode(['eventType'=>'FutureUnsupported','subject'=>$unicode],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+    $verified=sns_verifier($v)->verify($body,$v['now']);
+    sns_expect(sns_http_request($body,'POST','text/plain; charset=UTF-8')[0]===202,'HTTP signed Unicode notification committed before acknowledgement');
+    $saved=$wpdb->get_var($wpdb->prepare('SELECT canonical_payload FROM '.peracrm_table('peracrm_campaign_sns_receipts')
+        .' WHERE message_id=%s AND payload_hash=%s',$verified['id'],$verified['hash']));
+    sns_expect($saved===$verified['canonical'],'HTTP preserves Unicode signed canonical bytes');
+    $stable=suppress_atomic();
+    sns_expect(sns_http_request($body)[0]===202 && suppress_atomic()===$stable,'HTTP Unicode replay exact no-op');
+    $forged=json_decode($body,true); $forged['Message'].='changed';
+    sns_expect(sns_http_request(json_encode($forged))[0]===403 && suppress_atomic()===$stable,'HTTP Unicode forgery never reaches storage');
     $missing=ses_match_seed($v['deployment'],1740,false); $body=ses_event_body($v,suppress_event($missing,'Bounce'),ses_event_id(1740));
     sns_expect(sns_http_request($body)[0]===202,'HTTP durable unmatched quarantine');
     delete_option('sns_http_fixture');

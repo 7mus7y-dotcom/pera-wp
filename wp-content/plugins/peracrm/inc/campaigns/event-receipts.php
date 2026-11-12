@@ -42,10 +42,13 @@ final class PeraCRM_SNS_Receipts
             if ($connection<=0) { throw new PeraCRM_SNS_Error('sns_storage'); }
             $table=peracrm_table('peracrm_campaign_sns_receipts');
             $reason=$receipt['timestamp']>$now+300?'future_timestamp':($receipt['timestamp']<$now-86400?'stale_timestamp':'application_pending');
+            // wpdb treats this table's mixed ASCII/UTF-8 columns as ASCII when
+            // validating a raw query. Keep the SQL ASCII-only, then decode the
+            // authenticated UTF-8 bytes in MySQL without changing signed content.
             self::db($wpdb->query($wpdb->prepare("INSERT INTO {$table}
                 (scope_hash,message_id,payload_hash,canonical_payload,certificate_hash,authentication_version,quarantine_reason,received_at)
-                VALUES (%s,%s,%s,%s,%s,'sns-v2-sha256',%s,%s) ON DUPLICATE KEY UPDATE message_id=message_id",
-                $this->scope,$receipt['id'],$receipt['hash'],$receipt['canonical'],$receipt['certificate_hash'],$reason,gmdate('Y-m-d H:i:s',$now))));
+                VALUES (%s,%s,%s,CONVERT(UNHEX(%s) USING utf8mb4),%s,'sns-v2-sha256',%s,%s) ON DUPLICATE KEY UPDATE message_id=message_id",
+                $this->scope,$receipt['id'],$receipt['hash'],bin2hex($receipt['canonical']),$receipt['certificate_hash'],$reason,gmdate('Y-m-d H:i:s',$now))));
             $row=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE scope_hash=%s AND message_id=%s FOR UPDATE",$this->scope,$receipt['id']),ARRAY_A);
             self::db($row?:false);
             if (!hash_equals($row['payload_hash'],$receipt['hash']) || $row['canonical_payload']!==$receipt['canonical']) {
