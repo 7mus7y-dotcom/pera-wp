@@ -62,4 +62,21 @@ peracrm_with_target_blog(static function () {
         try { sns_reject(fn()=>$store->receive($body,$v['now']),'sns_storage'); }
         finally { restore_current_blog(); }
     }
+    // Signed canonical bytes can contain Unicode even when the outer JSON uses
+    // escape sequences. The actual mixed-charset table must preserve them exactly.
+    $unicode='Pera — 中文 العربية 🏠';
+    $unicodeBody=sns_body($v,['MessageId'=>'55555555-1234-1234-1234-123456789abc',
+        'Subject'=>$unicode,'Message'=>json_encode(['eventType'=>'Send','subject'=>$unicode],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+    $verified=sns_verifier($v)->verify($unicodeBody,$v['now']);
+    sns_expect(preg_match('/[^\x00-\x7f]/',$verified['canonical'])===1,'Unicode fixture has non-ASCII signed canonical bytes');
+    sns_expect($store->receive($unicodeBody,$v['now'])==='quarantined','Unicode receipt committed through real wpdb');
+    $saved=$wpdb->get_row($wpdb->prepare("SELECT canonical_payload,payload_hash FROM {$table} WHERE message_id=%s AND payload_hash=%s",
+        $verified['id'],$verified['hash']),ARRAY_A);
+    sns_expect($saved && $saved['canonical_payload']===$verified['canonical']
+        && hash('sha256',$saved['canonical_payload'])===$saved['payload_hash'],'Unicode canonical payload round-trips byte-for-byte');
+    $original=$wpdb->get_results('SELECT * FROM '.$table,ARRAY_A);
+    sns_expect($store->receive($unicodeBody,$v['now'])==='quarantined'
+        && $wpdb->get_results('SELECT * FROM '.$table,ARRAY_A)===$original,'Unicode replay preserves original receipt');
+    sns_reject(fn()=>$store->receive(sns_body($v,['MessageId'=>$verified['id'],'Message'=>'changed Unicode receipt']),$v['now']),'sns_conflict');
+    sns_expect($wpdb->get_results('SELECT * FROM '.$table,ARRAY_A)===$original && $snapshot()===$before,'Unicode conflict preserves signed bytes and sending fences');
 });
