@@ -3,7 +3,7 @@
 require __DIR__.'/campaign-previews-test.php';
 function get_post_meta($id,$key,$single=true) { return $GLOBALS['property_meta'][$key] ?? ''; }
 $GLOBALS['property_meta']=[
-    'v2_units'=>4,
+    'v2_units'=>5,
     'v2_units_0_v2_bedrooms'=>'2',
     'v2_units_0_v2_gross_size_min'=>'51',
     'v2_units_0_v2_gross_size_max'=>'54',
@@ -13,6 +13,7 @@ $GLOBALS['property_meta']=[
     'v2_units_1_v2_price_usd_min'=>'250000',
     'v2_units_2_v2_beds'=>'99', // obsolete field must never supply the displayed bedroom count
     'v2_units_3_v2_bedrooms'=>'3',
+    'v2_units_4_v2_price_usd_max'=>'999999', // no minimum: do not invent a complete price
     'price'=>'1','price_usd'=>'2',
 ];
 $units=peracrm_campaign_property_units(42);

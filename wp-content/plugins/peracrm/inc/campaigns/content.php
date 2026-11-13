@@ -55,7 +55,7 @@ function peracrm_campaign_property_units($id)
             $raw=get_post_meta($id,'v2_units_'.$i.'_'.$source,true);
             $row[$field]=is_numeric($raw) && is_finite((float)$raw) && (float)$raw>=0 && (float)$raw<=1000000000000 ? (float)$raw : null;
         }
-        if ($row['v2_beds']===null && count(array_filter($row, static fn($value) => $value!==null && $value>0))===0) { continue; }
+        if ($row['v2_beds']===null && ($row['v2_gross_size_min'] ?? 0)<=0 && ($row['v2_price_usd_min'] ?? 0)<=0) { continue; }
         $units[]=$row;
     }
     $parts=[];
