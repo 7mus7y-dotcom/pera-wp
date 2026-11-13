@@ -51,9 +51,11 @@ function peracrm_campaign_property_units($id)
     for ($i=0;$i<(int)$count;$i++) {
         $row=[];
         foreach (['v2_beds','v2_gross_size_min','v2_gross_size_max','v2_price_usd_min','v2_price_usd_max'] as $field) {
-            $raw=get_post_meta($id,'v2_units_'.$i.'_'.$field,true);
+            $source=$field==='v2_beds' ? 'v2_bedrooms' : $field;
+            $raw=get_post_meta($id,'v2_units_'.$i.'_'.$source,true);
             $row[$field]=is_numeric($raw) && is_finite((float)$raw) && (float)$raw>=0 && (float)$raw<=1000000000000 ? (float)$raw : null;
         }
+        if ($row['v2_beds']===null && ($row['v2_gross_size_min'] ?? 0)<=0 && ($row['v2_price_usd_min'] ?? 0)<=0) { continue; }
         $units[]=$row;
     }
     $parts=[];
@@ -62,9 +64,13 @@ function peracrm_campaign_property_units($id)
             if ($min===null || $min<=0) { return 'unavailable'; }
             return $prefix.number_format($min, $min==floor($min) ? 0 : 2,'.',',').($max!==null && $max>$min ? '–'.number_format($max,$max==floor($max) ? 0 : 2,'.',',') : '').$suffix;
         };
-        $parts[]=($row['v2_beds']===null ? 'Beds unavailable' : $row['v2_beds'].' beds').' · Size '.$range($row['v2_gross_size_min'],$row['v2_gross_size_max'],'',' m²').' · Price '.$range($row['v2_price_usd_min'],$row['v2_price_usd_max'],'USD ');
+        $details=[];
+        if ($row['v2_beds']!==null) { $details[]=$row['v2_beds']===0.0 ? 'Studio' : $row['v2_beds'].' beds'; }
+        if ($row['v2_gross_size_min']!==null && $row['v2_gross_size_min']>0) { $details[]=$range($row['v2_gross_size_min'],$row['v2_gross_size_max'],'',' m²'); }
+        if ($row['v2_price_usd_min']!==null && $row['v2_price_usd_min']>0) { $details[]=$range($row['v2_price_usd_min'],$row['v2_price_usd_max'],'USD '); }
+        $parts[]=implode(' · ',$details);
     }
-    return ['units'=>$units,'summary'=>implode("\n",$parts)];
+    return ['units'=>$units,'summary'=>$parts ? implode("\n",$parts) : 'Unit details available on the property page.'];
 }
 
 /** @internal Called inside authoritative target context, after permission check. */
@@ -80,13 +86,23 @@ function peracrm_campaign_content_resolve_target($type,$id,$language)
     if (function_exists('pera_ml_url')) { $url=pera_ml_url($url,$language); }
     $url=peracrm_campaign_public_url($url);
     if ($url==='') { return ['type'=>$type,'notice'=>'Canonical public destination unavailable.']; }
-    $image_id=get_post_thumbnail_id($id);
-    if ($image_id) {
-        $attachment=get_post($image_id);
+    // Properties use the canonical ACF main_image attachment; articles use featured images.
+    $main_image=$type==='property' ? get_post_meta($id,'main_image',true) : 0;
+    $candidates=[$main_image,get_post_thumbnail_id($id)];
+    $image_id=0;$image='';
+    foreach (array_unique(array_filter($candidates,'is_numeric')) as $candidate) {
+        $candidate=(int)$candidate;
+        if ($candidate<1) { continue; }
+        $attachment=get_post($candidate);
         $parent=$attachment && $attachment->post_parent ? get_post($attachment->post_parent) : null;
-        if (!$attachment || $attachment->post_type!=='attachment' || !is_post_publicly_viewable($attachment) || $attachment->post_password!=='' || ($parent && ($parent->post_password!=='' || !is_post_publicly_viewable($parent)))) { $image_id=0; }
+        // WordPress attachments normally inherit their public parent's visibility.
+        if (!$attachment || $attachment->post_type!=='attachment' || !wp_attachment_is_image($candidate)
+            || !in_array($attachment->post_status,['inherit','publish'],true) || $attachment->post_password!==''
+            || ($parent && ($parent->post_password!=='' || !is_post_publicly_viewable($parent)))) { continue; }
+        $url_candidate=peracrm_campaign_public_url(wp_get_attachment_image_url($candidate,'large'));
+        if ($url_candidate==='') { continue; }
+        $image_id=$candidate;$image=$url_candidate;break;
     }
-    $image=$image_id ? peracrm_campaign_public_url(wp_get_attachment_image_url($image_id,'large')) : '';
     $alt=$image_id ? (string)get_post_meta($image_id,'_wp_attachment_image_alt',true) : '';
     if ($language!=='en' && $alt!=='') {
         $translated=(new Pera_ML_Storage())->get('post',$image_id,'meta:_wp_attachment_image_alt',$language,$alt);
