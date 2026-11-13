@@ -60,7 +60,7 @@ campaign_expect($GLOBALS['wpdb']->configuration_reads === $reads + 1 && $GLOBALS
 campaign_expect($racing_content['configuration_revision'] === 3 && $racing_content['configuration'] === $configuration && $racing_content['configuration_approved_by'] === 1
     && $racing_content['sender'] === $configuration['senders'][0] && $racing_content['model']['sender'] === 'Pera <news@example.org> · Reply-to: reply@example.org'
     && $racing_content['model']['footer'] === $configuration['footer'] && str_contains($racing_content['output']['html'], $configuration['footer'])
-    && str_contains($racing_content['output']['text'], 'Pera <news@example.org>') && !str_contains($racing_content['output']['text'], 'Changed')
+    && !str_contains($racing_content['output']['text'], 'Reply-to:') && !str_contains($racing_content['output']['text'], 'Changed')
     && $racing_binding['content_hash'] === hash('sha256', peracrm_campaign_snapshot_json($racing_content)), 'review metadata, sender/footer output and signed proof bind one configuration revision');
 campaign_expect(is_wp_error(peracrm_campaign_snapshot_capture(10, 2, $document, $racing_review['review_proof'], 'fixture:peracrm_campaign_snapshot_10_2'))
     && campaign_count('peracrm_campaign_content_snapshots') === 0, 'concurrent configuration change still rejects stale capture without writing');

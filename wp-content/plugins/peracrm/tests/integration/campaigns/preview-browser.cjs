@@ -64,6 +64,11 @@ module.exports = async function ({page,target,employeeContext,context}) {
     await page.locator('[data-preview-feedback]').filter({hasText:'Draft preview of form'}).waitFor();
     const frame=page.frameLocator('[data-email-frame]');
     await frame.getByText('UNSAVED PREVIEW',{exact:false}).waitFor();
+    const logoLoaded=await frame.locator('img[alt="Pera Property"]').evaluate(img=>img.complete ? img.naturalWidth>0 : new Promise(resolve=>{
+      img.addEventListener('load',()=>resolve(img.naturalWidth>0),{once:true});
+      img.addEventListener('error',()=>resolve(false),{once:true});
+    }));
+    if(!logoLoaded || (await frame.locator('body').innerText()).includes('Reply-to:')) throw Error('Email masthead logo or sender-body removal failed');
     if(await page.locator('[data-email-frame]').getAttribute('sandbox')!=='') throw Error('Preview sandbox relaxed');
     if(await frame.locator('script,a,form,iframe').count()) throw Error('Active preview element');
     if(!((await frame.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content'))||'').includes("script-src 'none'")) throw Error('Preview CSP absent');
