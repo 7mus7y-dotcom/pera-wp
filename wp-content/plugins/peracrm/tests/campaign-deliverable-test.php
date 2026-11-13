@@ -10,6 +10,9 @@ $deliverable_model['blocks']=[
     ['type'=>'cta','label'=>'Read "more" & enjoy','url'=>'https://example.org/contact'],
 ];
 $output=peracrm_campaign_render($deliverable_model,'deliverable_v2');
+campaign_expect(str_contains($output['html'],'pera-email-logo.png') && str_contains($output['html'],'alt="Pera Property"') && !str_contains($output['html'],'PERA · Property &amp; perspective'), 'PNG logo replaces text masthead');
+campaign_expect(!str_contains($output['html'],esc_html($deliverable_model['sender'])) && !str_contains($output['text'],$deliverable_model['sender']) && !str_contains($output['html'],'Reply-to:'), 'sender and reply-to stay out of message body');
+campaign_expect(strpos($output['html'],'pera-email-logo.png')<strpos($output['html'],'<h2'), 'branded header retains subject');
 $slots=peracrm_campaign_deliverable_slots();
 peracrm_campaign_deliverable_validate($output,$slots);
 campaign_expect(substr_count($output['html'],'<a href=')===5 && count($output['destinations'])===3, 'article, property, CTA and two typed slots are HTML links');

@@ -56,7 +56,7 @@ snapshot_expect($configuration_changed && $configuration_reads === 1, 'review re
 snapshot_expect($racing_content['configuration_revision'] === $configured['revision'] && $racing_content['configuration'] === $configured['document']
     && $racing_content['sender'] === $configured['document']['senders'][0] && $racing_content['configuration_approved_by'] === $admin
     && $racing_content['model']['sender'] === 'Pera <news@example.org> · Reply-to: reply@example.org' && $racing_content['model']['footer'] === $configuration['footer']
-    && str_contains($racing_content['output']['html'], $configuration['footer']) && str_contains($racing_content['output']['text'], 'Pera <news@example.org>')
+    && str_contains($racing_content['output']['html'], $configuration['footer']) && !str_contains($racing_content['output']['text'], 'Reply-to:')
     && !str_contains($racing_content['output']['text'], 'Concurrent')
     && $racing_binding['content_hash'] === hash('sha256', peracrm_campaign_snapshot_json($racing_content)), 'review output and signed proof describe the same configuration revision');
 snapshot_expect(is_wp_error(peracrm_campaign_snapshot_capture($id, 1, $document, $racing_review['review_proof'], $nonce))

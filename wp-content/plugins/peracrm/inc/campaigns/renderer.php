@@ -32,8 +32,8 @@ function peracrm_campaign_render($model, $format = 'review_v1')
     $deliverable = $format === 'deliverable_v2';
     if ($deliverable) { peracrm_campaign_deliverable_model_validate($model); }
     $captured=($model['content_context'] ?? '')==='immutable_capture';
-    $sections=[['heading'=>'PERA · Property & perspective','text'=>$captured ? 'REVIEWED CONTENT · Prepared immutable revision. No email is sent. Domain/provider readiness unverified.' : 'DRAFT PREVIEW · Current editable content. Domain/provider readiness unverified.'],['heading'=>$model['subject'] ?: 'Subject missing','text'=>$model['preheader']],['text'=>$model['sender'] ?: 'Approved sender missing'],['text'=>$model['introduction']],['text'=>$model['main_text']]];
-    if ($deliverable) { $sections[0] = ['heading'=>'PERA · Property & perspective']; }
+    $sections=[['brand'=>true,'text'=>$captured ? 'REVIEWED CONTENT · Prepared immutable revision. No email is sent. Domain/provider readiness unverified.' : 'DRAFT PREVIEW · Current editable content. Domain/provider readiness unverified.'],['heading'=>$model['subject'] ?: 'Subject missing','text'=>$model['preheader']],['text'=>$model['introduction']],['text'=>$model['main_text']]];
+    if ($deliverable) { $sections[0] = ['brand'=>true]; }
     foreach ($model['notices'] as $notice) { $sections[]=['text'=>'Missing: '.$notice]; }
     $destinations=[];
     foreach ($model['blocks'] as $block) {
@@ -61,9 +61,16 @@ function peracrm_campaign_render($model, $format = 'review_v1')
     $html='<!doctype html><html lang="'.esc_attr($model['language'] ?: 'und').'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.esc_html($model['subject']).'</title></head><body style="margin:0;background:#f4f6fa;color:#152640;font-family:Arial,sans-serif;line-height:1.6"><table role="presentation" style="width:100%;border-collapse:collapse"><tr><td style="padding:24px 8px"><table role="presentation" style="width:100%;max-width:640px;margin:auto;background:#fff;border-top:6px solid #002d72;border-collapse:collapse;table-layout:fixed">';
     $text=[];
     foreach ($sections as $section) {
+        $brand=!empty($section['brand']);
         $footer=!empty($section['footer']) || isset($section['slot']);
         $style=$footer?'padding:16px 24px;background:#f1f5fb;color:#526178;font-size:13px;':'padding:20px 24px;border-bottom:1px solid #e5eaf2;';
+        if ($brand) { $style='padding:20px 24px;background:#002d72;color:#fff;font-size:12px;'; }
         $html.='<tr><td style="'.$style.'overflow-wrap:anywhere;word-break:break-word">';
+        if ($brand) {
+            $logo=(defined('PERACRM_URL') ? PERACRM_URL : 'https://www.peraproperty.com/wp-content/plugins/peracrm').'/logos-icons/pera-email-logo.png';
+            $html.='<img src="'.esc_url($logo).'" alt="Pera Property" width="160" height="100" style="display:block;width:160px;max-width:100%;height:auto;border:0;margin:0 0 12px">';
+            $text[]='Pera Property';
+        }
         if (!empty($section['heading'])) {
             if (!isset($section['slot'])) { $html.='<h2 style="font-size:'.($footer?'15':'22').'px;line-height:1.3;margin:0 0 12px;color:#002d72">'.esc_html($section['heading']).'</h2>'; }
             $text[]=$section['heading'];
