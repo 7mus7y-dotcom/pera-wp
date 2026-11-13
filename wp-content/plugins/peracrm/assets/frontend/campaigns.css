@@ -82,17 +82,3 @@
   .crm-page--campaigns .campaign-stat { padding: 12px; }
   .crm-page--campaigns .peracrm-campaigns .btn { width: 100%; }
 }
-
-/* Campaign forms and tables stay clear while scrolling. Shared CRM routes keep their dock. */
-body.crm-route:has(.crm-page--campaigns) #site-header.peracrm-shell-header { position: relative; top: auto !important; }
-body.crm-route:has(.crm-page--campaigns) #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked { position: relative; inset: auto; width: 100%; max-width: none; margin: 0; filter: none; z-index: 2; }
-body.crm-route:has(.crm-page--campaigns) #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked .peracrm-header-search__results { top: calc(100% + 8px); bottom: auto; }
-.crm-page--campaigns .peracrm-campaigns input:not([type="checkbox"]):not([type="hidden"]),
-.crm-page--campaigns .peracrm-campaigns select,
-.crm-page--campaigns .peracrm-campaigns textarea { font-weight: 400; }
-.crm-page--campaigns .peracrm-queue .peracrm-subscriber-table thead th { padding-inline: 12px; overflow-wrap: normal !important; word-break: normal !important; }
-.crm-page--campaigns .peracrm-queue .peracrm-subscriber-table th:nth-child(2) { width: 16%; }
-.crm-page--campaigns .peracrm-queue .peracrm-subscriber-table th:nth-child(3) { width: 18%; white-space: nowrap !important; }
-.crm-page--campaigns .peracrm-queue .peracrm-subscriber-table th:nth-child(4) { width: 24%; }
-.crm-page--campaigns .peracrm-queue .peracrm-subscriber-table th:nth-child(5) { width: 12%; }
-.crm-page--campaigns .campaign-timezone { white-space: nowrap; }

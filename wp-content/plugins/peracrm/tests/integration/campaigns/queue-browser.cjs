@@ -43,12 +43,6 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   if(await table.evaluate(el=>getComputedStyle(el).tableLayout)!=='fixed') throw Error('Inherited shell table layout prevents bounded long-label wrapping');
   if(await table.locator('tbody td').first().evaluate(el=>getComputedStyle(el).whiteSpace)!=='normal') throw Error('Inherited shell nowrap clips campaign labels');
   if(await table.evaluate(el=>el.scrollWidth>Math.max(650,el.parentElement.clientWidth)+2)) throw Error('Long label creates excessive table scrolling');
-  await page.evaluate(()=>window.scrollTo(0,400));
-  await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
-  if(await page.locator('#site-header').evaluate(el=>el.getBoundingClientRect().bottom>0)) throw Error('Campaign header obscures scrolled table');
-  if(await page.locator('[data-peracrm-header-search]').evaluate(el=>getComputedStyle(el).position==='fixed')) throw Error('Campaign search overlays form/table');
-  await page.screenshot({path:'/evidence/queue-scroll-'+size+'.png'});
-  await page.evaluate(()=>window.scrollTo(0,0));
   await capture('overview',size);
   await page.goto(target+'/crm/campaigns/'+seeds[size].campaign+'/');
   await page.getByRole('link',{name:'Prepare or inspect queue for this published revision',exact:true}).click();
