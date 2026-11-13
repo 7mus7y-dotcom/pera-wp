@@ -17,14 +17,24 @@ function peracrm_campaign_public_page_css(): string
     static $css;
     if ($css === null) {
         $path=dirname(__DIR__,2).'/assets/frontend/email-preferences.css';
-        $css=is_readable($path)?(string)file_get_contents($path):'';
+        $css='';
+        // Reuse the site's bundled Montserrat weights without requesting assets
+        // from a token-bearing page or loading the theme's global stylesheet.
+        foreach (['Regular'=>400,'Bold'=>700,'ExtraBold'=>800] as $face=>$weight) {
+            $font=dirname(__DIR__,2).'/assets/frontend/fonts/Montserrat-'.$face.'.woff2';
+            if (is_readable($font)) {
+                $data=base64_encode((string)file_get_contents($font));
+                $css.="@font-face{font-family:'Montserrat';src:url(data:font/woff2;base64,{$data}) format('woff2');font-weight:{$weight};font-style:normal;font-display:swap;}\n";
+            }
+        }
+        $css.=is_readable($path)?(string)file_get_contents($path):'';
     }
     return $css;
 }
 function peracrm_campaign_public_page_csp(): string
 {
     $hash=base64_encode(hash('sha256',peracrm_campaign_public_page_css(),true));
-    return "default-src 'none'; style-src 'sha256-{$hash}'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'";
+    return "default-src 'none'; style-src 'sha256-{$hash}'; font-src data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'";
 }
 function peracrm_campaign_public_page_start(string $title,string $eyebrow='Email preferences',string $state='neutral'): void
 {

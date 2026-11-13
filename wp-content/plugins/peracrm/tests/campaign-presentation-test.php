@@ -21,9 +21,12 @@ foreach (['neutral','success','error'] as $state) {
         && !str_contains($html,' style=') && str_contains($html,'&lt;script&gt;'),'escaped text and no asset/script requests '.$state);
     preg_match('~<style>(.*?)</style>~s',$html,$match);
     $hash=base64_encode(hash('sha256',$match[1]??'',true));
+    presentation_expect(substr_count($match[1],'@font-face')===3
+        && str_contains($match[1],'font: 400 16px/1.65 "Montserrat"')
+        && str_contains($match[1],base64_encode(file_get_contents(dirname(__DIR__).'/assets/frontend/fonts/Montserrat-Regular.woff2'))), 'existing site Montserrat fonts embedded '.$state);
     $csp=peracrm_campaign_public_page_csp();
     presentation_expect(!empty($match[1]) && str_contains($csp,"style-src 'sha256-{$hash}'")
-        && str_contains($csp,"default-src 'none'") && !str_contains($csp,'unsafe-inline'),'exact inline stylesheet CSP hash '.$state);
+        && str_contains($csp,"font-src data:") && str_contains($csp,"default-src 'none'") && !str_contains($csp,'unsafe-inline'),'exact inline stylesheet CSP hash '.$state);
     presentation_expect(str_contains($html,'name="referrer" content="no-referrer"')
         && str_contains($csp,"form-action 'self'") && str_contains($csp,"frame-ancestors 'none'"),'private token-page boundaries '.$state);
 }

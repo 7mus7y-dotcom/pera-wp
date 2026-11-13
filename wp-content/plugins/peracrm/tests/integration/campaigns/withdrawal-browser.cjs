@@ -28,6 +28,8 @@ module.exports = async ({browser}) => {
   expect((response.headers()['content-security-policy']||'').includes("style-src 'sha256-"),'hashed embedded stylesheet policy');
   await page.getByRole('button',{name:'Unsubscribe from all marketing email'}).waitFor();
   expect(await page.locator('.email-card').evaluate(el=>getComputedStyle(el).borderTopColor)==='rgb(0, 45, 114)','branded stylesheet allowed by CSP');
+  await page.evaluate(()=>document.fonts.ready);
+  expect(await page.locator('body').evaluate(el=>getComputedStyle(el).fontFamily.startsWith('Montserrat') && document.fonts.check('16px Montserrat')), 'site Montserrat font loaded');
   expect(await page.getByRole('link',{name:'Pera Property home'}).count()===1,'inline company branding');
   expect(await evidence()===unchanged,'visible confirmation GET read only');
   expect(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),'responsive confirmation');
