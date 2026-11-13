@@ -98,6 +98,7 @@ module.exports = async function ({browser,page,target}) {
     await page.getByLabel('Approve mandatory footer',{exact:true}).check();
     await page.getByRole('button',{name:'Save configuration',exact:true}).click();
     await page.locator('[data-campaign-status]').filter({hasText:'Saved'}).waitFor();
+    if(await page.locator('textarea[name="document[footer]"]').evaluate(el=>getComputedStyle(el).fontWeight)!=='400') throw Error('Campaign field inherits bold label weight');
     await assertNoOverflow('configuration '+name);
     await page.screenshot({path:'/evidence/campaign-configuration-'+name+'.png',fullPage:true});
     await page.emulateMedia({colorScheme:'dark'});
