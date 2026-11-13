@@ -68,6 +68,16 @@ module.exports = async function ({page,target,employeeContext,context}) {
       img.addEventListener('load',()=>resolve(img.naturalWidth>0),{once:true});
       img.addEventListener('error',()=>resolve(false),{once:true});
     }));
+    const propertyImage=frame.locator('img[alt=""]').first();
+    await propertyImage.waitFor();
+    if(!await propertyImage.evaluate(img=>img.complete ? img.naturalWidth>0 : new Promise(resolve=>{
+      img.addEventListener('load',()=>resolve(img.naturalWidth>0),{once:true});
+      img.addEventListener('error',()=>resolve(false),{once:true});
+    }))) throw Error('Property main image did not load');
+    const cardText=await frame.locator('body').innerText();
+    if(!cardText.includes('2 beds') || cardText.includes('Beds unavailable') || cardText.includes('Price unavailable')) throw Error('Canonical property units missing or empty rows rendered');
+    const controlSizes=await page.locator('.peracrm-campaign-form input:not([type=hidden])').first().evaluate(el=>({size:parseFloat(getComputedStyle(el).fontSize),weight:getComputedStyle(el).fontWeight}));
+    if(controlSizes.size>14 || controlSizes.weight!=='400') throw Error('Campaign field typography not compact regular');
     if(!logoLoaded || (await frame.locator('body').innerText()).includes('Reply-to:')) throw Error('Email masthead logo or sender-body removal failed');
     if(await page.locator('[data-email-frame]').getAttribute('sandbox')!=='') throw Error('Preview sandbox relaxed');
     if(await frame.locator('script,a,form,iframe').count()) throw Error('Active preview element');

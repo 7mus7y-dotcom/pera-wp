@@ -17,7 +17,7 @@
 .crm-page--campaigns .peracrm-campaign-form label { margin-block: 12px; font-size: .82rem; line-height: 1.5; font-weight: 600; color: var(--text); }
 .crm-page--campaigns .peracrm-campaigns input:not([type="checkbox"]):not([type="hidden"]),
 .crm-page--campaigns .peracrm-campaigns select,
-.crm-page--campaigns .peracrm-campaigns textarea { width: 100%; min-width: 0; min-height: 46px; padding: 11px 12px; border: 1px solid var(--border-muted); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 1rem; line-height: 1.5; }
+.crm-page--campaigns .peracrm-campaigns textarea { width: 100%; min-width: 0; min-height: 46px; padding: 11px 12px; border: 1px solid var(--border-muted); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: var(--crm-control-compact-font-size); font-weight: 400; line-height: 1.5; }
 .crm-page--campaigns .peracrm-campaigns textarea { resize: vertical; min-height: 128px; }
 .crm-page--campaigns .peracrm-campaigns textarea[name="document[main_text]"] { min-height: 200px; }
 .crm-page--campaigns .peracrm-campaigns textarea[name="document[footer]"] { min-height: 210px; }
@@ -30,7 +30,7 @@
 .crm-page--campaigns [data-campaign-block] { padding: 20px; margin: 16px 0; border-color: var(--border-muted); border-radius: 12px; background: var(--surface-soft); }
 .crm-page--campaigns [data-campaign-block] legend { padding-inline: 8px; font-size: .8rem; font-weight: 700; }
 .crm-page--campaigns .peracrm-campaign-actions { gap: 10px; }
-.crm-page--campaigns .peracrm-campaigns .btn { min-height: 42px; max-width: 100%; white-space: normal; font-size: .8rem; padding: 10px 16px; }
+.crm-page.crm-page--campaigns .peracrm-campaigns :is(.btn, a.btn, button.btn) { min-height: 36px; height: auto; width: auto; max-width: 100%; white-space: normal; font-size: var(--crm-control-compact-font-size); line-height: var(--crm-button-core-line-height); font-weight: var(--crm-button-core-weight); padding: 8px 14px; }
 .crm-page--campaigns .peracrm-campaigns :focus-visible { outline: 3px solid #d5a52a; outline-offset: 3px; }
 .crm-page--campaigns .campaign-save-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 20px; border: 1px solid var(--border-muted); border-radius: 12px; background: var(--surface-soft); }
 .crm-page--campaigns .campaign-save-bar [data-campaign-status] { margin: 0; color: var(--text-soft); font-size: .8rem; }
