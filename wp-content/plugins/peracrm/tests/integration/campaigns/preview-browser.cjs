@@ -1,4 +1,8 @@
 module.exports = async function ({page,target,employeeContext,context}) {
+  await page.route('https://example.org/campaign-property.png',async route=>{
+    const image=await context.request.get(new URL('/wp-content/plugins/peracrm/logos-icons/pera-email-logo.png',target).href);
+    await route.fulfill({response:image});
+  });
   const anonymous=await context.browser().newContext();
   const anonResult=await anonymous.request.post(target+'/wp-admin/admin-ajax.php',{form:{action:'peracrm_campaign_preview',operation:'audience'}});
   if(anonResult.status()!==403) throw Error('Anonymous audience route accepted');

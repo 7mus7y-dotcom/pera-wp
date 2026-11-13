@@ -82,6 +82,8 @@ add_filter('query', static function ($query) {
 add_action('init',static function () {
     if (get_option('campaign_fixture_property_enabled')) { register_post_type('property',['public'=>true,'label'=>'Fixture properties','supports'=>['title','editor','excerpt','thumbnail']]); }
 },20);
+// Public-looking image URL is intercepted by the disposable browser, never requested externally.
+add_filter('wp_get_attachment_url',static function ($url,$id) { return get_the_title($id)==='Phase3B Property image' ? 'https://example.org/campaign-property.png' : $url; },20,2);
 add_filter('post_link',static function ($url,$post) { return str_starts_with($post->post_title,'Phase3B') ? 'https://example.org/stories/'.$post->ID : $url; },20,2);
 add_filter('post_type_link',static function ($url,$post) { return str_starts_with($post->post_title,'Phase3B') ? 'https://example.org/properties/'.$post->ID : $url; },20,2);
 

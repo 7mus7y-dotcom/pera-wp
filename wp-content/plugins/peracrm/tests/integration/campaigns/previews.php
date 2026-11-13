@@ -23,7 +23,7 @@ $ids=peracrm_with_target_blog(static function () {
     foreach ([['v2_bedrooms'=>2,'v2_gross_size_min'=>90,'v2_gross_size_max'=>110,'v2_price_usd_min'=>350000,'v2_price_usd_max'=>400000],['v2_bedrooms'=>3]] as $i=>$row) { foreach ($row as $key=>$value) { update_post_meta($property,'v2_units_'.$i.'_'.$key,$value); } }
     $upload=wp_upload_bits('campaign-property.png',null,file_get_contents(PERACRM_PATH.'/logos-icons/pera-email-logo.png'));
     if (!empty($upload['error'])) { throw new RuntimeException('Fixture image upload failed.'); }
-    $image=wp_insert_attachment(['post_mime_type'=>'image/png','post_status'=>'inherit','post_title'=>'Campaign property image'],$upload['file'],$property);
+    $image=wp_insert_attachment(['post_mime_type'=>'image/png','post_status'=>'inherit','post_title'=>'Phase3B Property image'],$upload['file'],$property);
     update_post_meta($property,'main_image',$image);
     update_post_meta($property,'price',1);update_post_meta($property,'price_usd',2);
     update_option('campaign_fixture_article',$ids[0]);update_option('campaign_fixture_property',$property);
