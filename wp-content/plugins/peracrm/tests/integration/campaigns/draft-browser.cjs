@@ -8,6 +8,11 @@ module.exports = async function ({browser,page,target}) {
     await page.goto(target+'/crm/campaigns/');
     await page.getByRole('heading',{name:'Draft campaigns',exact:true}).waitFor();
     await assertNoOverflow('list '+name);
+    const edit=page.getByRole('link',{name:'Edit',exact:true}).first();
+    if(await edit.count()) {
+      const dimensions=await edit.evaluate(el=>({height:el.getBoundingClientRect().height,font:parseFloat(getComputedStyle(el).fontSize)}));
+      if(dimensions.height>40 || dimensions.font>14) throw Error('Campaign Edit action must be a compact text pill');
+    }
     await page.screenshot({path:'/evidence/campaign-list-'+name+'.png',fullPage:true});
     await page.getByRole('link',{name:'Create campaign',exact:true}).click();
     await page.getByRole('heading',{name:'New draft',exact:true}).waitFor();

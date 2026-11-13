@@ -30,7 +30,7 @@
 .crm-page--campaigns [data-campaign-block] { padding: 20px; margin: 16px 0; border-color: var(--border-muted); border-radius: 12px; background: var(--surface-soft); }
 .crm-page--campaigns [data-campaign-block] legend { padding-inline: 8px; font-size: .8rem; font-weight: 700; }
 .crm-page--campaigns .peracrm-campaign-actions { gap: 10px; }
-.crm-page.crm-page--campaigns .peracrm-campaigns :is(.btn, a.btn, button.btn) { min-height: 36px; height: auto; width: auto; max-width: 100%; white-space: normal; font-size: var(--crm-control-compact-font-size); line-height: var(--crm-button-core-line-height); font-weight: var(--crm-button-core-weight); padding: 8px 14px; }
+.crm-page.crm-page--campaigns .peracrm-campaigns :is(.btn, a.btn, button.btn) { box-sizing: border-box; min-height: 36px; height: auto; width: auto; max-width: 100%; white-space: normal; font-size: var(--crm-control-compact-font-size); line-height: var(--crm-button-core-line-height); font-weight: var(--crm-button-core-weight); padding: 8px 14px; }
 .crm-page--campaigns .peracrm-campaigns :focus-visible { outline: 3px solid #d5a52a; outline-offset: 3px; }
 .crm-page--campaigns .campaign-save-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 20px; border: 1px solid var(--border-muted); border-radius: 12px; background: var(--surface-soft); }
 .crm-page--campaigns .campaign-save-bar [data-campaign-status] { margin: 0; color: var(--text-soft); font-size: .8rem; }
