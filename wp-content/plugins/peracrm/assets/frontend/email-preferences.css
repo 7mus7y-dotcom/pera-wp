@@ -1,7 +1,7 @@
 /* Inlined with a CSP hash on bearer-link pages. No fonts, images or remote imports. */
 * { box-sizing: border-box; }
 :root { color-scheme: light dark; --email-bg: #f4f6fa; --email-surface: #fff; --email-text: #152640; --email-muted: #526178; --email-line: #dce3ed; --email-blue: #002d72; --email-link: #004ba0; --email-soft: #f1f5fb; --email-success: #167346; }
-body { margin: 0; background: var(--email-bg); color: var(--email-text); font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+body { margin: 0; background: var(--email-bg); color: var(--email-text); font: 16px/1.65 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
 a { color: var(--email-link); text-underline-offset: 4px; overflow-wrap: anywhere; }
 a:hover { text-decoration-thickness: 2px; }
 :focus-visible { outline: 3px solid #e5af26; outline-offset: 4px; }
