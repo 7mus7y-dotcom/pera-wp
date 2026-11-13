@@ -50,7 +50,7 @@ function peracrm_campaign_render($model, $format = 'review_v1')
         $sections[]=$section;
         if (!empty($section['url'])) { $destinations[]=['label'=>$section['heading'] ?: 'Content destination','url'=>$section['url']]; }
     }
-    $sections[]=['heading'=>'Pera · Identity & address','text'=>$model['footer'] ?: 'Approved mandatory identity/address footer missing.'];
+    $sections[]=['heading'=>'Pera Property','text'=>$model['footer'] ?: 'Approved mandatory identity/address footer missing.','footer'=>true];
     if ($deliverable) {
         foreach (peracrm_campaign_deliverable_slots() as $name=>$slot) {
             $sections[] = ['heading'=>$slot['label'], 'text'=>'', 'slot'=>$name];
@@ -58,19 +58,24 @@ function peracrm_campaign_render($model, $format = 'review_v1')
     } else {
         $sections[]=['text'=>'Preferences: {{recipient_preferences_url}}' . "\nUnsubscribe: {{recipient_unsubscribe_url}}\nPlaceholder links only. No subscriber data or public tokens are issued.\n" . ($captured ? 'Content bytes and image URLs are stored; image files are not frozen.' : 'Draft content and image URLs are live; image files are not frozen.')];
     }
-    $html='<!doctype html><html lang="'.esc_attr($model['language'] ?: 'und').'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.esc_html($model['subject']).'</title></head><body style="margin:0;background:#f3f1eb;color:#162e2c;font-family:Arial,sans-serif;line-height:1.6"><table role="presentation" style="width:100%;border-collapse:collapse"><tr><td style="padding:16px 8px"><table role="presentation" style="width:100%;max-width:640px;margin:auto;background:#fff;border-top:6px solid #234d45;border-collapse:collapse;table-layout:fixed">';
+    $html='<!doctype html><html lang="'.esc_attr($model['language'] ?: 'und').'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.esc_html($model['subject']).'</title></head><body style="margin:0;background:#f4f6fa;color:#152640;font-family:Arial,sans-serif;line-height:1.6"><table role="presentation" style="width:100%;border-collapse:collapse"><tr><td style="padding:24px 8px"><table role="presentation" style="width:100%;max-width:640px;margin:auto;background:#fff;border-top:6px solid #002d72;border-collapse:collapse;table-layout:fixed">';
     $text=[];
     foreach ($sections as $section) {
-        $html.='<tr><td style="padding:16px 24px;border-bottom:1px solid #e5e5df;overflow-wrap:anywhere;word-break:break-word">';
-        if (!empty($section['heading'])) { $html.='<h2 style="font-size:22px;line-height:1.3;margin:0 0 12px">'.esc_html($section['heading']).'</h2>'; $text[]=$section['heading']; }
+        $footer=!empty($section['footer']) || isset($section['slot']);
+        $style=$footer?'padding:16px 24px;background:#f1f5fb;color:#526178;font-size:13px;':'padding:20px 24px;border-bottom:1px solid #e5eaf2;';
+        $html.='<tr><td style="'.$style.'overflow-wrap:anywhere;word-break:break-word">';
+        if (!empty($section['heading'])) {
+            if (!isset($section['slot'])) { $html.='<h2 style="font-size:'.($footer?'15':'22').'px;line-height:1.3;margin:0 0 12px;color:#002d72">'.esc_html($section['heading']).'</h2>'; }
+            $text[]=$section['heading'];
+        }
         if (!empty($section['image']) && peracrm_campaign_public_url($section['image'])!=='') { $html.='<img src="'.esc_url($section['image']).'" alt="'.esc_attr($section['alt']).'" style="display:block;width:100%;max-width:592px;height:auto;border:0">'; $text[]='Image: '.$section['image'].' · '.$section['alt']; }
         if (!empty($section['text'])) { $html.='<p style="margin:0;white-space:pre-line">'.esc_html($section['text']).'</p>'; $text[]=$section['text']; }
         if (!empty($section['url']) && peracrm_campaign_public_url($section['url'])!=='') {
             // Captured delivery links remain functional; review-only rendering stays inert.
             if ($deliverable) {
-                $html.='<a href="'.esc_attr($section['url']).'" style="display:inline-block;padding:10px 18px;background:#234d45;color:#fff;border-radius:4px">'.esc_html($section['heading'] ?: 'View content').'</a>';
+                $html.='<a href="'.esc_attr($section['url']).'" style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['heading'] ?: 'View content').'</a>';
             } else {
-                $html.='<span style="display:inline-block;padding:10px 18px;background:#234d45;color:#fff;border-radius:4px">View content · navigation disabled</span>';
+                $html.='<span style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">View content · navigation disabled</span>';
             }
             $text[]=$section['url'];
         }

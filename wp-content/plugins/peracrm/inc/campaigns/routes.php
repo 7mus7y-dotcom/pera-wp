@@ -1,5 +1,6 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
+require_once __DIR__.'/presentation.php';
 
 add_action('init', static function () {
     add_rewrite_rule('^crm/subscribers/(?:import|suppression)/?$', 'index.php?pera_crm=1&pera_crm_view=subscribers', 'top');
@@ -46,7 +47,7 @@ add_action('template_redirect', static function () {
         exit;
     }
     peracrm_subscribers_private_headers();
-    header("Content-Security-Policy: default-src 'none'; style-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+    header('Content-Security-Policy: '.peracrm_campaign_public_page_csp());
     if (!peracrm_subscribers_on_authoritative_domain()) {
         // Wrong-domain POSTs never mutate. No automatic POST forwarding.
         status_header(400);

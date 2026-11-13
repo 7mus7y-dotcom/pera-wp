@@ -1,9 +1,7 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
-$stylesheet=peracrm_frontend_get_asset_file('assets/frontend/crm.css');
+peracrm_campaign_public_page_start($status===503?'Email preferences are unavailable':'Your email preferences','Your email choices',$data===null?'error':'neutral');
 ?>
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><title>Email preferences</title><link rel="stylesheet" href="<?php echo esc_url($stylesheet['url']); ?>"></head>
-<body class="crm-route"><main id="primary" class="crm-page peracrm-preferences"><h1>Email preferences</h1>
 <?php if ($message!=='') : ?><p role="status"><?php echo esc_html($message); ?></p><?php endif; ?>
 <?php if ($data!==null) : ?>
 <p>Opening this page makes no changes. Saving preferences never subscribes you or removes a global unsubscribe.</p>
@@ -20,4 +18,4 @@ $stylesheet=peracrm_frontend_get_asset_file('assets/frontend/crm.css');
 <?php endif; ?>
 <?php if ($withdrawalURL!=='') : ?><p><a href="<?php echo esc_url($withdrawalURL); ?>" rel="noreferrer">Unsubscribe from all marketing email</a></p>
 <?php elseif ($data===null && $status!==503) : ?><p>Preference access may have expired. Use the separate unsubscribe link in your original email to withdraw marketing permission.</p><?php endif; ?>
-</main></body></html>
+<?php peracrm_campaign_public_page_end(); ?>

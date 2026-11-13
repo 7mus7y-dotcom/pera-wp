@@ -76,13 +76,13 @@ function peracrm_campaign_queue_ui_panel($campaign,$id,$after=0,$recipients=fals
     if ($recipients && !peracrm_campaigns_staff_can('peracrm_manage_subscribers',true)) { throw new RuntimeException('Subscriber access required.'); }
     ob_start();
     try {
-        echo '<section data-queue-job="'.(int)$id.'" data-queue-version="'.(int)$job['version'].'" data-queue-scheduled-value="'.esc_attr($job['scheduled_at'] ? (new DateTimeImmutable($job['scheduled_at'],new DateTimeZone('UTC')))->setTimezone(new DateTimeZone('Europe/Istanbul'))->format('Y-m-d\TH:i') : '').'"><h2>Job #'.(int)$id.' · Frozen revision '.(int)($summary['revision']['draft_revision'] ?? 0).'</h2>';
+        echo '<section class="campaign-card" data-queue-job="'.(int)$id.'" data-queue-version="'.(int)$job['version'].'" data-queue-scheduled-value="'.esc_attr($job['scheduled_at'] ? (new DateTimeImmutable($job['scheduled_at'],new DateTimeZone('UTC')))->setTimezone(new DateTimeZone('Europe/Istanbul'))->format('Y-m-d\TH:i') : '').'"><h2>Job #'.(int)$id.' · Frozen revision '.(int)($summary['revision']['draft_revision'] ?? 0).'</h2>';
         echo '<p data-queue-state>Lifecycle: '.esc_html($job['state']).' · Preparation: '.((int)$job['complete'] ? 'complete' : 'incomplete').' · Version '.(int)$job['version'].'</p>';
         echo '<p data-queue-totals>Considered: '.(int)($summary['revision']['considered'] ?? 0).' · Prepared: '.(int)$job['prepared_count'].' / '.(int)$job['expected_count'].'</p>';
         echo '<p>Schedule intent: '.esc_html(peracrm_campaign_queue_ui_time($job['scheduled_at'])).'</p><p>Preparation completion does not mean delivery completion. Provider acceptance does not verify inbox delivery.</p>';
         echo '<dl class="peracrm-queue-counts">';
-        foreach ($counts as $state=>$total) { echo '<dt>'.esc_html(ucfirst($state).' deliveries').'</dt><dd data-queue-count="'.esc_attr($state).'">'.(int)$total.'</dd>'; }
-        echo '<dt>Retry backlog</dt><dd>'.(int)$counts['retry'].'</dd><dt>Active leases</dt><dd>'.(int)$summary['leases']['active'].'</dd><dt>Expired leases</dt><dd>'.(int)$summary['leases']['expired'].'</dd></dl>';
+        foreach ($counts as $state=>$total) { echo '<div class="campaign-stat"><dt>'.esc_html(ucfirst($state).' deliveries').'</dt><dd data-queue-count="'.esc_attr($state).'">'.(int)$total.'</dd></div>'; }
+        echo '<div class="campaign-stat"><dt>Retry backlog</dt><dd>'.(int)$counts['retry'].'</dd></div><div class="campaign-stat"><dt>Active leases</dt><dd>'.(int)$summary['leases']['active'].'</dd></div><div class="campaign-stat"><dt>Expired leases</dt><dd>'.(int)$summary['leases']['expired'].'</dd></div></dl>';
         echo '<p>Failed job: '.($job['state']==='failed' ? 'yes — preparation recovery required' : 'no').'. Failed deliveries: '.(int)$counts['failed'].'. These are separate conditions.</p>';
         if ($counts['unknown']) { echo '<p role="alert">Unknown outcomes require reconciliation. Do not retry or assume acceptance. Provider lookup and verified-evidence reconciliation UI are deferred until a real provider is implemented.</p>'; }
         if ($counts['claimed'] || $counts['inflight'] || $counts['retry'] || $counts['unknown'] || !(int)$job['submission_complete']) { echo '<p>Unresolved work remains. This job is not evidence of completed delivery.</p>'; }
@@ -151,14 +151,14 @@ function peracrm_campaign_queue_ui_health()
     try {
 ?>
 <?php if (peracrm_campaigns_staff_can('peracrm_view_campaign_reports',true)) : $health=(new PeraCRM_Campaign_Operations())->health(); ?>
-<section data-queue-health><h2>Queue health (target blog)</h2><p>Read only. Last invocation is distinct from successful known processing and provider acceptance.</p><dl class="peracrm-queue-counts">
+<section class="campaign-card" data-queue-health><h2>Queue health (target blog)</h2><p>Read only. Last invocation is distinct from successful known processing and provider acceptance.</p><dl class="peracrm-queue-counts">
 <?php foreach (['scheduler_state'=>'Scheduler','schema_ready'=>'Schema ready','module_enabled'=>'Module enabled','queue_ready'=>'Queue ready'] as $key=>$label) { echo '<dt>'.esc_html($label).'</dt><dd>'.esc_html(is_bool($health[$key]) ? ($health[$key] ? 'yes' : 'no') : $health[$key]).'</dd>'; }
 foreach (($health['counts'] ?? []) as $key=>$value) { echo '<dt>'.esc_html(ucfirst(str_replace('_',' ',$key))).'</dt><dd>'.(int)$value.'</dd>'; }
 echo '<dt>Last invocation</dt><dd>'.esc_html(peracrm_campaign_queue_ui_time($health['last_invocation']['invoked_at'] ?? null).' · '.($health['last_invocation']['result'] ?? 'never invoked')).'</dd>';
 foreach (['last_successful_processing'=>'Last successful processing','last_provider_acceptance'=>'Last provider acceptance (not delivery)'] as $key=>$label) { echo '<dt>'.esc_html($label).'</dt><dd>'.esc_html(peracrm_campaign_queue_ui_time($health[$key])).'</dd>'; } ?></dl>
 <?php foreach ($health['diagnostics'] as $diagnostic) { echo '<p>'.esc_html(str_replace('_',' ',$diagnostic)).'</p>'; } ?>
 <p>Unknown outcomes require reconciliation. Invocation alone does not prove successful processing or delivery. No provider lookup or manual outcome overrides are available.</p></section>
-<?php else : ?><section data-queue-health><p>Campaign report permission is required for global queue health.</p></section><?php endif; ?>
+<?php else : ?><section class="campaign-card" data-queue-health><p>Campaign report permission is required for global queue health.</p></section><?php endif; ?>
 <?php
         return ob_get_clean();
     } catch (Throwable $error) { ob_end_clean(); throw $error; }

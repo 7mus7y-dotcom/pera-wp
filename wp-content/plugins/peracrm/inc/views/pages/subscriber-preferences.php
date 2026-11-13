@@ -1,10 +1,8 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
-$stylesheet = peracrm_frontend_get_asset_file('assets/frontend/crm.css');
+$withdrawn=$message==='Your permission to receive marketing email has been withdrawn.';
+peracrm_campaign_public_page_start($withdrawn?"You're unsubscribed":($valid?'Your email preferences':'This link is unavailable'),'Your email choices',$withdrawn?'success':($valid?'neutral':'error'));
 ?>
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><title>Email preferences</title><link rel="stylesheet" href="<?php echo esc_url(add_query_arg('ver', (string) filemtime($stylesheet['path']), $stylesheet['url'])); ?>"></head>
-<body class="crm-route"><main id="primary" class="crm-page peracrm-preferences"><h1>Email preferences</h1>
 <?php if ($message !== '') : ?><p role="status"><?php echo esc_html($message); ?></p><?php endif; ?>
 <?php if ($valid) : ?>
 <p>Choose whether to receive marketing email. Opening this page makes no changes.</p>
@@ -19,4 +17,4 @@ $stylesheet = peracrm_frontend_get_asset_file('assets/frontend/crm.css');
 <?php endforeach; ?></fieldset>
 <p>Clear all choices to remove topic preferences. Saving topics does not subscribe you or undo a global unsubscribe.</p><button class="btn btn--ghost" type="submit">Save topic choices</button></form>
 <?php else : ?><p>This link is unavailable. Please use the original preferences link.</p><?php endif; ?>
-</main></body></html>
+<?php peracrm_campaign_public_page_end(); ?>

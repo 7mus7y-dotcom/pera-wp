@@ -136,6 +136,10 @@ if (!function_exists('pera_crm_enqueue_assets')) {
 
         peracrm_frontend_enqueue_style_asset('peracrm-frontend-css', 'assets/frontend/crm.css', $crm_css_deps);
 
+        if ($is_crm_request && (string) get_query_var('pera_crm_view') === 'campaigns') {
+            peracrm_frontend_enqueue_style_asset('peracrm-campaigns-css', 'assets/frontend/campaigns.css', ['peracrm-frontend-css']);
+        }
+
         if (!$is_crm_request) {
             return;
         }
@@ -172,6 +176,13 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             (string) filemtime($crm_js['path']),
             true
         );
+
+        if ((string) get_query_var('pera_crm_view') === 'campaigns') {
+            $campaign_js = peracrm_frontend_get_asset_file('assets/frontend/campaign-presentation.js');
+            if (!empty($campaign_js)) {
+                wp_enqueue_script('peracrm-campaign-presentation', $campaign_js['url'], ['pera-crm-js'], (string) filemtime($campaign_js['path']), true);
+            }
+        }
 
         wp_localize_script(
             'pera-crm-js',
