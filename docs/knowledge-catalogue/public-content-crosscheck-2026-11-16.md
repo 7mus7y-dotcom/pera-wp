@@ -2,11 +2,11 @@
 
 Scope: readable public HTML/text for six citizenship pages and two Kadıköy pages. This is **not** a raw-header, canonical, robots or full-site crawl.
 
-## Confirmed P0: valuation guidance contradicts newer article
+## Superseded historical valuation guidance — user-confirmed editorial policy
 
 - `/turkish-citizenship-valuation-report-what-buyers-need-to-know_59338/` (post 59338) says GEDAŞ prepares the official appraisal and describes a GEDAŞ qualifies/does-not-qualify report. It also states a TRY 55,000 fee, without a date attached to that fee in the body.
 - `/turkey-changes-citizenship-property-valuation-rules-in-september-2026_60064/` (post 60064) says any SPK-authorised valuation company can prepare the report used for the TTB and describes the previous GEDAŞ arrangement as superseded. It states TTB validity is 12 months.
-- Action: have a qualified legal/land-registry reviewer confirm the current rules and rewrite the older guide accordingly. Verify any fixed fees, the claim that valuation is required for all foreign transactions, and any blanket equivalence asserted between appraisal, TTB and qualifying payment evidence. Do **not** automatically replace all valuation references with TTB: these are distinct concepts.
+- Owner clarification (2026-11-16): the older article was accurate when published and intentionally retained as historical guidance; the later article supersedes it. The quoted TRY 55,000 fee is confirmed current by the owner. **Do not rewrite historical statements as though the newer rules always applied.** Check whether the older page already contains a visible dated supersession notice linking to the current guide. If absent, recommend adding one; independently verify any time-sensitive legal claims before new publication.
 
 ## Citizenship pages inspected
 
