@@ -13,9 +13,14 @@ $output=peracrm_campaign_render($deliverable_model,'deliverable_v2');
 campaign_expect(str_contains($output['html'],'pera-email-logo.png') && str_contains($output['html'],'alt="Pera Property"') && !str_contains($output['html'],'PERA · Property &amp; perspective'), 'PNG logo replaces text masthead');
 campaign_expect(!str_contains($output['html'],esc_html($deliverable_model['sender'])) && !str_contains($output['text'],$deliverable_model['sender']) && !str_contains($output['html'],'Reply-to:'), 'sender and reply-to stay out of message body');
 campaign_expect(strpos($output['html'],'pera-email-logo.png')<strpos($output['html'],'<h2'), 'branded header retains subject');
+foreach (peracrm_campaign_footer_links() as $label=>$url) {
+    campaign_expect(str_contains($output['html'],'href="'.$url.'"') && str_contains($output['text'],$label.': '.$url),'corporate social destination in HTML and plain text: '.$label);
+}
+$preview=peracrm_campaign_render($deliverable_model);
+campaign_expect(!str_contains($preview['html'],'<a href=') && str_contains($preview['html'],'Connect with Pera Property'),'corporate footer previews remain inert');
 $slots=peracrm_campaign_deliverable_slots();
 peracrm_campaign_deliverable_validate($output,$slots);
-campaign_expect(substr_count($output['html'],'<a href=')===5 && count($output['destinations'])===3, 'article, property, CTA and two typed slots are HTML links');
+campaign_expect(substr_count($output['html'],'<a href=')===9 && count($output['destinations'])===3, 'content, corporate footer and two typed slots are HTML links');
 campaign_expect(str_contains($output['html'],'href="https://example.org/story?a=1&amp;b=2"') && str_contains($output['html'],'alt="An &quot;image&quot; &lt;tag&gt;"') && !str_contains($output['html'],'<script>') && str_contains($output['html'],'&lt;img src=x onerror=evil&gt;'), 'HTML body, link labels, attributes and query separators escaped');
 foreach ($output['destinations'] as $link) {
     campaign_expect(str_contains($output['text'],$link['url']) && str_contains($output['html'],esc_attr($link['url'])), 'HTML/text have identical public destination');

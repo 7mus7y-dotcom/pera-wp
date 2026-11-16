@@ -92,6 +92,17 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             }
             $text[]=$section['url'];
         }
+        if (!empty($section['footer'])) {
+            $html.='<div style="margin-top:20px;padding-top:16px;border-top:1px solid #d6dfed"><p style="margin:0 0 8px;font-weight:700;color:#002d72">Connect with Pera Property</p>';
+            $text[]='Connect with Pera Property';
+            foreach (peracrm_campaign_footer_links() as $label=>$url) {
+                $style='display:inline-block;margin:4px 8px 4px 0;padding:8px 12px;border:1px solid #002d72;border-radius:6px;color:#002d72;background:#fff;font-size:13px;line-height:1.4;text-decoration:none;';
+                if ($label==='WhatsApp') { $style.='background:#002d72;color:#fff;'; }
+                $html.=$deliverable ? '<a href="'.esc_attr($url).'" style="'.$style.'">'.esc_html($label).'</a>' : '<span style="'.$style.'">'.esc_html($label).'</span>';
+                $text[]=$label.': '.$url;
+            }
+            $html.='</div>';
+        }
         if (isset($section['slot'])) {
             $marker='{{'.$section['slot'].'}}';
             $html.='<a href="'.$marker.'">'.esc_html($section['heading']).'</a>';
@@ -102,6 +113,17 @@ function peracrm_campaign_render($model, $format = 'review_v1')
     return ['html'=>$html.'</table></td></tr></table></body></html>','text'=>implode("\n",$text),'destinations'=>$destinations,'template_version'=>$deliverable ? 2 : $model['template_version']];
 }
 
+
+/** Permanent corporate links; no recipient tracking or private tokens. */
+function peracrm_campaign_footer_links()
+{
+    return [
+        'Instagram'=>'https://www.instagram.com/peraproperty/',
+        'Facebook'=>'https://www.facebook.com/perapropertycom/',
+        'LinkedIn'=>'https://www.linkedin.com/company/11316052/',
+        'WhatsApp'=>'https://wa.me/905452054356',
+    ];
+}
 
 /** Immutable contract: URL values are absent from shared captures, never arbitrary HTML. */
 function peracrm_campaign_deliverable_slots()
