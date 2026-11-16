@@ -40,7 +40,13 @@
           "inventory_url": "https://www.peraproperty.com/",
           "source": "docs/page-inventory.csv"
         }
-      ]
+      ],
+      "public_retrieval": {
+        "checked_on": "2026-11-16",
+        "result": "public-content-readable",
+        "source_url": "https://www.peraproperty.com/about-us/",
+        "note": "HTML text retrieval only; canonical, robots, status code and hreflang not independently confirmed."
+      }
     },
     {
       "id": "citizenship-overview",
@@ -85,7 +91,13 @@
           "inventory_url": "https://www.peraproperty.com/turkish-citizenship-properties/",
           "source": "docs/page-inventory.csv"
         }
-      ]
+      ],
+      "public_retrieval": {
+        "checked_on": "2026-11-16",
+        "result": "public-content-readable",
+        "source_url": "https://www.peraproperty.com/citizenship-by-investment/",
+        "note": "HTML text retrieval only; canonical, robots, status code and hreflang not independently confirmed."
+      }
     },
     {
       "id": "citizenship-documents",
@@ -192,7 +204,13 @@
           "inventory_count_snapshot": 5
         }
       ],
-      "page_matches": []
+      "page_matches": [],
+      "public_retrieval": {
+        "checked_on": "2026-11-16",
+        "result": "public-content-readable",
+        "source_url": "https://www.peraproperty.com/district/istanbul/kadikoy/",
+        "note": "HTML text retrieval only; canonical, robots, status code and hreflang not independently confirmed."
+      }
     },
     {
       "id": "district-2",
