@@ -7,7 +7,7 @@
       "id": "company",
       "name": "Pera Property entity",
       "cluster": "company",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
       "priority": "high",
       "inventory_matches": [],
@@ -19,6 +19,26 @@
           "url": "https://www.peraproperty.com/",
           "source": "company-document",
           "verification": "unverified"
+        }
+      ],
+      "page_matches": [
+        {
+          "post_id": 55642,
+          "title": "About Pera Property Istanbul",
+          "inventory_url": "https://www.peraproperty.com/about-us/",
+          "source": "docs/page-inventory.csv"
+        },
+        {
+          "post_id": 55645,
+          "title": "Contact Pera Property Istanbul",
+          "inventory_url": "https://www.peraproperty.com/contact-us/",
+          "source": "docs/page-inventory.csv"
+        },
+        {
+          "post_id": 55858,
+          "title": "Property for Sale in Istanbul | Pera Property",
+          "inventory_url": "https://www.peraproperty.com/",
+          "source": "docs/page-inventory.csv"
         }
       ]
     },
@@ -50,6 +70,20 @@
           "url": "https://www.peraproperty.com/citizenship-by-investment/",
           "source": "theme-llms",
           "verification": "unverified"
+        }
+      ],
+      "page_matches": [
+        {
+          "post_id": 55649,
+          "title": "Turkish Citizenship by Investment Through Real Estate",
+          "inventory_url": "https://www.peraproperty.com/citizenship-by-investment/",
+          "source": "docs/page-inventory.csv"
+        },
+        {
+          "post_id": 58736,
+          "title": "Turkish Citizenship Properties",
+          "inventory_url": "https://www.peraproperty.com/turkish-citizenship-properties/",
+          "source": "docs/page-inventory.csv"
         }
       ]
     },
@@ -85,6 +119,14 @@
       "entity_ids": [
         "org:pera-property",
         "process:turkish-citizenship-property"
+      ],
+      "page_matches": [
+        {
+          "post_id": 55649,
+          "title": "Turkish Citizenship by Investment Through Real Estate",
+          "inventory_url": "https://www.peraproperty.com/citizenship-by-investment/",
+          "source": "docs/page-inventory.csv"
+        }
       ]
     },
     {
@@ -109,6 +151,14 @@
       "entity_ids": [
         "org:pera-property",
         "process:turkish-citizenship-property"
+      ],
+      "page_matches": [
+        {
+          "post_id": 55649,
+          "title": "Turkish Citizenship by Investment Through Real Estate",
+          "inventory_url": "https://www.peraproperty.com/citizenship-by-investment/",
+          "source": "docs/page-inventory.csv"
+        }
       ]
     },
     {
@@ -141,7 +191,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/kadikoy/",
           "inventory_count_snapshot": 5
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-2",
@@ -178,7 +229,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/sisli/",
           "inventory_count_snapshot": 11
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-3",
@@ -205,7 +257,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/besiktas/",
           "inventory_count_snapshot": 15
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-4",
@@ -232,7 +285,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/kagithane/",
           "inventory_count_snapshot": 12
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-5",
@@ -259,7 +313,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/zeytinburnu/",
           "inventory_count_snapshot": 12
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-6",
@@ -286,7 +341,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/kucukcekmece/",
           "inventory_count_snapshot": 13
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-7",
@@ -320,7 +376,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/eyup/",
           "inventory_count_snapshot": 7
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-8",
@@ -347,7 +404,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/maltepe/",
           "inventory_count_snapshot": 1
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-9",
@@ -368,7 +426,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/umraniye/",
           "inventory_count_snapshot": 4
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-10",
@@ -400,7 +459,8 @@
           "inventory_url": "https://www.peraproperty.com/district/istanbul/atasehir/",
           "inventory_count_snapshot": 1
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "district-11",
@@ -421,7 +481,8 @@
           "inventory_url": "https://www.peraproperty.com/region/istanbul-maslak-property-for-sale/",
           "inventory_count_snapshot": 16
         }
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "investment-1",
@@ -445,7 +506,8 @@
       "entity_ids": [
         "org:pera-property",
         "concept:property-purchase"
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "investment-2",
@@ -458,7 +520,8 @@
       "entity_ids": [
         "org:pera-property",
         "concept:property-purchase"
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "investment-3",
@@ -471,7 +534,8 @@
       "entity_ids": [
         "org:pera-property",
         "concept:property-purchase"
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "investment-4",
@@ -484,7 +548,8 @@
       "entity_ids": [
         "org:pera-property",
         "concept:property-purchase"
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "investment-5",
@@ -497,7 +562,8 @@
       "entity_ids": [
         "org:pera-property",
         "concept:property-purchase"
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "investment-6",
@@ -516,7 +582,8 @@
       "entity_ids": [
         "org:pera-property",
         "concept:property-purchase"
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "investment-7",
@@ -529,7 +596,8 @@
       "entity_ids": [
         "org:pera-property",
         "concept:property-purchase"
-      ]
+      ],
+      "page_matches": []
     },
     {
       "id": "investment-8",
@@ -553,6 +621,14 @@
       "entity_ids": [
         "org:pera-property",
         "concept:property-purchase"
+      ],
+      "page_matches": [
+        {
+          "post_id": 55858,
+          "title": "Property for Sale in Istanbul | Pera Property",
+          "inventory_url": "https://www.peraproperty.com/",
+          "source": "docs/page-inventory.csv"
+        }
       ]
     },
     {
@@ -572,6 +648,14 @@
       "entity_ids": [
         "org:pera-property",
         "service:property-management"
+      ],
+      "page_matches": [
+        {
+          "post_id": 55663,
+          "title": "Rent Out Your Property in Istanbul with Pera",
+          "inventory_url": "https://www.peraproperty.com/rent-your-istanbul-real-estate/",
+          "source": "docs/page-inventory.csv"
+        }
       ]
     },
     {
@@ -591,6 +675,14 @@
       "entity_ids": [
         "org:pera-property",
         "service:property-management"
+      ],
+      "page_matches": [
+        {
+          "post_id": 55663,
+          "title": "Rent Out Your Property in Istanbul with Pera",
+          "inventory_url": "https://www.peraproperty.com/rent-your-istanbul-real-estate/",
+          "source": "docs/page-inventory.csv"
+        }
       ]
     },
     {
@@ -610,6 +702,14 @@
       "entity_ids": [
         "org:pera-property",
         "service:property-management"
+      ],
+      "page_matches": [
+        {
+          "post_id": 55663,
+          "title": "Rent Out Your Property in Istanbul with Pera",
+          "inventory_url": "https://www.peraproperty.com/rent-your-istanbul-real-estate/",
+          "source": "docs/page-inventory.csv"
+        }
       ]
     },
     {
@@ -634,6 +734,14 @@
       "entity_ids": [
         "org:pera-property",
         "service:property-management"
+      ],
+      "page_matches": [
+        {
+          "post_id": 55663,
+          "title": "Rent Out Your Property in Istanbul with Pera",
+          "inventory_url": "https://www.peraproperty.com/rent-your-istanbul-real-estate/",
+          "source": "docs/page-inventory.csv"
+        }
       ]
     },
     {
@@ -653,20 +761,48 @@
       "entity_ids": [
         "org:pera-property",
         "service:property-management"
+      ],
+      "page_matches": [
+        {
+          "post_id": 55663,
+          "title": "Rent Out Your Property in Istanbul with Pera",
+          "inventory_url": "https://www.peraproperty.com/rent-your-istanbul-real-estate/",
+          "source": "docs/page-inventory.csv"
+        }
       ]
     },
     {
       "id": "management-6",
       "name": "Property resale management",
       "cluster": "property-management",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
       "priority": "medium",
       "inventory_matches": [],
       "entity_ids": [
         "org:pera-property",
         "service:property-management"
+      ],
+      "page_matches": [
+        {
+          "post_id": 55660,
+          "title": "Sell Your Property in Istanbul with Pera",
+          "inventory_url": "https://www.peraproperty.com/sell-your-istanbul-real-estate/",
+          "source": "docs/page-inventory.csv"
+        }
       ]
     }
-  ]
+  ],
+  "sources": {
+    "blog": "docs/blog-post-inventory.csv",
+    "pages": "docs/page-inventory.csv",
+    "properties": "docs/property-inventory.csv",
+    "taxonomies": "docs/taxonomy-inventory.csv"
+  },
+  "inventory_summary": {
+    "blog_rows": 136,
+    "page_rows": 21,
+    "property_rows": 125,
+    "property_note": "Property CPT inventory retained in its existing CSV; individual listing associations require evidence rather than assigning every listing to a broad topic."
+  }
 }
