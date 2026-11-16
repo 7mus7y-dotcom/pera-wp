@@ -16,6 +16,7 @@ campaign_expect(strpos($output['html'],'pera-email-logo.png')<strpos($output['ht
 foreach (peracrm_campaign_footer_links() as $label=>$url) {
     campaign_expect(str_contains($output['html'],'href="'.$url.'"') && str_contains($output['text'],$label.': '.$url),'corporate social destination in HTML and plain text: '.$label);
 }
+campaign_expect(strpos($output['html'],'Connect with Pera Property')<strpos($output['html'],'pera-email-footer-logo.png') && strpos($output['html'],'pera-email-footer-logo.png')<strpos($output['html'],esc_html($deliverable_model['footer'])),'social panel precedes the small logo/company heading and legal footer');
 $preview=peracrm_campaign_render($deliverable_model);
 campaign_expect(!str_contains($preview['html'],'<a href=') && str_contains($preview['html'],'Connect with Pera Property'),'corporate footer previews remain inert');
 $slots=peracrm_campaign_deliverable_slots();
