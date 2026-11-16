@@ -20,7 +20,7 @@ $preview=peracrm_campaign_render($deliverable_model);
 campaign_expect(!str_contains($preview['html'],'<a href=') && str_contains($preview['html'],'Connect with Pera Property'),'corporate footer previews remain inert');
 $slots=peracrm_campaign_deliverable_slots();
 peracrm_campaign_deliverable_validate($output,$slots);
-campaign_expect(substr_count($output['html'],'<a href=')===9 && count($output['destinations'])===3, 'content, corporate footer and two typed slots are HTML links');
+campaign_expect(substr_count($output['html'],'<a href=')===10 && count($output['destinations'])===3, 'content, corporate footer and two typed slots are HTML links');
 campaign_expect(str_contains($output['html'],'href="https://example.org/story?a=1&amp;b=2"') && str_contains($output['html'],'alt="An &quot;image&quot; &lt;tag&gt;"') && !str_contains($output['html'],'<script>') && str_contains($output['html'],'&lt;img src=x onerror=evil&gt;'), 'HTML body, link labels, attributes and query separators escaped');
 foreach ($output['destinations'] as $link) {
     campaign_expect(str_contains($output['text'],$link['url']) && str_contains($output['html'],esc_attr($link['url'])), 'HTML/text have identical public destination');

@@ -93,15 +93,17 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             $text[]=$section['url'];
         }
         if (!empty($section['footer'])) {
-            $html.='<div style="margin-top:20px;padding-top:16px;border-top:1px solid #d6dfed"><p style="margin:0 0 8px;font-weight:700;color:#002d72">Connect with Pera Property</p>';
+            $html.='<div style="margin-top:20px;padding:12px;background:#002d72;border-radius:8px"><p style="margin:0 0 12px;font-weight:700;color:#fff">Connect with Pera Property</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>';
             $text[]='Connect with Pera Property';
-            foreach (peracrm_campaign_footer_links() as $label=>$url) {
-                $style='display:inline-block;margin:4px 8px 4px 0;padding:8px 12px;border:1px solid #002d72;border-radius:6px;color:#002d72;background:#fff;font-size:13px;line-height:1.4;text-decoration:none;';
-                if ($label==='WhatsApp') { $style.='background:#002d72;color:#fff;'; }
-                $html.=$deliverable ? '<a href="'.esc_attr($url).'" style="'.$style.'">'.esc_html($label).'</a>' : '<span style="'.$style.'">'.esc_html($label).'</span>';
-                $text[]=$label.': '.$url;
+            $links=peracrm_campaign_footer_links();$index=0;
+            foreach ($links as $label=>$url) {
+                $icon=(defined('PERACRM_URL') ? PERACRM_URL : 'https://www.peraproperty.com/wp-content/plugins/peracrm').'/logos-icons/email-social-'.strtolower($label).'.png';
+                $image='<img src="'.esc_url($icon).'" width="34" height="34" alt="'.esc_attr($label).'" style="display:block;width:34px;height:34px;border:0;color:#fff;font-size:10px">';
+                $html.='<td style="padding:0 '.(++$index<count($links) ? '8' : '0').'px 0 0;vertical-align:middle">';
+                $html.=$deliverable ? '<a href="'.esc_attr($url).'" aria-label="'.esc_attr($label.' Pera Property').'" style="display:inline-block;text-decoration:none">'.$image.'</a>' : '<span style="display:inline-block">'.$image.'</span>';
+                $html.='</td>';$text[]=$label.': '.$url;
             }
-            $html.='</div>';
+            $html.='</tr></table></div>';
         }
         if (isset($section['slot'])) {
             $marker='{{'.$section['slot'].'}}';
@@ -118,10 +120,11 @@ function peracrm_campaign_render($model, $format = 'review_v1')
 function peracrm_campaign_footer_links()
 {
     return [
+        'WhatsApp'=>'https://wa.me/905452054356',
         'Instagram'=>'https://www.instagram.com/peraproperty/',
+        'YouTube'=>'https://www.youtube.com/channel/UCCCiEx5X14mJizqXcsYh1fQ',
         'Facebook'=>'https://www.facebook.com/perapropertycom/',
         'LinkedIn'=>'https://www.linkedin.com/company/11316052/',
-        'WhatsApp'=>'https://wa.me/905452054356',
     ];
 }
 
