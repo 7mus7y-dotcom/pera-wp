@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-11-16",
-  "note": "Initial candidate inventory; canonical URLs and publication status require live verification.",
+  "note": "Matched against repository blog inventory, not live HTTP/WordPress. Inventory URLs may be legacy or redirected; canonical_url intentionally null.",
   "topics": [
     {
       "id": "company",
@@ -9,95 +9,213 @@
       "cluster": "company",
       "status": "inventory-needed",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": []
     },
     {
       "id": "citizenship-overview",
       "name": "Turkish citizenship through property",
       "cluster": "citizenship",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 59330,
+          "title": "Turkish citizenship property requirements in 2026",
+          "inventory_url": "https://www.peraproperty.com/turkish-citizenship-property-requirements-in-2026_59330/"
+        },
+        {
+          "post_id": 6292,
+          "title": "Turkish citizenship by real estate investment",
+          "inventory_url": "https://www.peraproperty.com/turkish-citizenship-by-real-estate-investment_6292/"
+        }
+      ]
     },
     {
       "id": "citizenship-documents",
       "name": "Citizenship property documents and valuation",
       "cluster": "citizenship",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 59338,
+          "title": "Turkish Citizenship Valuation Report: What Buyers Need to Know",
+          "inventory_url": "https://www.peraproperty.com/turkish-citizenship-valuation-report-what-buyers-need-to-know_59338/"
+        },
+        {
+          "post_id": 59341,
+          "title": "Certificate of Conformity for Turkish Citizenship by Investment",
+          "inventory_url": "https://www.peraproperty.com/certificate-of-conformity-for-turkish-citizenship-by-investment_59341/"
+        },
+        {
+          "post_id": 59334,
+          "title": "DAB in Turkish Citizenship Property Purchases Explained",
+          "inventory_url": "https://www.peraproperty.com/dab-in-turkish-citizenship-property-purchases-explained_59334/"
+        },
+        {
+          "post_id": 60064,
+          "title": "Turkey Changes Citizenship Property Valuation Rules in September 2026",
+          "inventory_url": "https://www.peraproperty.com/turkey-changes-citizenship-property-valuation-rules-in-september-2026_60064/"
+        }
+      ]
     },
     {
       "id": "citizenship-costs",
       "name": "Citizenship investment costs and risks",
       "cluster": "citizenship",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 59330,
+          "title": "Turkish citizenship property requirements in 2026",
+          "inventory_url": "https://www.peraproperty.com/turkish-citizenship-property-requirements-in-2026_59330/"
+        },
+        {
+          "post_id": 3098,
+          "title": "Closing Costs When Buying Property in Turkey (2026 Guide)",
+          "inventory_url": "https://www.peraproperty.com/taxes-expenses-and-costs-when-buying_3098/"
+        }
+      ]
     },
     {
       "id": "district-1",
       "name": "Kadıköy",
       "cluster": "districts",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 51561,
+          "title": "Kadikoy Regional Guide: A Vibrant Hub on Istanbul’s Asian Side",
+          "inventory_url": "https://www.peraproperty.com/kadikoy-regional-guide-a-vibrant-hub-on-istanbuls-asian-side_51561/"
+        },
+        {
+          "post_id": 6271,
+          "title": "Kadikoy regeneration zone",
+          "inventory_url": "https://www.peraproperty.com/kadikoy-regeneration-zone_6271/"
+        }
+      ]
     },
     {
       "id": "district-2",
       "name": "Şişli and Bomonti",
       "cluster": "districts",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 51392,
+          "title": "Sisli: The Heart of Modern Istanbul",
+          "inventory_url": "https://www.peraproperty.com/sisli-the-heart-of-modern-istanbul_51392/"
+        },
+        {
+          "post_id": 6313,
+          "title": "Bomonti: Istanbul’s Trendy Hub for Luxury Living and Investment",
+          "inventory_url": "https://www.peraproperty.com/a-guide-to-bomonti_6313/"
+        },
+        {
+          "post_id": 51370,
+          "title": "Bomonti: From ghetto to luxury residences",
+          "inventory_url": "https://www.peraproperty.com/a-guide-to-bomonti-from-ghetto-to-luxury-residences_51370/"
+        }
+      ]
     },
     {
       "id": "district-3",
       "name": "Beşiktaş",
       "cluster": "districts",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 51249,
+          "title": "Besiktas, from bronze age to Ottoman palaces",
+          "inventory_url": "https://www.peraproperty.com/besiktas-from-bronze-age-to-ottoman-palaces_51249/"
+        }
+      ]
     },
     {
       "id": "district-4",
       "name": "Kağıthane",
       "cluster": "districts",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 52066,
+          "title": "Kağıthane: Istanbul’s Rising Star for Investment and Modern Living",
+          "inventory_url": "https://www.peraproperty.com/a-regional-guide-to-kagithane-istanbul_52066/"
+        }
+      ]
     },
     {
       "id": "district-5",
       "name": "Zeytinburnu and Topkapı",
       "cluster": "districts",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 50636,
+          "title": "Zeytinburnu: Istanbul’s Evolving Coastal Hub",
+          "inventory_url": "https://www.peraproperty.com/a-regional-guide-to-zeytinburnu_50636/"
+        }
+      ]
     },
     {
       "id": "district-6",
       "name": "Küçükçekmece and Atakent",
       "cluster": "districts",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 43127,
+          "title": "Küçükçekmece: A Growing Hub for Investment and Lakeside Living",
+          "inventory_url": "https://www.peraproperty.com/a-guide-to-kucukcekmece_43127/"
+        }
+      ]
     },
     {
       "id": "district-7",
       "name": "Gaziosmanpaşa and Eyüpsultan",
       "cluster": "districts",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 52090,
+          "title": "Eyup: A Blend of History and Modernity in Istanbul",
+          "inventory_url": "https://www.peraproperty.com/discovering-eyup-a-blend-of-history-and-modernity-in-istanbul_52090/"
+        }
+      ]
     },
     {
       "id": "district-8",
       "name": "Maltepe",
       "cluster": "districts",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": [
+        {
+          "post_id": 58703,
+          "title": "Maltepe: Coastal Living on Istanbul’s Asian Side",
+          "inventory_url": "https://www.peraproperty.com/maltepe-coastal-living-on-istanbuls-asian-side_58703/"
+        }
+      ]
     },
     {
       "id": "district-9",
@@ -105,15 +223,28 @@
       "cluster": "districts",
       "status": "inventory-needed",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": []
     },
     {
       "id": "district-10",
       "name": "Ataşehir",
       "cluster": "districts",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": [
+        {
+          "post_id": 53388,
+          "title": "Ataşehir Istanbul Area Guide: Property, Lifestyle & Investment",
+          "inventory_url": "https://www.peraproperty.com/atasehir-istanbuls-thriving-financial-and-residential-hub_53388/"
+        },
+        {
+          "post_id": 6306,
+          "title": "Atasehir - financial district",
+          "inventory_url": "https://www.peraproperty.com/istanbuls-new-financial-district-is-coming-to-atasehir_6306/"
+        }
+      ]
     },
     {
       "id": "district-11",
@@ -121,15 +252,28 @@
       "cluster": "districts",
       "status": "inventory-needed",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": []
     },
     {
       "id": "investment-1",
       "name": "Buying costs",
       "cluster": "property-investment",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 3098,
+          "title": "Closing Costs When Buying Property in Turkey (2026 Guide)",
+          "inventory_url": "https://www.peraproperty.com/taxes-expenses-and-costs-when-buying_3098/"
+        },
+        {
+          "post_id": 52062,
+          "title": "Property taxes in Turkey - updated for 2026",
+          "inventory_url": "https://www.peraproperty.com/property-taxes-in-turkey-updated-for-2024_52062/"
+        }
+      ]
     },
     {
       "id": "investment-2",
@@ -137,7 +281,8 @@
       "cluster": "property-investment",
       "status": "inventory-needed",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": []
     },
     {
       "id": "investment-3",
@@ -145,7 +290,8 @@
       "cluster": "property-investment",
       "status": "inventory-needed",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": []
     },
     {
       "id": "investment-4",
@@ -153,7 +299,8 @@
       "cluster": "property-investment",
       "status": "inventory-needed",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": []
     },
     {
       "id": "investment-5",
@@ -161,15 +308,23 @@
       "cluster": "property-investment",
       "status": "inventory-needed",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": []
     },
     {
       "id": "investment-6",
       "name": "Title deed and valuation",
       "cluster": "property-investment",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 53539,
+          "title": "Title Deed (Tapu) Process in Turkey: A Guide for Buyers",
+          "inventory_url": "https://www.peraproperty.com/title-deed-tapu-process-in-turkey-a-guide-for-buyers_53539/"
+        }
+      ]
     },
     {
       "id": "investment-7",
@@ -177,55 +332,108 @@
       "cluster": "property-investment",
       "status": "inventory-needed",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": []
     },
     {
       "id": "investment-8",
       "name": "Foreign buyer process",
       "cluster": "property-investment",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "high"
+      "priority": "high",
+      "inventory_matches": [
+        {
+          "post_id": 3043,
+          "title": "Buying in Turkey - step by step",
+          "inventory_url": "https://www.peraproperty.com/buying-in-turkey-step-by-step_3043/"
+        },
+        {
+          "post_id": 2283,
+          "title": "Who can own property in Turkey",
+          "inventory_url": "https://www.peraproperty.com/who-can-own-property-in-turkey_2283/"
+        }
+      ]
     },
     {
       "id": "management-1",
       "name": "Overseas landlord services",
       "cluster": "property-management",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": [
+        {
+          "post_id": 58969,
+          "title": "How to Rent Out Property in Istanbul: 2026 Landlord Guide",
+          "inventory_url": "https://www.peraproperty.com/how-to-rent-out-property-in-istanbul-2026-landlord-guide_58969/"
+        }
+      ]
     },
     {
       "id": "management-2",
       "name": "Tenant screening",
       "cluster": "property-management",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": [
+        {
+          "post_id": 58969,
+          "title": "How to Rent Out Property in Istanbul: 2026 Landlord Guide",
+          "inventory_url": "https://www.peraproperty.com/how-to-rent-out-property-in-istanbul-2026-landlord-guide_58969/"
+        }
+      ]
     },
     {
       "id": "management-3",
       "name": "Rental contracts and deposits",
       "cluster": "property-management",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": [
+        {
+          "post_id": 58969,
+          "title": "How to Rent Out Property in Istanbul: 2026 Landlord Guide",
+          "inventory_url": "https://www.peraproperty.com/how-to-rent-out-property-in-istanbul-2026-landlord-guide_58969/"
+        }
+      ]
     },
     {
       "id": "management-4",
       "name": "Repairs and building dues",
       "cluster": "property-management",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": [
+        {
+          "post_id": 3100,
+          "title": "Maintenance fees and annual running costs",
+          "inventory_url": "https://www.peraproperty.com/maintenance-fees-and-annual-running-costs_3100/"
+        },
+        {
+          "post_id": 58969,
+          "title": "How to Rent Out Property in Istanbul: 2026 Landlord Guide",
+          "inventory_url": "https://www.peraproperty.com/how-to-rent-out-property-in-istanbul-2026-landlord-guide_58969/"
+        }
+      ]
     },
     {
       "id": "management-5",
       "name": "Tenancy renewal",
       "cluster": "property-management",
-      "status": "inventory-needed",
+      "status": "inventory-match-unverified",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": [
+        {
+          "post_id": 58969,
+          "title": "How to Rent Out Property in Istanbul: 2026 Landlord Guide",
+          "inventory_url": "https://www.peraproperty.com/how-to-rent-out-property-in-istanbul-2026-landlord-guide_58969/"
+        }
+      ]
     },
     {
       "id": "management-6",
@@ -233,7 +441,8 @@
       "cluster": "property-management",
       "status": "inventory-needed",
       "canonical_url": null,
-      "priority": "medium"
+      "priority": "medium",
+      "inventory_matches": []
     }
   ]
 }
