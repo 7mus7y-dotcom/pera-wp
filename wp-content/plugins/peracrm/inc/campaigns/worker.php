@@ -4,10 +4,14 @@ require_once __DIR__.'/acceptance.php';
 require_once __DIR__.'/submission-response.php';
 require_once __DIR__.'/worker-preflight.php';
 
-/** No production adapter, factory, switch, request route or scheduler exists in 4B. */
+/** Explicit administrator CLI entry; installation alone never enables sending. */
 function peracrm_campaign_worker_run($limit = 10)
 {
-    return peracrm_campaign_queue_require_dispatch();
+    if (!peracrm_campaign_queue_dispatch_allowed()) { return peracrm_campaign_queue_require_dispatch(); }
+    if (!is_int($limit) || $limit<1 || $limit>25) { throw new InvalidArgumentException('production_limit'); }
+    require_once __DIR__.'/production-runtime.php';
+    $service=peracrm_campaign_production_service();
+    return $service?$service->scheduled(false,$limit):peracrm_campaign_queue_require_dispatch();
 }
 
 /** Non-acceptance must be proven. An exception, malformed response or timeout is unknown. */

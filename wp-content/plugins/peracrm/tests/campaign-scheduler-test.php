@@ -27,13 +27,13 @@ class WP_CLI {
     public static function halt($code) { throw new Campaign_CLI_Exit('exit',$code); }
 }
 require $root.'/inc/cli/campaign_cli.php';
-foreach (['fixture-run','fixture-recover','health','due'] as $op) {
+foreach (['dispatch-run','dispatch-recover','dispatch-refresh','dispatch-scheduled','fixture-run','fixture-recover','health','due'] as $op) {
     $exit=0;
     try { (WP_CLI::$commands['peracrm campaigns '.$op])([],['format'=>'json','confirm-disposable'=>'campaign_fixture']); }
     catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
     campaign_expect($exit===3 && json_decode(WP_CLI::$output,true)===['error'=>'campaign_command_rejected'],'CLI production guard/authority JSON exit 3: '.$op);
 }
-campaign_expect(count(WP_CLI::$commands)===18 && !isset(WP_CLI::$commands['peracrm campaigns send']),'no production send/reset/enable commands');
+campaign_expect(count(WP_CLI::$commands)===22 && !isset(WP_CLI::$commands['peracrm campaigns send']),'bounded dispatch commands add no generic send/reset/enable switches');
 echo "PASS scheduler/CLI standalone contracts\n";
 
 $GLOBALS['campaign_actor']=1;

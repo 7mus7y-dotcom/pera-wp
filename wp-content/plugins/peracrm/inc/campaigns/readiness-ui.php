@@ -57,8 +57,9 @@ function peracrm_campaign_readiness_ui_label(string $code): string
         'budget_readiness'=>'Capacity readiness denied','budget_quota'=>'Fresh account quota required','budget_clock'=>'Clock verification required',
         'budget_pending'=>'Unresolved submission blocks capacity','budget_breaker'=>'Circuit breaker blocks capacity',
         'budget_exhausted'=>'Capacity limit reached','budget_storage'=>'Capacity storage unavailable','budget_unavailable'=>'Production capacity service unavailable',
-        'dispatch_disabled'=>'Dispatch is disabled unconditionally',
+        'dispatch_disabled'=>'Dispatch is disabled in server configuration',
         'deployment_scope'=>'Deployment, target site and host instance binding',
+        'public_endpoints'=>'Deployment-bound withdrawal, preferences and event intake',
         'deployment_configuration'=>'Explicit deployment configuration; no remote verification',
         'configured'=>'Configured locally — external verification still required',
     ];
@@ -95,11 +96,13 @@ function peracrm_campaign_readiness_ui_render(): void
     try { peracrm_campaign_readiness_ui_require(); }
     catch (Throwable $e) { wp_die('Administrator campaign access required.','',['response'=>403]); }
     echo '<div class="wrap peracrm-readiness" data-readiness-page><h1>Campaign readiness</h1>';
-    echo '<p class="peracrm-readiness-banner"><strong>Dispatch disabled — evidence cannot enable sending.</strong> Endpoint, suppression sync activation, intake and public collection remain disabled.</p>';
+    if (peracrm_campaign_queue_dispatch_allowed()) {
+        echo '<p class="peracrm-readiness-banner"><strong>Dispatch is configured for approved jobs.</strong> Administrator CLI execution and current readiness checks are still required. This page does not run the worker or enable dispatch.</p>';
+    } else { echo '<p class="peracrm-readiness-banner"><strong>Dispatch disabled — evidence cannot enable sending.</strong> Server configuration and a separate administrator CLI worker are required for sending.</p>'; }
     $feedback=$GLOBALS['peracrm_readiness_feedback']??null;
     if ($feedback) {
         echo '<p tabindex="-1" data-readiness-feedback role="'.($feedback['saved']?'status':'alert').'">'.esc_html($feedback['saved']
-            ?'Evidence saved to the audit history. Dispatch remains disabled.'
+            ?'Evidence saved to the audit history. This action does not change dispatch configuration.'
             :'Evidence was not saved. Reload this page and verify the current configuration, permissions, evidence type, SHA-256 and confirmation. If storage conflicts or the 64-record limit persists, contact the administrator. Rejected input has been cleared.').'</p>';
     }
     global $wpdb;

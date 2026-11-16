@@ -84,7 +84,7 @@ class PeraCRM_Campaign_Operations
         if (!is_array($raw) || !in_array($raw['result'] ?? '',$allowed,true)) { return null; }
         $out=['result'=>$raw['result'],'invoked_at'=>null];
         if (is_string($raw['invoked_at'] ?? null) && preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/D',$raw['invoked_at'])) { $out['invoked_at']=$raw['invoked_at']; }
-        foreach (['processed','accepted','recovered','jobs','successful'] as $key) { $out[$key]=max(0,min(10,(int)($raw[$key] ?? 0))); }
+        foreach (['processed','accepted','recovered','jobs','successful'] as $key) { $out[$key]=max(0,min(25,(int)($raw[$key] ?? 0))); }
         return $out;
     }
     public function health(): array
@@ -211,12 +211,18 @@ class PeraCRM_Campaign_Operations
             return $operation==='rehearsal-proposal'?$service->proposal($job):$service->send($job,$binding);
         });
     }
-    /** Production has no concrete worker/provider. Gate precedes every delivery read/write. */
+    /** Configured production uses the prepared worker; legacy execution is fixture-only. */
     public function invoke(bool $recover_only = false, array $bounds = []): array
     {
         return $this->context(function () use ($recover_only,$bounds) {
             $result=['result'=>'disabled','processed'=>0,'accepted'=>0,'recovered'=>0,'jobs'=>0,'successful'=>0];
             if (!$this->dispatch()) { return $this->record($result); }
+            if (defined('PERACRM_CAMPAIGN_DISPATCH')) {
+                require_once __DIR__.'/production-runtime.php';
+                $production=peracrm_campaign_production_service();
+                if ($bounds) { throw new InvalidArgumentException('production_bounds'); }
+                if ($production) { return $production->scheduled($recover_only); }
+            }
             return $this->execute($recover_only,$bounds,$result);
         });
     }

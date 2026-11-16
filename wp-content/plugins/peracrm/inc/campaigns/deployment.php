@@ -152,6 +152,39 @@ final class PeraCRM_Campaign_Deployment
         return $copy;
     }
 
+    /** Explicit production identity. Static scoped keys have a local rotation deadline;
+     * assumed-role sessions retain the one-hour bound. No provider chain is used. */
+    public function withProductionIdentity(#[\SensitiveParameter] array $identity): self
+    {
+        $this->requireScope();
+        $copy=new self($this->manifest,array_replace($this->material,['identity'=>$identity]),$this->clock,$this->runtime);
+        $credentials=$copy->credentials();
+        $maximum=$credentials->getSecurityToken()?3600:90*86400;
+        if ($credentials->getExpiration()===null || $credentials->getExpiration()>time()+$maximum) {
+            throw new RuntimeException('deployment_identity');
+        }
+        return $copy;
+    }
+    public function publicWithdrawal(): PeraCRM_CampaignRecipientWithdrawal
+    {
+        $this->requireScope();
+        if (!peracrm_campaigns_schema_ready()) { throw new RuntimeException('withdrawal_scope'); }
+        $keys=$this->ring('signing',false)['keys'];
+        require_once __DIR__.'/recipient-withdrawal.php';
+        return new PeraCRM_CampaignRecipientWithdrawal(
+            new PeraCRM_CampaignRecipientPersistence($this->manifest['deployment'],$this->manifest['blog_id']),
+            $keys,$this->manifest['deployment']);
+    }
+    public function publicPreferences(): PeraCRM_CampaignRecipientPreferences
+    {
+        $this->requireScope();
+        if (!peracrm_campaigns_schema_ready()) { throw new RuntimeException('preferences_scope'); }
+        $ring=$this->ring('signing',false); $keys=[$ring['active']=>$ring['keys'][$ring['active']]]+$ring['keys'];
+        require_once __DIR__.'/recipient-preferences.php';
+        return new PeraCRM_CampaignRecipientPreferences(
+            new PeraCRM_CampaignRecipientPersistence($this->manifest['deployment'],$this->manifest['blog_id']),
+            $keys,$this->manifest['deployment']);
+    }
     /** Verification keys may be retained beyond issuance expiry. This adapter
      * cannot issue a token and restricts both human and machine use to our inbox. */
     public function internalWithdrawal(): PeraCRM_CampaignRecipientWithdrawal

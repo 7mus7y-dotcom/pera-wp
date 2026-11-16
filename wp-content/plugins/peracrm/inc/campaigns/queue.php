@@ -1,11 +1,19 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 
-/** Deliberately unconditional: database options, constants and staging clones cannot enable dispatch. */
-function peracrm_campaign_queue_dispatch_allowed() { return false; }
+/** Explicit server configuration only. Workers separately require administrator CLI authority. */
+function peracrm_campaign_queue_dispatch_allowed()
+{
+    if (!defined('PERACRM_CAMPAIGN_DISPATCH')) { return false; }
+    try {
+        require_once __DIR__.'/production-runtime.php';
+        $config=peracrm_campaign_production_configuration();
+        return $config && $config['enabled']===true && peracrm_campaign_production_endpoints();
+    } catch (Throwable $e) { return false; }
+}
 function peracrm_campaign_queue_require_dispatch()
 {
-    return new WP_Error('campaign_dispatch_disabled', 'Campaign dispatch is not implemented or authorized.');
+    return new WP_Error('campaign_dispatch_disabled', 'Campaign dispatch is disabled or not authorized.');
 }
 
 /** Explicit RFC3339 seconds with Z or numeric offset. No naive/local timezone interpretation. */

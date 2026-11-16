@@ -64,7 +64,9 @@ function peracrm_campaign_recipient_withdrawal_service(): ?PeraCRM_CampaignRecip
         require_once __DIR__.'/deployment.php';
         $deployment=peracrm_campaign_deployment_service();
         if (!$deployment) { return null; }
-        return $deployment->internalWithdrawal();
+        require_once __DIR__.'/production-runtime.php';
+        return peracrm_campaign_production_endpoints($deployment)
+            ? $deployment->publicWithdrawal() : $deployment->internalWithdrawal();
     } catch (Throwable $error) { return null; }
 }
 

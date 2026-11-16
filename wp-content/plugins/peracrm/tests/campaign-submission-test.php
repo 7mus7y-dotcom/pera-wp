@@ -179,9 +179,9 @@ foreach (['account_id'=>'000000000000','region'=>'us-east-1','configuration_set'
     $mismatch=new PeraCRM_CampaignSubmissionV1(array_replace($valid,['scope'=>array_replace($scope,[$key=>$value])]));
     submission_expect($mapper->submit($mismatch)===['kind'=>'permanent','code'=>'scope_mismatch','readiness_blocked'=>true] && $transport->calls===$calls,'scope mismatch before transport');
 }
-// New code is unreferenced by bootstrap/worker; production gate remains unconditional.
+// Installing provider code alone grants no send authority.
 $queue=file_get_contents($root.'/inc/campaigns/queue.php');
-submission_expect(preg_match('/function peracrm_campaign_queue_dispatch_allowed\(\)\s*\{\s*return false;/',$queue), 'unconditional production block');
+submission_expect(str_contains($queue, "if (!defined('PERACRM_CAMPAIGN_DISPATCH')) { return false; }"), 'production defaults to disabled without explicit server configuration');
 submission_expect(!str_contains(file_get_contents($root.'/inc/bootstrap.php'),'/providers/ses.php'), 'no production factory or transport wiring');
 echo "PASS submission envelope, frozen bindings, SES mapping, outcomes, redaction and disabled production contracts\n";
 

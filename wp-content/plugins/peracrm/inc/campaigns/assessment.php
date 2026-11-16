@@ -81,6 +81,13 @@ final class PeraCRM_Campaign_Readiness
             && (bool)array_filter($document['senders']??[],static fn($s)=>($s['approved']??false)===true);
         $parts=[$this->binding,$configuration,defined('PERACRM_SES_EVENT_OPERATIONS')?PERACRM_SES_EVENT_OPERATIONS:null];
         if ($this->deployment) { $parts[]=$this->deployment->fingerprint(); }
+        if (defined('PERACRM_CAMPAIGN_DISPATCH') && is_array(PERACRM_CAMPAIGN_DISPATCH)) {
+            // Evidence survives enable/disable, key-file renewal and job allowlist changes;
+            // a changed principal, sender, rate or daily policy requires new evidence.
+            $parts[]=array_intersect_key(PERACRM_CAMPAIGN_DISPATCH,array_flip([
+                'deployment_fingerprint','principal_arn','sender_email','per_second_cap','daily_cap']));
+        }
+        if (defined('PERACRM_CAMPAIGN_PUBLIC_ENDPOINTS')) { $parts[]=PERACRM_CAMPAIGN_PUBLIC_ENDPOINTS; }
         return [hash('sha256',json_encode($parts,JSON_THROW_ON_ERROR)),$approved];
     }
     private function evidenceKey(string $fingerprint): string { return 'peracrm_readiness_v1_'.$fingerprint; }
@@ -173,13 +180,18 @@ final class PeraCRM_Campaign_Readiness
     }
     private function snapshot(): array
     {
-        $out=['production_ready'=>false,'dispatch_enabled'=>false,'snapshot_only'=>true,
+        $dispatch=peracrm_campaign_queue_dispatch_allowed();
+        $out=['production_ready'=>false,'dispatch_enabled'=>$dispatch,'snapshot_only'=>true,
             'scope_fingerprint'=>$this->binding?hash('sha256',json_encode($this->binding,JSON_THROW_ON_ERROR)):null,
-            'configuration_fingerprint'=>null,'checks'=>[],'blockers'=>['dispatch_disabled']];
+            'configuration_fingerprint'=>null,'checks'=>[],'blockers'=>$dispatch?[]:['dispatch_disabled']];
         $check=static function (string $name,string $state,string $source) use (&$out) {
             $out['checks'][$name]=['state'=>$state,'source'=>$source];
             if (!in_array($state,['validated','recorded','configured'],true)) { $out['blockers'][]=$name.':'.$state; }
         };
+        if (defined('PERACRM_CAMPAIGN_DISPATCH')) {
+            require_once __DIR__.'/production-runtime.php';
+            $check('public_endpoints',$this->deployment && peracrm_campaign_production_http_ready($this->deployment)?'validated':'unavailable','deployment_configuration');
+        }
         $check('schema',peracrm_campaigns_schema_ready()?'validated':'unavailable','repository_runtime');
         $out['supported']=['envelopes'=>[1,2],'prepared_envelope'=>2,'renderer'=>'peracrm_email_v2','slot_version'=>1];
         $check('envelope_renderer','validated','repository_contract');
@@ -262,6 +274,7 @@ final class PeraCRM_Campaign_Readiness
                 $out['checks'][$name]['verified_at']=gmdate('Y-m-d H:i:s',$record['verified_at']);
             }
         }
+        $out['production_ready']=$dispatch && !$out['blockers'];
         return $out;
     }
     public function __debugInfo(): array { return ['service'=>'campaign_readiness','redacted'=>true]; }
@@ -276,6 +289,10 @@ function peracrm_campaign_readiness_service(): PeraCRM_Campaign_Readiness
     if (defined('PERACRM_CAMPAIGN_DEPLOYMENT')) {
         try {
             $deployment=peracrm_campaign_deployment_service();
+            if (defined('PERACRM_CAMPAIGN_DISPATCH') && defined('WP_CLI') && WP_CLI) {
+                require_once __DIR__.'/production-runtime.php';
+                $deployment=peracrm_campaign_production_deployment();
+            }
             return new PeraCRM_Campaign_Readiness($deployment->binding(),null,null,$deployment);
         } catch (Throwable $e) { return new PeraCRM_Campaign_Readiness(null,null,null,null,true); }
     }
