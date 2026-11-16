@@ -19,8 +19,12 @@ $ids=peracrm_with_target_blog(static function () {
     foreach (['draft','private','trash','pending','future'] as $status) { wp_insert_post(['post_type'=>'post','post_status'=>$status,'post_title'=>'Phase3B SECRET '.$status,'post_content'=>'secret','post_date'=>gmdate('Y-m-d H:i:s',time()+86400),'post_date_gmt'=>gmdate('Y-m-d H:i:s',time()+86400)]); }
     wp_insert_post(['post_type'=>'post','post_status'=>'publish','post_password'=>'secret','post_title'=>'Phase3B SECRET password']);
     $property=wp_insert_post(['post_type'=>'property','post_status'=>'publish','post_title'=>'Phase3B Property','post_content'=>'A public v2 property.']);
-    update_post_meta($property,'v2_units',2);
-    foreach ([['v2_beds'=>2,'v2_gross_size_min'=>90,'v2_gross_size_max'=>110,'v2_price_usd_min'=>350000,'v2_price_usd_max'=>400000],['v2_beds'=>3]] as $i=>$row) { foreach ($row as $key=>$value) { update_post_meta($property,'v2_units_'.$i.'_'.$key,$value); } }
+    update_post_meta($property,'v2_units',3);
+    foreach ([['v2_bedrooms'=>2,'v2_gross_size_min'=>90,'v2_gross_size_max'=>110,'v2_price_usd_min'=>350000,'v2_price_usd_max'=>400000],['v2_bedrooms'=>3]] as $i=>$row) { foreach ($row as $key=>$value) { update_post_meta($property,'v2_units_'.$i.'_'.$key,$value); } }
+    $upload=wp_upload_bits('campaign-property.png',null,file_get_contents(PERACRM_PATH.'/logos-icons/pera-email-logo.png'));
+    if (!empty($upload['error'])) { throw new RuntimeException('Fixture image upload failed.'); }
+    $image=wp_insert_attachment(['post_mime_type'=>'image/png','post_status'=>'inherit','post_title'=>'Phase3B Property image'],$upload['file'],$property);
+    update_post_meta($property,'main_image',$image);
     update_post_meta($property,'price',1);update_post_meta($property,'price_usd',2);
     update_option('campaign_fixture_article',$ids[0]);update_option('campaign_fixture_property',$property);
     return ['articles'=>$ids,'property'=>$property];
@@ -31,7 +35,15 @@ echo 'Selector page diagnostics: '.wp_json_encode(['first'=>array_column($first[
 preview_expect(count($first['items'])===20 && count($second['items'])===5 && $second['next']===null,'public selector stable bounded pagination excludes private/draft/password/deleted');
 preview_expect(!array_intersect(array_column($first['items'],'id'),array_column($second['items'],'id')),'selector pages do not overlap');
 $p=peracrm_campaign_content_resolve('property',$ids['property'],'en');
-preview_expect(str_contains($p['property']['summary'],'USD 350,000–400,000') && str_contains($p['property']['summary'],'unavailable') && $p['property']['units'][0]['v2_gross_size_min']===90.0,'canonical raw v2 pricing/size, missing unit values and no deprecated prices');
+preview_expect(str_contains($p['property']['summary'],'USD 350,000–400,000') && str_contains($p['property']['summary'],'2 beds') && !str_contains($p['property']['summary'],'unavailable') && count($p['property']['units'])===2 && $p['property']['units'][0]['v2_gross_size_min']===90.0,'canonical raw v2 pricing/size, missing unit values and no deprecated prices');
+preview_expect($p['image']!=='' && str_ends_with($p['image'],'.png'),'property main_image inherits public parent visibility');
+peracrm_with_target_blog(static function () use ($ids) {
+    $image=(int)get_post_meta($ids['property'],'main_image',true);
+    $private=wp_insert_post(['post_type'=>'post','post_status'=>'private','post_title'=>'Private image parent']);
+    wp_update_post(['ID'=>$image,'post_parent'=>$private]);
+    preview_expect(peracrm_campaign_content_resolve_target('property',$ids['property'],'en')['image']==='','private attachment parent is excluded');
+    wp_update_post(['ID'=>$image,'post_parent'=>$ids['property']]);
+});
 preview_expect(isset(peracrm_campaign_content_resolve('article',$ids['articles'][0],'de')['notice']),'missing translation never substitutes source');
 peracrm_with_target_blog(static function () use ($ids) {
     $p=get_post($ids['articles'][0]);

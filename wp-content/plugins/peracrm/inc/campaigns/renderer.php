@@ -45,7 +45,7 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             $section=['heading'=>$block['title'],'text'=>$block['excerpt']."\nLanguage: ".$block['language'],'url'=>$block['url'],'image'=>$block['image'],'alt'=>$block['alt']];
             if (!$deliverable && !empty($block['image_notice'])) { $section['text'].="\n".$block['image_notice']; }
             if (!$deliverable && $block['image']==='') { $section['text'].="\nImage unavailable."; }
-            if ($type==='property') { $section['text'].="\n".($block['property']['summary'] ?? $block['property']['notice']); }
+            if ($type==='property') { $section['property_card']=true; $section['details']=$block['property']['summary'] ?? $block['property']['notice']; }
         }
         $sections[]=$section;
         if (!empty($section['url'])) { $destinations[]=['label'=>$section['heading'] ?: 'Content destination','url'=>$section['url']]; }
@@ -65,6 +65,7 @@ function peracrm_campaign_render($model, $format = 'review_v1')
         $footer=!empty($section['footer']) || isset($section['slot']);
         $style=$footer?'padding:16px 24px;background:#f1f5fb;color:#526178;font-size:13px;':'padding:20px 24px;border-bottom:1px solid #e5eaf2;';
         if ($brand) { $style='padding:20px 24px;background:#002d72;color:#fff;font-size:12px;'; }
+        if (!empty($section['property_card'])) { $style='padding:24px;background:#f1f5fb;border-bottom:1px solid #d6dfed;'; }
         $html.='<tr><td style="'.$style.'overflow-wrap:anywhere;word-break:break-word">';
         if ($brand) {
             $logo=(defined('PERACRM_URL') ? PERACRM_URL : 'https://www.peraproperty.com/wp-content/plugins/peracrm').'/logos-icons/pera-email-logo.png';
@@ -75,8 +76,13 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             if (!isset($section['slot'])) { $html.='<h2 style="font-size:'.($footer?'15':'22').'px;line-height:1.3;margin:0 0 12px;color:#002d72">'.esc_html($section['heading']).'</h2>'; }
             $text[]=$section['heading'];
         }
-        if (!empty($section['image']) && peracrm_campaign_public_url($section['image'])!=='') { $html.='<img src="'.esc_url($section['image']).'" alt="'.esc_attr($section['alt']).'" style="display:block;width:100%;max-width:592px;height:auto;border:0">'; $text[]='Image: '.$section['image'].' · '.$section['alt']; }
+        if (!empty($section['image']) && peracrm_campaign_public_url($section['image'])!=='') { $html.='<img src="'.esc_url($section['image']).'" alt="'.esc_attr($section['alt']).'" style="display:block;width:100%;max-width:592px;height:auto;border:0;border-radius:8px;margin:0 0 16px">'; $text[]='Image: '.$section['image'].' · '.$section['alt']; }
         if (!empty($section['text'])) { $html.='<p style="margin:0;white-space:pre-line">'.esc_html($section['text']).'</p>'; $text[]=$section['text']; }
+        if (!empty($section['details'])) {
+            $html.='<div style="margin:16px 0;padding:12px 16px;background:#fff;border:1px solid #d6dfed;border-radius:8px;font-size:14px">';
+            foreach (explode("\n",$section['details']) as $detail) { $html.='<p style="margin:4px 0">'.esc_html($detail).'</p>'; }
+            $html.='</div>';$text[]=$section['details'];
+        }
         if (!empty($section['url']) && peracrm_campaign_public_url($section['url'])!=='') {
             // Captured delivery links remain functional; review-only rendering stays inert.
             if ($deliverable) {
