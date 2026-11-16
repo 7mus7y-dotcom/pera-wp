@@ -96,6 +96,8 @@ module.exports = async function ({page,target,employeeContext,context}) {
     await frame.getByText('USD 350,000',{exact:false}).evaluate(el=>el.scrollIntoView({behavior:'instant',block:'center'}));
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-content-'+size+'.png',style:captureStyle});
+    await frame.getByText('Connect with Pera Property',{exact:true}).evaluate(el=>el.scrollIntoView({behavior:'instant',block:'center'}));
+    await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-social-footer-'+size+'.png',style:captureStyle});
     await page.getByRole('button',{name:'Plain-text view',exact:true}).click();
     await page.locator('[data-email-text]').filter({hasText:'UNSAVED PREVIEW'}).waitFor();
     await page.getByLabel('Explicit language (for example en)',{exact:true}).fill('de');
