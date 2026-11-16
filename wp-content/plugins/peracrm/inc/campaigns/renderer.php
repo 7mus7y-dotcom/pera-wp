@@ -72,8 +72,24 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             $html.='<img src="'.esc_url($logo).'" alt="Pera Property" width="160" height="100" style="display:block;width:160px;max-width:100%;height:auto;border:0;margin:0 0 12px">';
             $text[]='Pera Property';
         }
+        if (!empty($section['footer'])) {
+            $html.='<div style="margin:0 0 20px;padding:12px;background:#002d72;border-radius:8px"><p style="margin:0 0 12px;font-weight:700;color:#fff">Connect with Pera Property</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>';
+            $text[]='Connect with Pera Property';
+            $links=peracrm_campaign_footer_links();$index=0;
+            foreach ($links as $label=>$url) {
+                $icon=(defined('PERACRM_URL') ? PERACRM_URL : 'https://www.peraproperty.com/wp-content/plugins/peracrm').'/logos-icons/email-social-'.strtolower($label).'.png';
+                $image='<img src="'.esc_url($icon).'" width="34" height="34" alt="'.esc_attr($label).'" style="display:block;width:34px;height:34px;border:0;color:#fff;font-size:10px">';
+                $html.='<td style="padding:0 '.(++$index<count($links) ? '8' : '0').'px 0 0;vertical-align:middle">';
+                $html.=$deliverable ? '<a href="'.esc_attr($url).'" aria-label="'.esc_attr($label.' Pera Property').'" style="display:inline-block;text-decoration:none">'.$image.'</a>' : '<span style="display:inline-block">'.$image.'</span>';
+                $html.='</td>';$text[]=$label.': '.$url;
+            }
+            $html.='</tr></table></div>';
+        }
         if (!empty($section['heading'])) {
-            if (!isset($section['slot'])) { $html.='<h2 style="font-size:'.($footer?'15':'22').'px;line-height:1.3;margin:0 0 12px;color:#002d72">'.esc_html($section['heading']).'</h2>'; }
+            if (!empty($section['footer'])) {
+                $footer_logo=(defined('PERACRM_URL') ? PERACRM_URL : 'https://www.peraproperty.com/wp-content/plugins/peracrm').'/logos-icons/pera-email-footer-logo.png';
+                $html.='<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 12px"><tr><td style="padding:0 10px 0 0;vertical-align:middle"><img src="'.esc_url($footer_logo).'" alt="" width="48" height="30" style="display:block;width:48px;height:30px;border:0"></td><td style="padding:0;vertical-align:middle"><h2 style="font-size:15px;line-height:1.3;margin:0;color:#002d72">'.esc_html($section['heading']).'</h2></td></tr></table>';
+            } elseif (!isset($section['slot'])) { $html.='<h2 style="font-size:22px;line-height:1.3;margin:0 0 12px;color:#002d72">'.esc_html($section['heading']).'</h2>'; }
             $text[]=$section['heading'];
         }
         if (!empty($section['image']) && peracrm_campaign_public_url($section['image'])!=='') { $html.='<img src="'.esc_url($section['image']).'" alt="'.esc_attr($section['alt']).'" style="display:block;width:100%;max-width:592px;height:auto;border:0;border-radius:8px;margin:0 0 16px">'; $text[]='Image: '.$section['image'].' · '.$section['alt']; }
@@ -91,19 +107,6 @@ function peracrm_campaign_render($model, $format = 'review_v1')
                 $html.='<span style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">View content · navigation disabled</span>';
             }
             $text[]=$section['url'];
-        }
-        if (!empty($section['footer'])) {
-            $html.='<div style="margin-top:20px;padding:12px;background:#002d72;border-radius:8px"><p style="margin:0 0 12px;font-weight:700;color:#fff">Connect with Pera Property</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>';
-            $text[]='Connect with Pera Property';
-            $links=peracrm_campaign_footer_links();$index=0;
-            foreach ($links as $label=>$url) {
-                $icon=(defined('PERACRM_URL') ? PERACRM_URL : 'https://www.peraproperty.com/wp-content/plugins/peracrm').'/logos-icons/email-social-'.strtolower($label).'.png';
-                $image='<img src="'.esc_url($icon).'" width="34" height="34" alt="'.esc_attr($label).'" style="display:block;width:34px;height:34px;border:0;color:#fff;font-size:10px">';
-                $html.='<td style="padding:0 '.(++$index<count($links) ? '8' : '0').'px 0 0;vertical-align:middle">';
-                $html.=$deliverable ? '<a href="'.esc_attr($url).'" aria-label="'.esc_attr($label.' Pera Property').'" style="display:inline-block;text-decoration:none">'.$image.'</a>' : '<span style="display:inline-block">'.$image.'</span>';
-                $html.='</td>';$text[]=$label.': '.$url;
-            }
-            $html.='</tr></table></div>';
         }
         if (isset($section['slot'])) {
             $marker='{{'.$section['slot'].'}}';

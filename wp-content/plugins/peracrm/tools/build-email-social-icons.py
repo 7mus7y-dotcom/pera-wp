@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the theme's existing footer symbols as 2x PNGs for email clients.
+"""Export the theme's footer symbols and small logo as 2x PNGs for email clients.
 Requires system librsvg, Cairo and GObject; no external assets or downloads.
 """
 import ctypes as C
@@ -27,6 +27,24 @@ cairo.cairo_surface_write_to_png.restype = C.c_int
 cairo.cairo_destroy.argtypes = [C.c_void_p]
 cairo.cairo_surface_destroy.argtypes = [C.c_void_p]
 gobject.g_object_unref.argtypes = [C.c_void_p]
+
+def export_png(svg, width, height, target):
+    handle = rsvg.rsvg_handle_new_from_data(svg, len(svg), None)
+    if not handle:
+        raise RuntimeError(f'Cannot parse {target.name}')
+    surface = cairo.cairo_image_surface_create(0, width, height)
+    context = cairo.cairo_create(surface)
+    try:
+        if not rsvg.rsvg_handle_render_cairo(handle, context):
+            raise RuntimeError(f'Cannot render {target.name}')
+        if cairo.cairo_surface_write_to_png(surface, str(target).encode()):
+            raise RuntimeError(f'Cannot save {target}')
+        print(target.name)
+    finally:
+        cairo.cairo_destroy(context)
+        cairo.cairo_surface_destroy(surface)
+        gobject.g_object_unref(handle)
+
 for name in ['whatsapp', 'instagram', 'youtube', 'facebook', 'linkedin']:
     symbol = root.find(f'.//s:symbol[@id="icon-{name}"]', ns)
     if symbol is None:
@@ -37,19 +55,11 @@ for name in ['whatsapp', 'instagram', 'youtube', 'facebook', 'linkedin']:
            f'<circle cx="17" cy="17" r="16.5" fill="none" stroke="#fff" stroke-width="1"/>'
            f'<svg x="8" y="8" width="18" height="18" viewBox="{symbol.attrib["viewBox"]}" '
            f'color="#fff" fill="#fff" stroke="#fff">{paths}</svg></svg>').encode()
-    handle = rsvg.rsvg_handle_new_from_data(svg, len(svg), None)
-    if not handle:
-        raise RuntimeError(f'Cannot parse theme symbol: {name}')
-    surface = cairo.cairo_image_surface_create(0, 68, 68)
-    context = cairo.cairo_create(surface)
-    try:
-        if not rsvg.rsvg_handle_render_cairo(handle, context):
-            raise RuntimeError(f'Cannot render theme symbol: {name}')
-        target = plugin / f'logos-icons/email-social-{name}.png'
-        if cairo.cairo_surface_write_to_png(surface, str(target).encode()):
-            raise RuntimeError(f'Cannot save {target}')
-        print(target.name)
-    finally:
-        cairo.cairo_destroy(context)
-        cairo.cairo_surface_destroy(surface)
-        gobject.g_object_unref(handle)
+    export_png(svg, 68, 68, plugin / f'logos-icons/email-social-{name}.png')
+
+# Blue transparent logo for the small company-heading lockup on the pale footer.
+logo = ET.parse(plugin.parents[1] / 'themes/hello-elementor-child/logos-icons/pera-logo.svg').getroot()
+logo.set('width', '96')
+logo.set('height', '60')
+logo.set('color', '#002d72')
+export_png(ET.tostring(logo), 96, 60, plugin / 'logos-icons/pera-email-footer-logo.png')

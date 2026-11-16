@@ -97,6 +97,11 @@ module.exports = async function ({page,target,employeeContext,context}) {
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-content-'+size+'.png',style:captureStyle});
     await frame.getByText('Connect with Pera Property',{exact:true}).evaluate(el=>el.scrollIntoView({behavior:'instant',block:'center'}));
+    const footerLogo=frame.locator('img[src$="/pera-email-footer-logo.png"]');
+    if(!await footerLogo.evaluate(el=>el.complete ? el.naturalWidth===96 && el.height===30 : new Promise(resolve=>{
+      el.addEventListener('load',()=>resolve(el.naturalWidth===96 && el.height===30),{once:true});
+      el.addEventListener('error',()=>resolve(false),{once:true});
+    }))) throw Error('Small footer logo missing or wrong height');
     const socialImages=frame.locator('img[src*="/email-social-"]');
     if(await socialImages.count()!==5) throw Error('Expected five corporate social icons');
     for(const img of await socialImages.all()) {
