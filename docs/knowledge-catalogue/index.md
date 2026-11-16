@@ -1,6 +1,6 @@
 # Pera Property — AI SEO Knowledge Catalogue
 
-Status: initial editorial framework (2026-11-16). This is an internal catalogue, **not** a public AI feed or a ranking guarantee.
+Status: repository-mapped catalogue (2026-11-16); live canonical verification pending. This is an internal catalogue, **not** a public AI feed or a ranking guarantee.
 
 ## Purpose
 Maintain a source-controlled inventory of entities, topics, questions, evidence, canonical public URLs and internal linking opportunities. Public, crawlable WordPress pages remain the primary discoverable source.
@@ -22,6 +22,8 @@ Maintain a source-controlled inventory of entities, topics, questions, evidence,
 - [Property investment](property-investment.md)
 - [Property management](property-management.md)
 - [Machine-readable topic map](topic-map.json)
+- [Entity registry](entity-registry.md)
+- [Live verification checklist](live-verification-checklist.md)
 
 ## Workflow
 1. Audit current WordPress posts, pages, property CPT and canonical URLs.
