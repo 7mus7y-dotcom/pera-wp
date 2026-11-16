@@ -294,6 +294,16 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
     }
 
     $property_id = peracrm_ingest_guess_property_id($payload);
+    // Validate the submitted shortlist on the public site's blog before switching
+    // to the CRM storage blog. Never trust client-supplied property IDs blindly.
+    $property_ids = [];
+    if (!empty($payload['property_ids']) && is_array($payload['property_ids'])) {
+        foreach (array_slice(array_values(array_unique(array_filter(array_map('absint', $payload['property_ids'])))), 0, 100) as $candidate_id) {
+            if (get_post_type($candidate_id) === 'property' && get_post_status($candidate_id) === 'publish') {
+                $property_ids[] = $candidate_id;
+            }
+        }
+    }
     $page_url = peracrm_ingest_source_url_from_payload($payload);
     $post_id = $page_url !== '' ? (int) url_to_postid($page_url) : 0;
     $message = isset($payload['message']) ? sanitize_textarea_field((string) $payload['message']) : '';
@@ -311,7 +321,7 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
         $raw_fields = peracrm_ingest_sanitize_raw_fields($payload['raw_fields']);
     }
 
-    $result = (int) peracrm_with_target_blog(static function () use ($email, $first_name, $last_name, $payload, $context, $property_id, $page_url, $post_id, $raw_fields, $message, $phone) {
+    $result = (int) peracrm_with_target_blog(static function () use ($email, $first_name, $last_name, $payload, $context, $property_id, $page_url, $post_id, $raw_fields, $message, $phone, $property_ids) {
         global $wpdb;
         $context_source = !empty($context['handler']) ? sanitize_key((string) $context['handler']) : 'website_form';
         $default_assigned_advisor = (int) peracrm_ingest_default_admin_user_id();
@@ -370,7 +380,7 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
             $email !== '' ? $email : $phone,
             $context_source,
             $property_id,
-            $message
+            $message . (empty($property_ids) ? '' : '|shortlist:' . implode(',', $property_ids))
         );
 
         $event_payload = [
@@ -397,6 +407,10 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
 
         if (!empty($raw_fields)) {
             $event_payload['raw_fields'] = $raw_fields;
+        }
+        if (!empty($property_ids)) {
+            $event_payload['property_ids'] = $property_ids;
+            $event_payload['properties_count'] = count($property_ids);
         }
 
         $activity_logged = false;
@@ -428,6 +442,21 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
                 'client_id' => $client_id,
                 'property_id' => $property_id,
                 'property_linked' => $property_linked ? 1 : 0,
+            ]);
+        }
+
+        // A favourites enquiry is simultaneously a snapshot of the properties
+        // enquired about and a client's favourites. Preserve both relationships.
+        if (!empty($property_ids) && function_exists('peracrm_client_property_link')) {
+            foreach ($property_ids as $favourite_property_id) {
+                peracrm_client_property_link($client_id, $favourite_property_id, 'enquiry');
+                if (($payload['form_context'] ?? '') === 'favourites') {
+                    peracrm_client_property_link($client_id, $favourite_property_id, 'favourite');
+                }
+            }
+            peracrm_ingest_debug_log('favourites property links attempted', $context + [
+                'client_id' => $client_id,
+                'properties_count' => count($property_ids),
             ]);
         }
 
@@ -819,7 +848,14 @@ function peracrm_ingest_theme_enquiries($trigger = 'init')
             }
         }
 
+        $raw_favourite_ids = isset($_POST['fav_post_ids']) ? wp_unslash($_POST['fav_post_ids']) : '';
+        $favourite_ids = is_array($raw_favourite_ids)
+            ? $raw_favourite_ids
+            : preg_split('/[,\\s]+/', sanitize_text_field((string) $raw_favourite_ids));
+        $favourite_ids = array_slice(array_values(array_unique(array_filter(array_map('absint', (array) $favourite_ids)))), 0, 100);
+
         peracrm_ingest_enquiry([
+            'property_ids' => $favourite_ids,
             'form_context' => 'favourites',
             'email' => $email,
             'first_name' => $first_name,
