@@ -5,7 +5,7 @@ Scope: public page content retrieval, not a complete technical crawl. HTTP statu
 ## Citizenship hub
 - Requested `https://www.peraproperty.com/citizenship-by-investment`; public retrieval resolved to the trailing-slash page `https://www.peraproperty.com/citizenship-by-investment/`.
 - Main page is readable, with citizenship requirements, listings, FAQ and links to specialist guides.
-- **Editorial consistency review required:** page contains several statements about SPK-licensed surveyor valuation reports, while also linking to its article titled “Turkey Changes Citizenship Property Valuation Rules in September 2026”. Confirm the current legal process with primary sources and reconcile all mentions before publishing any edits.
+- **Editorial currency review:** owner confirms older valuation guidance was historically correct and deliberately superseded by the September 2026 update. Check for a visible supersession notice and link rather than silently overwriting history. The TRY 55,000 fee is owner-confirmed current. Verify whether the hub's present-tense process descriptions are current before editing.
 - Other claims needing expert review include timing estimates and property eligibility wording.
 
 ## Technical limits
