@@ -97,6 +97,14 @@ module.exports = async function ({page,target,employeeContext,context}) {
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-content-'+size+'.png',style:captureStyle});
     await frame.getByText('Connect with Pera Property',{exact:true}).evaluate(el=>el.scrollIntoView({behavior:'instant',block:'center'}));
+    const socialImages=frame.locator('img[src*="/email-social-"]');
+    if(await socialImages.count()!==5) throw Error('Expected five corporate social icons');
+    for(const img of await socialImages.all()) {
+      if(!await img.evaluate(el=>el.complete ? el.naturalWidth===68 : new Promise(resolve=>{
+        el.addEventListener('load',()=>resolve(el.naturalWidth===68),{once:true});
+        el.addEventListener('error',()=>resolve(false),{once:true});
+      }))) throw Error('Corporate social icon did not load');
+    }
     await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-social-footer-'+size+'.png',style:captureStyle});
     await page.getByRole('button',{name:'Plain-text view',exact:true}).click();
     await page.locator('[data-email-text]').filter({hasText:'UNSAVED PREVIEW'}).waitFor();
