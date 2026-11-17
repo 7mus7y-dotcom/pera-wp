@@ -16,6 +16,18 @@ This registry is an **internal relationship model**, not public structured data.
 
 | Entity ID | Place name | Classification | Parent / caution |
 | --- | --- | --- | --- |
+| `area:fatih` | Fatih | district | Istanbul; linked from explicit property district taxonomy |
+| `area:beykoz` | Beykoz | district | Istanbul; linked from explicit property district taxonomy |
+| `area:beyoglu` | Beyoğlu | district | Istanbul; linked from explicit property district taxonomy |
+| `area:sariyer` | Sarıyer | district | Istanbul; linked from explicit property district taxonomy |
+| `area:bakirkoy` | Bakırköy | district | Istanbul; linked from explicit property district taxonomy |
+| `area:kartal` | Kartal | district | Istanbul; linked from explicit property district taxonomy |
+| `area:uskudar` | Üsküdar | district | Istanbul; linked from explicit property district taxonomy |
+| `area:buyukcekmece` | Büyükçekmece | district | Istanbul; linked from explicit property district taxonomy |
+| `area:bagcilar` | Bağcılar | district | Istanbul; linked from explicit property district taxonomy |
+| `area:bahcelievler` | Bahçelievler | district | Istanbul; linked from explicit property district taxonomy |
+| `area:beylikduzu` | Beylikdüzü | district | Istanbul; linked from explicit property district taxonomy |
+| `area:bahcesehir` | Bahçeşehir | neighbourhood / market area | Administrative district not inferred; property region taxonomy only |
 | `area:kadikoy` | Kadıköy | district | Istanbul |
 | `area:sisli` | Şişli | district | Istanbul |
 | `area:besiktas` | Beşiktaş | district | Istanbul |
@@ -49,6 +61,6 @@ This registry is an **internal relationship model**, not public structured data.
 - Blog matches: `docs/blog-post-inventory.csv`
 - Taxonomy URLs and counts: `docs/taxonomy-inventory.csv`
 - Existing llms endpoints and hub URL references: theme `inc/modules/llms.php`
-- Current property and page objects still require WordPress inventory export.
+- Property CPT: 130 records reconciled from the 2026-11-17 export, with 128 explicit district links and two Bahçeşehir region-only links. This is not a fresh WordPress inventory.
 - Do not conflate taxonomy labels with administrative geography.
 - Historically correct citizenship guidance may be marked **superseded** with a link to newer guidance. The owner confirmed the older valuation article was correct when written and TRY 55,000 is currently the stated fee (2026-11-16); this is owner-provided context, not independent regulatory verification.
