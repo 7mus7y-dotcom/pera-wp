@@ -10,8 +10,13 @@ peracrm_frontend_render_shell_header();
 <?php peracrm_frontend_render_partial('crm-header',['title'=>'Operational queue','active_view'=>'campaigns']); ?>
 <section class="content-panel content-panel--overlap-hero"><div class="content-panel-box border-dm crm-layout"><div class="crm-layout__main peracrm-campaigns peracrm-queue">
 <nav class="peracrm-campaign-actions campaign-nav" aria-label="Queue navigation"><a href="<?php echo esc_url(peracrm_campaign_drafts_url()); ?>">Campaigns</a><a href="<?php echo esc_url(peracrm_campaign_queue_url()); ?>">Queue overview</a><?php if ($campaign) : ?><a href="<?php echo esc_url(peracrm_campaign_drafts_url($campaign.'/')); ?>">Campaign #<?php echo (int)$campaign; ?></a><a href="<?php echo esc_url(peracrm_campaign_queue_url($campaign)); ?>">Published revisions and campaign jobs</a><?php endif; ?></nav>
+<?php if (peracrm_campaign_queue_dispatch_allowed()) : ?>
+<p class="crm-notice" role="note"><strong>Dispatch configured — approved jobs may send through the administrator CLI worker.</strong></p>
+<p class="campaign-intro">Only explicitly approved jobs are eligible for dispatch. Readiness, current consent and suppression are checked again before sending.</p>
+<?php else : ?>
 <p class="crm-notice peracrm-queue-disabled" role="note"><strong>Dispatch disabled — scheduled work will not send.</strong></p>
 <p class="campaign-intro">Prepare and inspect delivery jobs. Ordinary dispatch and scheduling remain disabled.</p>
+<?php endif; ?>
 <?php try {
 if ($campaign && !peracrm_campaign_draft_get($campaign)) { throw new RuntimeException(); }
 if ($job) {

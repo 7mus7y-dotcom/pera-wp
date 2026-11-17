@@ -9,6 +9,9 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     try {
         $allowed=in_array($operation,['due','event-redrive'],true) ? ($operation==='event-redrive'?['format','limit','confirm']:['format','limit']) : (str_starts_with($operation,'fixture-') ? ['format','confirm-disposable'] : ['format']);
         if (in_array($operation,['quota-refresh','internal-probe'],true)) { $allowed=['format','confirm']; }
+        if (in_array($operation,['dispatch-run','dispatch-recover'],true)) { $allowed=['format','job','limit','confirm']; }
+        if ($operation==='dispatch-refresh') { $allowed=['format','restart','confirm']; }
+        if ($operation==='dispatch-scheduled') { $allowed=['format','confirm']; }
         if ($operation==='budget-recover') { $allowed=['format','version','confirm']; }
         if ($operation==='suppression-sync') { $allowed=['format','pages','confirm','restart']; }
         if ($operation==='rehearsal-proposal') { $allowed=['format','job']; }
@@ -19,7 +22,24 @@ function peracrm_campaign_cli($operation, $args, $assoc)
         $service=new PeraCRM_Campaign_Operations();
         if ($operation==='readiness') {
             $data=peracrm_campaign_readiness_service()->assess();
-            $exit=4; // Dispatch is unconditionally blocked; never advertise production readiness.
+            $exit=$data['production_ready']?0:4;
+        } elseif (str_starts_with($operation,'dispatch-')) {
+            require_once dirname(__DIR__).'/campaigns/production-runtime.php';
+            PeraCRM_SES_Operator::authorize();
+            $expected=$operation==='dispatch-refresh'?'refresh-provider-state':($operation==='dispatch-recover'?'recover-without-resend':'send-approved-job');
+            if (($assoc['confirm']??null)!==$expected) { throw new InvalidArgumentException(); }
+            $production=peracrm_campaign_production_service();
+            if (!$production) { $data=['state'=>'disabled','dispatch_enabled'=>false]; $exit=2; }
+            elseif ($operation==='dispatch-refresh') {
+                if (isset($assoc['restart']) && $assoc['restart']!=='abandon-cursor') { throw new InvalidArgumentException(); }
+                $data=$production->refresh(isset($assoc['restart']));
+            } elseif ($operation==='dispatch-scheduled') { $data=$production->scheduled(); }
+            else {
+                if (!is_string($assoc['job']??null) || preg_match('/\A[1-9][0-9]{0,9}\z/',$assoc['job'])!==1
+                    || !is_string($assoc['limit']??'1') || preg_match('/\A(?:[1-9]|1[0-9]|2[0-5])\z/',$assoc['limit']??'1')!==1) { throw new InvalidArgumentException(); }
+                $data=$production->run((int)$assoc['job'],(int)($assoc['limit']??1),$operation==='dispatch-recover');
+            }
+            if (!in_array($data['state']??null,['completed','time_bound','refreshed','idle'],true)) { $exit=($data['state']??null)==='disabled'?2:4; }
         } elseif ($operation==='status' || $operation==='health') {
             $data=$service->health();
             if (!$data['queue_ready'] || $data['scheduler_state']==='blocked' || array_diff($data['diagnostics'],['dispatch_disabled'])) { $exit=4; }
@@ -96,11 +116,11 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             if (!in_array($data['result'],['completed','time_bound'],true)) { $exit=4; }
         }
     } catch (PeraCRM_Campaign_Operations_Blocked $e) { $data=['error'=>'campaign_operation_blocked']; $exit=4; }
-    catch (Throwable $e) { $data=['error'=>'campaign_command_rejected']; $exit=3; }
+    catch (Throwable $e) { $code=$e->getMessage(); $data=['error'=>str_starts_with($operation,'dispatch-') && preg_match('/\A(?:production|operator|deployment|budget)_[a-z_]{1,64}\z/',$code) ? $code : 'campaign_command_rejected']; $exit=3; }
     // Never print exception/SQL/provider payloads. Only allowlisted service summaries reach stdout.
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
 }
-foreach (['readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','internal-probe-status','rehearsal-proposal','rehearsal-send','rehearsal-status','fixture-run','fixture-recover'] as $operation) {
+foreach (['dispatch-run','dispatch-recover','dispatch-refresh','dispatch-scheduled','readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','internal-probe-status','rehearsal-proposal','rehearsal-send','rehearsal-status','fixture-run','fixture-recover'] as $operation) {
     WP_CLI::add_command('peracrm campaigns '.$operation, static function ($args,$assoc) use ($operation) { peracrm_campaign_cli($operation,$args,$assoc); });
 }

@@ -129,3 +129,12 @@ $longIdentity=$v['identity']; $longIdentity['expires_at']=time()+7200;
 deployment_reject(fn()=>$d->withTemporaryIdentity($longIdentity),'rehearsal identity lifetime is bounded');
 $staticIdentity=$v['identity']; $staticIdentity['session_token']=null;
 deployment_reject(fn()=>$d->withTemporaryIdentity($staticIdentity),'rehearsal composition requires a temporary role session');
+
+$staticIdentity['expires_at']=time()+86400;
+$production=$make($m,$verificationOnly)->withProductionIdentity($staticIdentity);
+deployment_expect($production->credentials()->getSecurityToken()===null
+    && $make($m,$verificationOnly)->checks()['provider_identity']==='unavailable',
+    'production identity composition preserves the credential-free HTTP source');
+$staticIdentity['expires_at']=time()+91*86400;
+deployment_reject(fn()=>$d->withProductionIdentity($staticIdentity),'production static-key rotation deadline is bounded');
+deployment_reject(fn()=>$d->withProductionIdentity($longIdentity),'production role sessions retain the one-hour bound');

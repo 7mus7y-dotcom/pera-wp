@@ -50,6 +50,31 @@ final class PeraCRM_SES_Operator_API
         }
     }
 
+    /** Exact IAM user attestation for a dedicated production sender; never account root. */
+    public function attestUser(string $principal): void
+    {
+        PeraCRM_SES_Suppression_HTTP::validateScope($this->pins);
+        $account=$this->pins['account_id'];
+        if ($this->credentials->account()!==$account || $this->credentials->isExpired()
+            || preg_match('~\Aarn:aws:iam::'.$account.':user/[A-Za-z0-9+=,.@_/-]{1,256}\z~',$principal)!==1) {
+            throw new RuntimeException('operator_identity');
+        }
+        $xml=$this->read('sts','/?Action=GetCallerIdentity&Version=2011-06-15');
+        if (preg_match('/<!|[^\x09\x0a\x0d\x20-\x7e]/',$xml)) { throw new RuntimeException('operator_identity'); }
+        $previous=libxml_use_internal_errors(true);
+        try { $root=simplexml_load_string($xml,SimpleXMLElement::class,LIBXML_NONET); }
+        finally { libxml_clear_errors(); libxml_use_internal_errors($previous); }
+        $ns='https://sts.amazonaws.com/doc/2011-06-15/';
+        if (!$root || $root->getName()!=='GetCallerIdentityResponse' || ($root->getDocNamespaces()['']??null)!==$ns) {
+            throw new RuntimeException('operator_identity');
+        }
+        $result=$root->children($ns)->GetCallerIdentityResult;
+        if (count($result)!==1 || count($result->Account)!==1 || count($result->Arn)!==1
+            || (string)$result->Account!==$account || (string)$result->Arn!==$principal) {
+            throw new RuntimeException('operator_identity');
+        }
+    }
+
     public function quota(): array
     {
         return PeraCRM_SES_Suppression_HTTP::decodeJsonObject($this->read('ses','/v2/email/account'));

@@ -64,7 +64,15 @@ final class PeraCRM_CampaignRecipientPreferences
 }
 
 /** Blocked pending old-mailbox/deletion policy, host logs, keys, retention and restore readiness. */
-function peracrm_campaign_recipient_preferences_service(): ?PeraCRM_CampaignRecipientPreferences { return null; }
+function peracrm_campaign_recipient_preferences_service(): ?PeraCRM_CampaignRecipientPreferences
+{
+    if (!defined('PERACRM_CAMPAIGN_PUBLIC_ENDPOINTS')) { return null; }
+    try {
+        require_once __DIR__.'/production-runtime.php';
+        $deployment=peracrm_campaign_deployment_service();
+        return $deployment && peracrm_campaign_production_endpoints($deployment) ? $deployment->publicPreferences() : null;
+    } catch (Throwable $e) { return null; }
+}
 
 function peracrm_campaign_recipient_preferences_respond(?PeraCRM_CampaignRecipientPreferences $service): void
 {
