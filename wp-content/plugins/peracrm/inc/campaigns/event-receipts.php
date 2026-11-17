@@ -2,6 +2,18 @@
 if (!defined('ABSPATH')) { exit; }
 require_once __DIR__.'/providers/sns.php';
 
+/** A retired body retains authenticated provenance and the original digest.
+ * Only retention may create this tombstone; it grants no new event authority.
+ */
+function peracrm_sns_receipt_integrity(array $row): bool
+{
+    if (!is_string($row['payload_hash']??null) || preg_match('/\A[a-f0-9]{64}\z/',$row['payload_hash'])!==1
+        || !is_string($row['canonical_payload']??null)) { return false; }
+    if (($row['authentication_version']??'')==='sns-v2-retired') { return $row['canonical_payload']===''; }
+    return ($row['authentication_version']??'')==='sns-v2-sha256'
+        && hash_equals($row['payload_hash'],hash('sha256',$row['canonical_payload']));
+}
+
 /** Internal prerequisite. No endpoint, bootstrap, inner parsing, application or sending.
  * Mandatory verifier authenticates every request before storage. Returns only after
  * COMMIT; a future HTTP adapter must map dependency/storage to 503, never 2xx.
@@ -51,7 +63,8 @@ final class PeraCRM_SNS_Receipts
                 $this->scope,$receipt['id'],$receipt['hash'],bin2hex($receipt['canonical']),$receipt['certificate_hash'],$reason,gmdate('Y-m-d H:i:s',$now))));
             $row=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE scope_hash=%s AND message_id=%s FOR UPDATE",$this->scope,$receipt['id']),ARRAY_A);
             self::db($row?:false);
-            if (!hash_equals($row['payload_hash'],$receipt['hash']) || $row['canonical_payload']!==$receipt['canonical']) {
+            if (!peracrm_sns_receipt_integrity($row) || !hash_equals($row['payload_hash'],$receipt['hash'])
+                || ($row['authentication_version']!=='sns-v2-retired' && $row['canonical_payload']!==$receipt['canonical'])) {
                 throw new PeraCRM_SNS_Error('sns_conflict');
             }
             // wpdb can transparently reconnect and replay COMMIT on a new session.

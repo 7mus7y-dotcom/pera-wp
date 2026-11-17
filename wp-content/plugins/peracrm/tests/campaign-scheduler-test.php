@@ -33,7 +33,7 @@ foreach (['dispatch-run','dispatch-recover','dispatch-refresh','dispatch-schedul
     catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
     campaign_expect($exit===3 && json_decode(WP_CLI::$output,true)===['error'=>'campaign_command_rejected'],'CLI production guard/authority JSON exit 3: '.$op);
 }
-campaign_expect(count(WP_CLI::$commands)===22 && !isset(WP_CLI::$commands['peracrm campaigns send']),'bounded dispatch commands add no generic send/reset/enable switches');
+campaign_expect(count(WP_CLI::$commands)===23 && isset(WP_CLI::$commands['peracrm campaigns retention']) && !isset(WP_CLI::$commands['peracrm campaigns send']),'bounded dispatch and retention commands add no generic send/reset/enable switches');
 echo "PASS scheduler/CLI standalone contracts\n";
 
 $GLOBALS['campaign_actor']=1;

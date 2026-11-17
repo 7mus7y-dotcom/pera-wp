@@ -126,8 +126,7 @@ final class PeraCRM_SES_Matcher
             self::db($receipt?:false);
             $link=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$links} WHERE scope_hash=%s AND receipt_id=%s FOR UPDATE",$this->scope,$id),ARRAY_A);
             self::db($link?:false);
-            if ($receipt['authentication_version']!=='sns-v2-sha256' || $receipt['quarantine_reason']!=='application_pending'
-                || !hash_equals($receipt['payload_hash'],hash('sha256',$receipt['canonical_payload']))
+            if (!peracrm_sns_receipt_integrity($receipt) || $receipt['quarantine_reason']!=='application_pending'
                 || $link['payload_hash']!==$receipt['payload_hash'] || $link['normalization_version']!=='ses-v1'
                 || $link['policy_hash']!==$this->policy || $link['quarantine_reason']!=='matching_pending') { throw new PeraCRM_SNS_Error('sns_storage'); }
             $keys=json_decode($link['event_keys_json'],true,8,JSON_THROW_ON_ERROR);
