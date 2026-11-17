@@ -11,7 +11,7 @@ function peracrm_campaign_worker_run($limit = 10)
     if (!is_int($limit) || $limit<1 || $limit>25) { throw new InvalidArgumentException('production_limit'); }
     require_once __DIR__.'/production-runtime.php';
     $service=peracrm_campaign_production_service();
-    return $service?$service->scheduled(false,$limit):peracrm_campaign_queue_require_dispatch();
+    return $service?$service->scheduled($limit):peracrm_campaign_queue_require_dispatch();
 }
 
 /** Non-acceptance must be proven. An exception, malformed response or timeout is unknown. */

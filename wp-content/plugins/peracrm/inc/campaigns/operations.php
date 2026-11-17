@@ -220,8 +220,8 @@ class PeraCRM_Campaign_Operations
             if (defined('PERACRM_CAMPAIGN_DISPATCH')) {
                 require_once __DIR__.'/production-runtime.php';
                 $production=peracrm_campaign_production_service();
-                if ($bounds) { throw new InvalidArgumentException('production_bounds'); }
-                if ($production) { return $production->scheduled($recover_only); }
+                if ($bounds || $recover_only) { throw new InvalidArgumentException('production_job_required'); }
+                if ($production) { return $production->scheduled(); }
             }
             return $this->execute($recover_only,$bounds,$result);
         });

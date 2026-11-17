@@ -5,6 +5,7 @@ require_once __DIR__.'/worker.php';
 require_once __DIR__.'/assessment.php';
 require_once __DIR__.'/ses-operator.php';
 require_once __DIR__.'/providers/ses-sdk-transport.php';
+require_once __DIR__.'/recipient-preferences.php';
 
 /** Explicit, nonsecret activation pins. Merely installing this file grants no authority. */
 function peracrm_campaign_production_configuration(?PeraCRM_Campaign_Deployment $deployment=null): ?array
@@ -211,6 +212,13 @@ final class PeraCRM_Campaign_Production_Runtime
     }
     public function run(int $job,int $limit=1,bool $recover=false): array
     {
+        global $wpdb;
+        $quiet=$wpdb->suppress_errors(true);
+        try { return $this->execute($job,$limit,$recover); }
+        finally { $wpdb->suppress_errors($quiet); }
+    }
+    private function execute(int $job,int $limit,bool $recover): array
+    {
         $this->authorize();
         if (!peracrm_campaign_queue_dispatch_allowed()) { return ['state'=>'disabled','dispatch_enabled'=>false]; }
         if ($job<1 || !in_array($job,$this->config['job_ids'],true) || $limit<1 || $limit>25) { throw new RuntimeException('production_job'); }
@@ -292,7 +300,14 @@ final class PeraCRM_Campaign_Production_Runtime
             throw new RuntimeException('production_sender');
         }
     }
-    public function scheduled(bool $recover=false,int $limit=25): array
+    public function scheduled(int $limit=25): array
+    {
+        global $wpdb;
+        $quiet=$wpdb->suppress_errors(true);
+        try { return $this->due($limit); }
+        finally { $wpdb->suppress_errors($quiet); }
+    }
+    private function due(int $limit): array
     {
         if ($limit<1 || $limit>25) { throw new RuntimeException('production_limit'); }
         // Configured job IDs are an operator-reviewed allowlist, never a global queue scan.
@@ -303,15 +318,13 @@ final class PeraCRM_Campaign_Production_Runtime
             $state=$wpdb->get_row($wpdb->prepare('SELECT state,scheduled_at,complete,submission_complete FROM '
                 .peracrm_table('peracrm_campaign_queue_jobs').' WHERE id=%d',$id),ARRAY_A);
             peracrm_campaigns_db_require($wpdb->last_error==='');
-            if (!$state || (!$recover && (!in_array($state['state'],['queued','scheduled'],true) || !(int)$state['complete']
-                || (int)$state['submission_complete'] || ($state['scheduled_at']!==null && strtotime($state['scheduled_at'].' UTC')>time())))) { continue; }
-            if (!$recover) {
-                $claimable=$wpdb->get_var($wpdb->prepare('SELECT id FROM '.peracrm_table('peracrm_campaign_deliveries')
+            if (!$state || !in_array($state['state'],['queued','scheduled'],true) || !(int)$state['complete']
+                || (int)$state['submission_complete'] || ($state['scheduled_at']!==null && strtotime($state['scheduled_at'].' UTC')>time())) { continue; }
+            $claimable=$wpdb->get_var($wpdb->prepare('SELECT id FROM '.peracrm_table('peracrm_campaign_deliveries')
                     ." WHERE job_id=%d AND state IN ('held','retry') AND attempt_count<4 AND (next_attempt_at IS NULL OR next_attempt_at<=UTC_TIMESTAMP()) LIMIT 1",$id));
-                peracrm_campaigns_db_require($wpdb->last_error==='');
-                if (!$claimable) { continue; }
-            }
-            return $this->run($id,$limit,$recover);
+            peracrm_campaigns_db_require($wpdb->last_error==='');
+            if (!$claimable) { continue; }
+            return $this->run($id,$limit);
         }
         return ['state'=>'idle','dispatch_enabled'=>true];
     }

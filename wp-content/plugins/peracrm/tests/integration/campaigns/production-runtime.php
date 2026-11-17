@@ -60,6 +60,10 @@ worker_fixture_target(static function () {
         wp_set_current_user((int)get_option('campaign_fixture_administrator'));
         chmod($file,0644); clearstatcache(); prepared_reject(fn()=>peracrm_campaign_production_deployment());
         chmod($file,0600); clearstatcache();
+        rename($file,$file.'.real'); symlink($file.'.real',$file); clearstatcache();
+        prepared_reject(fn()=>peracrm_campaign_production_deployment()); unlink($file); rename($file.'.real',$file); clearstatcache();
+        $bytes=file_get_contents($file); $expired=json_decode($bytes,true); $expired['Expiration']=gmdate('c',time()-60);
+        file_put_contents($file,json_encode($expired)); prepared_reject(fn()=>peracrm_campaign_production_deployment()); file_put_contents($file,$bytes);
         $adapter=peracrm_campaign_production_deployment();
         prepared_expect($adapter->checks()['provider_identity']==='configured' && peracrm_campaign_production_http_ready($adapter), 'protected CLI identity and credential-free public factories');
         prepared_expect($base->checks()['provider_identity']==='unavailable','CLI credentials never enter HTTP deployment material');
@@ -95,6 +99,11 @@ worker_fixture_target(static function () {
             $readiness->record($fp,$name,$source,hash('sha256','synthetic-'.$name),wp_create_nonce('peracrm_readiness_'.$fp));
         }
         prepared_expect($readiness->assess()['production_ready'],'explicit complete readiness');
+        $lock='peracrm-production-'.substr(hash('sha256',$manifest['account_id'].'|'.$manifest['region']),0,40);
+        $other=new wpdb(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
+        prepared_expect((string)$other->get_var($other->prepare('SELECT GET_LOCK(%s,0)',$lock))==='1','second connection holds production account lock');
+        try { prepared_expect($service->run($jobs['accepted'])['state']==='overlap' && $transport->calls===0,'production overlap never claims or sends'); }
+        finally { $other->get_var($other->prepare('SELECT RELEASE_LOCK(%s)',$lock)); $other->close(); }
         $blocked=new PeraCRM_Campaign_Production_Runtime($adapter,$config,$api,$transport,static function () { throw new RuntimeException('production_http'); });
         prepared_reject(fn()=>$blocked->run($jobs['accepted']));
         $d=peracrm_table('peracrm_campaign_deliveries'); $j=peracrm_table('peracrm_campaign_queue_jobs');
@@ -111,6 +120,10 @@ worker_fixture_target(static function () {
         prepared_expect($request['Destination']===['ToAddresses'=>['accepted@campaign-fixture.org']] && count($request['EmailTags'])===4 && count($request['Content']['Simple']['Headers'])===2,'production correlation and one-click headers');
         $service->run($jobs['accepted']); prepared_expect($transport->calls===1,'accepted replay cannot resend');
         parse_str(parse_url(trim($request['Content']['Simple']['Headers'][0]['Value'],'<>'),PHP_URL_QUERY),$query);
+        preg_match('~https://example\.org/email-preferences/\?[^"<>\s]+~',html_entity_decode($request['Content']['Simple']['Body']['Html']['Data'],ENT_QUOTES),$preference);
+        parse_str(parse_url($preference[0]??'',PHP_URL_QUERY)??'',$profile);
+        $preferences=peracrm_campaign_recipient_preferences_service();
+        prepared_expect($preferences->request('GET',$profile['token']??'','',[],'https://example.org','https://example.org','same-origin')[0]===200,'generic production preferences factory verifies the prepared recipient token');
         $withdrawal=peracrm_campaign_recipient_withdrawal_service();
         prepared_expect($withdrawal->request('GET',false,$query['token'],'',[])[0]===200,'generic production withdrawal displays without mutation');
         prepared_expect($withdrawal->request('POST',true,$query['token'],'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0]===200 && !peracrm_campaigns_is_eligible('accepted@campaign-fixture.org',[]),'generic production one-click withdrawal');
@@ -125,7 +138,8 @@ worker_fixture_target(static function () {
         prepared_expect($service->run($jobs['unknown'])['state']==='blocked' && $transport->calls===1,'operator breaker prevents further send');
         // Do not reset the breaker in production; fixture admin exercises the existing audited recovery.
         $budget->recover($budget->health()['breaker_version']);
-        $transport->mode='unknown'; $result=$service->run($jobs['unknown']);
+        $transport->mode='unknown'; $result=$service->scheduled(1);
+        prepared_expect(($result['job_id']??null)===$jobs['unknown'],'scheduler considers only approved due claimable jobs');
         prepared_expect($result['state']==='blocked' && $transport->calls===2,'production ambiguous outcome stops without retry');
         $service->run($jobs['unknown']); prepared_expect($transport->calls===2,'ambiguous replay never resends');
         prepared_expect(!str_contains(json_encode($result),str_repeat('Z',40)),'production output redacted');
