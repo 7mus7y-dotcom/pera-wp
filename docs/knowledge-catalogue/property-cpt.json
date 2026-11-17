@@ -45,7 +45,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:fatih"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -450,7 +451,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:beykoz"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -643,7 +645,8 @@
       "source_confidence": "wp-cli-export-2026-11-17",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:beyoglu"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -891,7 +894,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -986,7 +990,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:bakirkoy"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -1223,7 +1228,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -1552,7 +1558,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:kartal"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -1598,7 +1605,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:uskudar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -1787,7 +1795,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -1834,7 +1843,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:buyukcekmece"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -1880,7 +1890,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:beykoz"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -1927,7 +1938,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:buyukcekmece"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -2255,7 +2267,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:bagcilar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -2300,7 +2313,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:uskudar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -2343,7 +2357,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:uskudar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -2389,7 +2404,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:kartal"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -2437,7 +2453,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:buyukcekmece"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -2533,7 +2550,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:uskudar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -2676,7 +2694,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:uskudar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -2722,7 +2741,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -3349,7 +3369,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4022,7 +4043,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4116,7 +4138,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4305,7 +4328,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:uskudar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4350,7 +4374,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:bagcilar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4496,7 +4521,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4545,7 +4571,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4592,7 +4619,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:beykoz"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4641,7 +4669,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4780,7 +4809,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4826,7 +4856,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:beyoglu"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4871,7 +4902,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:bakirkoy"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4916,7 +4948,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:bahcelievler"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -4965,7 +4998,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -5012,7 +5046,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -5295,7 +5330,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:bagcilar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -5341,7 +5377,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:buyukcekmece"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -5485,7 +5522,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:kartal"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -5627,7 +5665,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:beykoz"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -5673,7 +5712,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:bagcilar"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -5910,7 +5950,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:kartal"
       ],
       "publication_status_basis": "repository-snapshot-or-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -6007,7 +6048,8 @@
       "source_confidence": "taxonomy-inventory-only",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:sariyer"
       ],
       "publication_status_basis": "wp-cli-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -6056,7 +6098,8 @@
       "source_confidence": "wp-cli-export-2026-11-17",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:beylikduzu"
       ],
       "publication_status_basis": "wp-cli-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
@@ -6201,7 +6244,8 @@
       "source_confidence": "wp-cli-export-2026-11-17",
       "entity_ids": [
         "org:pera-property",
-        "place:istanbul"
+        "place:istanbul",
+        "area:beykoz"
       ],
       "publication_status_basis": "wp-cli-export-2026-11-17",
       "canonical_verification": "http-observed-2026-11-17",
