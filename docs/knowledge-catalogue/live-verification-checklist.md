@@ -45,3 +45,19 @@ curl -sS https://www.peraproperty.com/robots.txt
 ## Required output
 
 Produce a CSV with columns: `topic_id,post_id,inventory_url,final_url,http_status,canonical_url,robots_indexable,hreflang_checked,content_reviewed,checked_at,evidence,action`. Populate only observed facts. Any inaccessible endpoint remains `unverified`.
+
+## Property CPT automated HTTP audit (added 2026-11-17)
+
+The branch contains `docs/knowledge-catalogue/verify-property-seo.py`, a **read-only** Python 3 standard-library tool. It uses the existing reconciled 130-record JSON catalogue, not a fresh WordPress export. It performs GET requests (not HEAD), follows up to five same-domain redirects, extracts canonical links, robots meta, X-Robots-Tag, hreflang links and H1, and records status and redirect hops. It does **not** verify reciprocal hreflang, robots.txt rules, structured data, Google indexing, or whether an apartment is for sale.
+
+Run on the hosting server (no branch checkout needed):
+
+```bash
+cd /home/d21882/_work/pera-wp
+git fetch origin docs/ai-seo-knowledge-catalogue
+git show origin/docs/ai-seo-knowledge-catalogue:docs/knowledge-catalogue/verify-property-seo.py > /tmp/pera-verify-property-seo.py
+git show origin/docs/ai-seo-knowledge-catalogue:docs/knowledge-catalogue/property-cpt.json > /tmp/pera-property-cpt.json
+python3 /tmp/pera-verify-property-seo.py --catalogue /tmp/pera-property-cpt.json --limit 15 --output /tmp/pera-property-seo-audit.json
+```
+
+After checking the 15-record pilot, audit all 130 with `--limit 0 --delay 1`. The output is created mode 0600; download it and review before sharing. Do not mark canonicals verified in the catalogue until the resulting observations are reviewed.
