@@ -1,28 +1,29 @@
 # Property CPT catalogue
 
-`property-cpt.json` contains **125 property records** imported from the repository's `docs/property-inventory.csv` snapshot. Each record retains the WordPress ID, title, slug, inventory permalink and existing taxonomy terms.
+`property-cpt.json` now contains **130 property records** reconciled from the repository's 125-record `docs/property-inventory.csv` snapshot and the user-supplied WP-CLI export of **131 published properties** dated 17 November 2026.
 
-## Data confidence
+The six export-only records have been added: **22720, 34223, 60071, 60100, 60258, 60339**. **59791** was published at export time but the owner subsequently made it a **draft**, so it is excluded from this published-property catalogue. **No new WordPress export or refresh was performed**. The underlying CSV remains a historical 125-record snapshot, not the canonical source for this reconciled JSON.
 
-- Taxonomy values reflect the repository export, not a fresh WordPress query.
-- `canonical_url: null` means not independently verified, **not** absent.
-- ACF values are deliberately null until exported from WordPress.
-- The `Citizenship` taxonomy term is **not** proof that an individual property is eligible for citizenship; `citizenship_eligibility_verified` remains null.
-- `listing_status: unverified` means the export does not prove currently for sale or published.
+## Geographic and entity relationships
 
-## ACF fields to enrich
+Every record is associated with `org:pera-property` and `place:istanbul`. Where its existing WordPress district taxonomy matches a registered district entity, the record additionally has a corresponding `area:...` ID in `entity_ids`. **84 records** currently match an existing district entity; **46** retain their district taxonomy labels without an entity ID beyond the organisation and city. These are **registry coverage gaps**, not necessarily incorrect district assignments.
 
-- Project identity/name, property type and development relationship
-- Bedrooms, gross/net sizes, single resale asking price
-- Project `v2_units` repeater: bedrooms, gross size min/max, USD price min/max, index key
-- Sold-out/status flag and publication status
-- Verified citizenship suitability and evidence (if independently documented)
-- Multilingual translation relationships and live canonical URLs
+The mapping uses only explicit taxonomy labels. For example, the `Eyup` district taxonomy maps to the registry's `area:eyup`, while `Istanbul` is treated as the city, not a district. Neighbourhood or marketing names must not be inferred from listing titles.
 
-## Read-only WordPress export specification
+## Data confidence and limitations
 
-Use WP-CLI on production **only to read**, export CSV or JSON to a protected temporary path, and transfer the resulting file for import into this PR. Select the `property` CPT; include ID, post status, permalink, project name, `bedrooms`, `size`, `v2_units`, `sold_out` and other confirmed ACF keys. Confirm field names against the repository ACF export before scripting. Do not publish private seller information, client data or unpublished listing content in this public GitHub repository. Restrict catalogue enrichment to public listing records.
+- `inventory_url` is a WordPress export/repository permalink, **not** a verified canonical URL. `canonical_url: null` means pending HTTP verification.
+- `listing_status: published-at-export` reflects the historical export, not proof that a unit is still available for sale. Property 59791 is explicitly excluded following the owner's status change.
+- Existing ACF fields remain null **pending structured import**, not because those fields are absent from WordPress. The private export has not been committed to the public repository.
+- The owner confirmed that incomplete min/max V2 repeater fields are **intentional for resale units**. Do not automatically fill them or flag them as errors.
+- A `Citizenship` taxonomy term is **not proof of individual property eligibility**; `citizenship_eligibility_verified` remains null.
+- The repository CSV and JSON now intentionally differ: CSV is the older 125-row source snapshot; JSON is the reconciled 130-property working catalogue.
 
-## Maintenance
+## Next technical verification
 
-Rebuild from a fresh inventory periodically, using WordPress IDs as stable identifiers; compare added/removed IDs and changed URLs. Never use a guessed permalink as a canonical tag or imply live availability from the snapshot.
+1. Verify actual HTTP status, redirects, canonical tags, indexability and hreflang on representative listing URLs, then expand coverage.
+2. Enrich public ACF fields from the already-provided export using a validated field-key mapping. Keep resale single-value prices distinct from project ranges, and never publish confidential metadata.
+3. Expand district entity registry only after checking actual district taxonomy values and whether the area is an administrative district or neighbourhood.
+4. Update the CSV and validation scripts together when choosing a single authoritative source for future catalogue rebuilds.
+
+See `property-export-audit-2026-11-17.md` for export reconciliation and owner-reviewed pricing exceptions.
