@@ -23,6 +23,7 @@ Maintain a source-controlled inventory of entities, topics, questions, evidence,
 - [Property management](property-management.md)
 - [Machine-readable topic map](topic-map.json)
 - [Entity registry](entity-registry.md)
+- [Property CPT catalogue](property-cpt.md) ([JSON](property-cpt.json))
 - [Live verification checklist](live-verification-checklist.md)
 
 ## Workflow
