@@ -34,10 +34,17 @@
 - Six repeater rows have one or more empty bedroom, minimum gross size, or minimum USD price fields. Affected post IDs include **11663, 11920, 42878, 56011**; inspect these in WordPress before making a corrective edit. Some rows contain maximum-only values or blank placeholders.
 - `sold_out` is not truthy on any of the 131 exported posts; confirm whether the export represents all statuses and whether sold status is maintained through another mechanism before drawing conclusions.
 
+## Editorial review after export (user-confirmed, 17 November 2026)
+- **59791** has since been changed from published to **draft**. It was published when the export was taken; the next published-only inventory should exclude it.
+- **40298 and 59791** now have prices. The export is a historical snapshot and does not reflect those subsequent edits.
+- Incomplete min/max V2 fields for resale units are **intentional**; they are not pricing errors and should not be auto-filled. The user has confirmed the flagged incomplete listings are acceptable.
+- **39557** has not been separately updated or verified in this review; its missing V2 repeater is not, by itself, evidence of an error.
+- A future editor/data-model improvement may distinguish single resale prices and sizes from project pricing ranges. This is outside the current SEO catalogue scope.
+
 ## Recommended next steps
-1. Update the repository's property inventory from the export, preserving its existing CSV schema and taxonomy labels, and review the six additions.
-2. Validate the three no-repeater listings against their intended display/availability, especially post 59791.
-3. Check the incomplete repeater rows against the editor and front-end pricing behavior; do not auto-fill missing values.
+1. Refresh the published-only property inventory after the draft change, preserving the existing CSV schema and taxonomy labels. Reconcile the six previously missing IDs, but do not republish post 59791.
+2. Treat missing V2 range fields on resale units as intentional; record the distinction between range-based project inventory and single-unit resales.
+3. Defer any V2 editor/schema redesign to a separate task; do not auto-fill missing resale range values.
 4. Verify canonical URLs, robots, redirects, schema, and hreflang by HTTP before declaring any property live-verified.
 
 **Data handling:** The JSON export itself is not committed to the repository; only aggregate findings and public listing IDs/titles are recorded.
