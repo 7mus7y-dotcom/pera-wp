@@ -1,6 +1,6 @@
 # Pera Property — AI SEO Knowledge Catalogue
 
-Status: repository-mapped catalogue (2026-11-16); live canonical verification pending. This is an internal catalogue, **not** a public AI feed or a ranking guarantee.
+Status: repository-mapped catalogue; 130 property canonicals verified by owner-run HTTP audit (2026-11-17). Topic-map canonicals and broader Google indexation remain unverified. This is an internal catalogue, **not** a public AI feed or a ranking guarantee.
 
 ## Purpose
 Maintain a source-controlled inventory of entities, topics, questions, evidence, canonical public URLs and internal linking opportunities. Public, crawlable WordPress pages remain the primary discoverable source.
@@ -35,3 +35,8 @@ Maintain a source-controlled inventory of entities, topics, questions, evidence,
 
 ## Status meanings
 `inventory-needed` = subject known, public URL not yet verified; `existing-verified` = canonical public page checked; `gap` = no adequate public content confirmed; `review` = factual refresh needed.
+
+## Verification evidence (2026-11-17)
+- [130-property HTTP audit](property-http-verification-2026-11-17.md): 130 HTTP 200, self-referencing canonicals, no reported issues.
+- [12-property multilingual sample](hreflang-sample-verification-2026-11-17.md): 60 language targets, no reported issues.
+- Property district links: 128 explicit district mappings; two Bahçeşehir region-only entries without inferred administrative districts.
