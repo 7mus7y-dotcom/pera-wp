@@ -1,9 +1,9 @@
 {
-  "version": 1,
-  "source": "docs/property-inventory.csv",
-  "source_type": "repository-snapshot",
+  "version": 2,
+  "source": "docs/property-inventory.csv + user-provided WP-CLI export 2026-11-17 + editorial update (59791 draft)",
+  "source_type": "mixed-snapshot-no-refresh",
   "canonical_verification": "pending",
-  "count": 125,
+  "count": 130,
   "records": [
     {
       "wp_id": 7837,
@@ -41,8 +41,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 11663,
@@ -81,8 +86,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 11691,
@@ -123,8 +134,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 11753,
@@ -161,8 +178,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:umraniye"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 11920,
@@ -201,8 +224,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 12013,
@@ -242,8 +271,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 20100,
@@ -282,8 +317,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 20719,
@@ -321,8 +362,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 21286,
@@ -359,8 +406,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 21360,
@@ -397,8 +449,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:eyup"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 21503,
@@ -434,8 +492,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 22503,
@@ -470,8 +534,58 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:eyup"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
+    },
+    {
+      "wp_id": 22720,
+      "title": "Taksim 360 Restored Historic Residences and Offices by Taksim Square",
+      "slug": "apartments-renewed-to-unesco-standards-in-the-heart-of-istanbul",
+      "inventory_url": "https://www.peraproperty.com/property/apartments-renewed-to-unesco-standards-in-the-heart-of-istanbul/",
+      "canonical_url": null,
+      "property_types": [
+        "Apartments",
+        "Residential"
+      ],
+      "special_terms": [
+        "Citizenship",
+        "Resales"
+      ],
+      "region_terms": [
+        "City Centre"
+      ],
+      "district_terms": [
+        "Beyoglu",
+        "Istanbul"
+      ],
+      "property_tags": [
+        "Istanbul Investment property for sale",
+        "Key ready apartments for sale in Istanbul",
+        "Luxury Property for Sale in Istanbul",
+        "Property for sale in Istanbul City Centre"
+      ],
+      "acf": {
+        "project_name": null,
+        "bedrooms": null,
+        "gross_area_m2": null,
+        "net_area_m2": null,
+        "price_usd": null,
+        "v2_units": null,
+        "citizenship_eligibility_verified": null
+      },
+      "listing_status": "published-at-export",
+      "source_confidence": "wp-cli-export-2026-11-17",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 26534,
@@ -509,8 +623,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 27530,
@@ -548,8 +668,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 27743,
@@ -587,8 +713,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 28039,
@@ -626,8 +758,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 28108,
@@ -664,8 +802,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 28176,
@@ -701,8 +844,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 29013,
@@ -738,8 +887,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 29124,
@@ -780,8 +934,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 31894,
@@ -812,8 +972,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 32817,
@@ -846,8 +1012,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:umraniye"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 33553,
@@ -882,8 +1054,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 33724,
@@ -921,8 +1099,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 33912,
@@ -955,8 +1138,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 34097,
@@ -992,8 +1181,56 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
+    },
+    {
+      "wp_id": 34223,
+      "title": "Otto Ataşehir Boutique Residences Beside Metro and Financial Center",
+      "slug": "investment-apartments-walking-distance-from-the-new-financial-district",
+      "inventory_url": "https://www.peraproperty.com/property/investment-apartments-walking-distance-from-the-new-financial-district/",
+      "canonical_url": null,
+      "property_types": [
+        "Apartments",
+        "Residential"
+      ],
+      "special_terms": [
+        "Citizenship",
+        "Resales"
+      ],
+      "region_terms": [
+        "Anatolia"
+      ],
+      "district_terms": [
+        "Atasehir",
+        "Istanbul"
+      ],
+      "property_tags": [
+        "Istanbul Investment property for sale"
+      ],
+      "acf": {
+        "project_name": null,
+        "bedrooms": null,
+        "gross_area_m2": null,
+        "net_area_m2": null,
+        "price_usd": null,
+        "v2_units": null,
+        "citizenship_eligibility_verified": null
+      },
+      "listing_status": "published-at-export",
+      "source_confidence": "wp-cli-export-2026-11-17",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:atasehir"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 34385,
@@ -1029,8 +1266,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 34421,
@@ -1065,8 +1308,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 34961,
@@ -1100,8 +1349,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 35840,
@@ -1138,8 +1393,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 37218,
@@ -1174,8 +1434,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 37273,
@@ -1209,8 +1474,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 37728,
@@ -1245,8 +1516,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 37875,
@@ -1283,8 +1560,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 38845,
@@ -1320,8 +1603,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 39064,
@@ -1357,8 +1645,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 39159,
@@ -1393,8 +1686,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 39405,
@@ -1430,8 +1728,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 39557,
@@ -1463,8 +1766,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 39796,
@@ -1501,8 +1809,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 39965,
@@ -1537,8 +1851,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:eyup"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 40298,
@@ -1572,8 +1892,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 40368,
@@ -1610,8 +1935,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 40930,
@@ -1648,8 +1979,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 41935,
@@ -1684,8 +2021,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 41997,
@@ -1719,8 +2061,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 42189,
@@ -1752,8 +2099,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 42261,
@@ -1788,8 +2140,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 42276,
@@ -1826,8 +2183,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 42524,
@@ -1862,8 +2224,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 42878,
@@ -1901,8 +2269,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 42881,
@@ -1939,8 +2312,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 42884,
@@ -1977,8 +2356,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 43202,
@@ -2012,8 +2397,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 43449,
@@ -2048,8 +2438,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 43989,
@@ -2086,8 +2481,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 45168,
@@ -2124,8 +2525,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 45795,
@@ -2161,8 +2568,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:eyup"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 45886,
@@ -2198,8 +2611,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 45957,
@@ -2234,8 +2653,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 46263,
@@ -2272,8 +2697,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 46305,
@@ -2308,8 +2739,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 46745,
@@ -2346,8 +2783,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 48617,
@@ -2382,8 +2825,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:eyup"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 49000,
@@ -2420,8 +2869,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 49941,
@@ -2457,8 +2912,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:maltepe"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 50983,
@@ -2494,8 +2955,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 51022,
@@ -2533,8 +3000,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 51372,
@@ -2572,8 +3044,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 51417,
@@ -2609,8 +3087,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 51531,
@@ -2646,8 +3130,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 51570,
@@ -2683,8 +3173,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kadikoy"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 51706,
@@ -2719,8 +3215,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 51723,
@@ -2755,8 +3257,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 51889,
@@ -2792,8 +3300,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 51929,
@@ -2828,8 +3342,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 52186,
@@ -2864,8 +3384,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 52813,
@@ -2904,8 +3430,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 53550,
@@ -2940,8 +3472,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 54480,
@@ -2978,8 +3516,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 54770,
@@ -3016,8 +3560,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 54822,
@@ -3053,8 +3603,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 54848,
@@ -3089,8 +3644,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:eyup"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 54872,
@@ -3126,8 +3687,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 55381,
@@ -3164,8 +3730,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 55731,
@@ -3200,8 +3772,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 55753,
@@ -3237,8 +3815,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 55766,
@@ -3272,8 +3856,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 55833,
@@ -3307,8 +3896,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 55861,
@@ -3346,8 +3940,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:eyup"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 55890,
@@ -3382,8 +3982,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 55912,
@@ -3421,8 +4027,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 55984,
@@ -3460,8 +4071,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 56011,
@@ -3497,8 +4113,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 56045,
@@ -3536,8 +4157,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 56063,
@@ -3572,8 +4198,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:gaziosmanpasa"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 56090,
@@ -3607,8 +4239,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kucukcekmece"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 56250,
@@ -3643,8 +4281,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 56251,
@@ -3679,8 +4322,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 56288,
@@ -3714,8 +4362,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 56324,
@@ -3749,8 +4402,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 58386,
@@ -3788,8 +4446,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 58402,
@@ -3825,8 +4488,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 58419,
@@ -3865,8 +4533,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 58487,
@@ -3900,8 +4574,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kadikoy"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 58500,
@@ -3936,8 +4616,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kadikoy"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 58501,
@@ -3971,8 +4657,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:atasehir"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 58545,
@@ -4007,8 +4699,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:zeytinburnu"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 58663,
@@ -4043,8 +4741,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 58755,
@@ -4079,8 +4782,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59052,
@@ -4117,8 +4825,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59401,
@@ -4154,8 +4868,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:umraniye"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59415,
@@ -4191,8 +4911,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59432,
@@ -4228,8 +4953,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kadikoy"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59471,
@@ -4264,45 +4995,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
-    },
-    {
-      "wp_id": 59791,
-      "title": "New Build Apartments for Sale in Topkapi, Istanbul",
-      "slug": "new-build-apartments-for-sale-in-topkapi-istanbul-59791-2",
-      "inventory_url": "https://www.peraproperty.com/property/new-build-apartments-for-sale-in-topkapi-istanbul-59791-2/",
-      "canonical_url": null,
-      "property_types": [
-        "Apartments",
-        "Residential"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
       ],
-      "special_terms": [
-        "Citizenship",
-        "Project"
-      ],
-      "region_terms": [
-        "City Centre"
-      ],
-      "district_terms": [
-        "Istanbul",
-        "Zeytinburnu"
-      ],
-      "property_tags": [
-        "Istanbul Investment property for sale",
-        "Property for sale in Istanbul City Centre"
-      ],
-      "acf": {
-        "project_name": null,
-        "bedrooms": null,
-        "gross_area_m2": null,
-        "net_area_m2": null,
-        "price_usd": null,
-        "v2_units": null,
-        "citizenship_eligibility_verified": null
-      },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59805,
@@ -4338,8 +5038,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59827,
@@ -4374,8 +5079,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59850,
@@ -4412,8 +5122,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:besiktas"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59858,
@@ -4449,8 +5165,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:umraniye"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59888,
@@ -4486,8 +5208,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kadikoy"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59943,
@@ -4523,8 +5251,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:kagithane"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59972,
@@ -4557,8 +5291,13 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 59973,
@@ -4595,8 +5334,14 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "repository-snapshot-or-export-2026-11-17"
     },
     {
       "wp_id": 60015,
@@ -4633,8 +5378,188 @@
         "v2_units": null,
         "citizenship_eligibility_verified": null
       },
-      "listing_status": "unverified",
-      "source_confidence": "taxonomy-inventory-only"
+      "listing_status": "published-at-export",
+      "source_confidence": "taxonomy-inventory-only",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "wp-cli-export-2026-11-17"
+    },
+    {
+      "wp_id": 60071,
+      "title": "Top-Floor 3-Bedroom Sea View Apartment at Deniz Istanbul",
+      "slug": "top-floor-3-bedroom-sea-view-apartment-at-deniz-istanbul",
+      "inventory_url": "https://www.peraproperty.com/property/top-floor-3-bedroom-sea-view-apartment-at-deniz-istanbul/",
+      "canonical_url": null,
+      "property_types": [
+        "Apartments",
+        "Residential"
+      ],
+      "special_terms": [
+        "Resales"
+      ],
+      "region_terms": [
+        "West Istanbul"
+      ],
+      "district_terms": [
+        "Beylikduzu",
+        "Istanbul"
+      ],
+      "property_tags": [
+        "Istanbul Investment property for sale",
+        "Istanbul Marina apartments for sale",
+        "Istanbul Sea views for sale",
+        "Key ready apartments for sale in Istanbul",
+        "Luxury Property for Sale in Istanbul"
+      ],
+      "acf": {
+        "project_name": null,
+        "bedrooms": null,
+        "gross_area_m2": null,
+        "net_area_m2": null,
+        "price_usd": null,
+        "v2_units": null,
+        "citizenship_eligibility_verified": null
+      },
+      "listing_status": "published-at-export",
+      "source_confidence": "wp-cli-export-2026-11-17",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "wp-cli-export-2026-11-17"
+    },
+    {
+      "wp_id": 60100,
+      "title": "Low-Density Forest Apartments Near the Metro in Göktürk",
+      "slug": "low-density-forest-apartments-near-the-metro-in-gokturk",
+      "inventory_url": "https://www.peraproperty.com/property/low-density-forest-apartments-near-the-metro-in-gokturk/",
+      "canonical_url": null,
+      "property_types": [
+        "Apartments",
+        "Residential"
+      ],
+      "special_terms": [
+        "Citizenship",
+        "Project"
+      ],
+      "region_terms": [
+        "Golden Horn"
+      ],
+      "district_terms": [
+        "Eyup",
+        "Istanbul"
+      ],
+      "property_tags": [
+        "Forest views property for sale in Northern Istanbul",
+        "Istanbul Investment property for sale",
+        "Key ready apartments for sale in Istanbul",
+        "Luxury Property for Sale in Istanbul"
+      ],
+      "acf": {
+        "project_name": null,
+        "bedrooms": null,
+        "gross_area_m2": null,
+        "net_area_m2": null,
+        "price_usd": null,
+        "v2_units": null,
+        "citizenship_eligibility_verified": null
+      },
+      "listing_status": "published-at-export",
+      "source_confidence": "wp-cli-export-2026-11-17",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:eyup"
+      ],
+      "publication_status_basis": "wp-cli-export-2026-11-17"
+    },
+    {
+      "wp_id": 60258,
+      "title": "Large Furnished Studio for Sale at Extensa Bomonti",
+      "slug": "large-furnished-studio-for-sale-at-extensa-bomonti",
+      "inventory_url": "https://www.peraproperty.com/property/large-furnished-studio-for-sale-at-extensa-bomonti/",
+      "canonical_url": null,
+      "property_types": [
+        "Apartments",
+        "Residential"
+      ],
+      "special_terms": [
+        "Resales"
+      ],
+      "region_terms": [
+        "City Centre"
+      ],
+      "district_terms": [
+        "Istanbul",
+        "Sisli"
+      ],
+      "property_tags": [
+        "Istanbul Investment property for sale",
+        "Key ready apartments for sale in Istanbul",
+        "Property for sale in Istanbul City Centre"
+      ],
+      "acf": {
+        "project_name": null,
+        "bedrooms": null,
+        "gross_area_m2": null,
+        "net_area_m2": null,
+        "price_usd": null,
+        "v2_units": null,
+        "citizenship_eligibility_verified": null
+      },
+      "listing_status": "published-at-export",
+      "source_confidence": "wp-cli-export-2026-11-17",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul",
+        "area:sisli"
+      ],
+      "publication_status_basis": "wp-cli-export-2026-11-17"
+    },
+    {
+      "wp_id": 60339,
+      "title": "Private Forest Villas with Pools in Polonezköy",
+      "slug": "private-forest-villas-with-pools-in-polonezkoy",
+      "inventory_url": "https://www.peraproperty.com/property/private-forest-villas-with-pools-in-polonezkoy/",
+      "canonical_url": null,
+      "property_types": [
+        "Residential",
+        "Villas"
+      ],
+      "special_terms": [
+        "Citizenship",
+        "Project"
+      ],
+      "region_terms": [
+        "Anatolia"
+      ],
+      "district_terms": [
+        "Beykoz",
+        "Istanbul"
+      ],
+      "property_tags": [
+        "Forest views property for sale in Northern Istanbul",
+        "Luxury Property for Sale in Istanbul"
+      ],
+      "acf": {
+        "project_name": null,
+        "bedrooms": null,
+        "gross_area_m2": null,
+        "net_area_m2": null,
+        "price_usd": null,
+        "v2_units": null,
+        "citizenship_eligibility_verified": null
+      },
+      "listing_status": "published-at-export",
+      "source_confidence": "wp-cli-export-2026-11-17",
+      "entity_ids": [
+        "org:pera-property",
+        "place:istanbul"
+      ],
+      "publication_status_basis": "wp-cli-export-2026-11-17"
     }
-  ]
+  ],
+  "note": "Export had 131 published properties. Property 59791 was subsequently made draft and is excluded; this is not a refreshed live inventory. Canonical URLs and current sale availability remain unverified. ACF placeholders are not assertions of missing data."
 }
