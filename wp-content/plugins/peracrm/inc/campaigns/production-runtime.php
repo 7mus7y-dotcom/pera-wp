@@ -197,6 +197,8 @@ final class PeraCRM_Campaign_Production_Runtime
         if ($this->endpointCheck) { ($this->endpointCheck)(); return; }
         foreach (['/email-unsubscribe/','/email-preferences/','/peracrm-ses-sns/'] as $path) {
             $url=home_url($path);
+            // A pc1 prefix selects the recipient responder instead of the legacy preferences page.
+            if ($path==='/email-preferences/') { $url=add_query_arg('token','pc1.production-probe-invalid',$url); }
             $args=['timeout'=>5,'redirection'=>0,'sslverify'=>true,'limit_response_size'=>8192];
             $response=$path==='/peracrm-ses-sns/'
                 ? wp_safe_remote_post($url,$args+['headers'=>['Content-Type'=>'application/json'],'body'=>'{}'])

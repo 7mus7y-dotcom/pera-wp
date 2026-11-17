@@ -87,6 +87,24 @@ worker_fixture_target(static function () {
         };
         $service=new PeraCRM_Campaign_Production_Runtime($adapter,$config,$api,$transport,static fn()=>null);
         prepared_reject(fn()=>$service->run(999999));
+        $endpointProbe=new PeraCRM_Campaign_Production_Runtime($adapter,$config,$api,$transport);
+        $endpointMethod=new ReflectionMethod(PeraCRM_Campaign_Production_Runtime::class,'endpoints');
+        $probes=[];
+        $http=static function ($pre,$args,$url) use (&$probes) {
+            $probes[]=[$url,$args]; $status=400;
+            if (str_contains($url,'/email-preferences/')) {
+                parse_str(parse_url($url,PHP_URL_QUERY)??'',$query);
+                // The real route selects its legacy HTTP-200 page unless pc1. selects the recipient handler.
+                $status=($query['token']??null)==='pc1.production-probe-invalid'?400:200;
+            }
+            return ['response'=>['code'=>$status,'message'=>'Synthetic'],'headers'=>[],'body'=>'Invalid link.','cookies'=>[]];
+        };
+        add_filter('pre_http_request',$http,999,3);
+        try { $endpointMethod->invoke($endpointProbe); }
+        finally { remove_filter('pre_http_request',$http,999); }
+        prepared_expect(count($probes)===3 && $transport->calls===0
+            && !array_filter($probes,static fn($r)=>($r[1]['sslverify']??false)!==true || ($r[1]['redirection']??1)!==0),
+            'native production probe selects recipient preferences with a fixed invalid token and TLS/no-redirect checks');
         $apiMode='wrong-principal'; prepared_reject(fn()=>$service->run($jobs['accepted']));
         $apiMode='sandbox'; prepared_reject(fn()=>$service->run($jobs['accepted'])); $apiMode='healthy';
         prepared_expect($transport->calls===0,'identity/sandbox/allowlist failures before sends');
