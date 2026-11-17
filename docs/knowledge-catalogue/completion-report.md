@@ -24,3 +24,7 @@ Run a read-only export/crawl from the server or another network-enabled environm
 
 ## Handover
 The **repository mapping and internal knowledge catalogue are complete to the available evidence level**. Do not confuse this with live technical SEO verification or published website changes.
+
+## Addendum — 17 November 2026
+
+The earlier “external verification blocked” section is a historical status note and has been superseded **for property CPT pages only** by the [130-property HTTP audit](property-http-verification-2026-11-17.md) and [60-URL hreflang sample](hreflang-sample-verification-2026-11-17.md). All 130 property canonical URLs are now recorded. District entity mapping is 128 explicit district links and two Bahçeşehir region-only cases. Topic-map canonical URLs, Google indexation and exhaustive translated-page verification remain separate work; the 125-row CSV remains a historical snapshot.
