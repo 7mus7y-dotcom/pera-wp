@@ -105,7 +105,7 @@ const fs = require('fs');
  const download=await downloadEvent;
  const csv=fs.readFileSync(await download.path(),'utf8');
  if(!csv.includes("'=browser@example.test")) throw Error('Download formula injection defense missing');
- await page.getByRole('button',{name:'Apply next 25 rows',exact:true}).click();
+ await page.getByRole('button',{name:'Apply next 500 rows',exact:true}).click();
  if(!(await page.locator('main').innerText()).includes('Status: complete')) throw Error('Browser batch apply did not complete');
  await page.goto(staff+'&search=browser%40example.test');
  if(!(await page.locator('main').innerText()).includes('1 subscribers')) throw Error('Browser batch apply missing subscriber');
