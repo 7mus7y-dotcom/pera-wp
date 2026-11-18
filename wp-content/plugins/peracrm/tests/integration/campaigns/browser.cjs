@@ -164,6 +164,7 @@ const fs = require('fs');
  await require('./withdrawal-browser.cjs')({browser});
  await require('./recipient-preferences-browser.cjs')({browser});
  await require('./client-panels-browser.cjs')({browser});
+ await require('./client-mailing-browser.cjs')({browser});
  await require('./appointments-browser.cjs')({browser});
  if(failures.length) throw Error(failures.join('\n'));
  // Emit small synthetic-only review images so an API-only reviewer can inspect them.

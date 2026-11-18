@@ -489,6 +489,8 @@ wp --user=fixture-admin peracrm campaigns readiness --format=json > /var/www/htm
 [ "$readiness_exit" -eq 4 ]
 echo 'PASS actual administrator readiness CLI snapshot for browser agreement'
 wp eval-file /tests/client-panels.php
+wp eval-file /tests/client-mailing.php
+wp --user=fixture-admin peracrm campaigns client-mailing-audit --format=json > /var/www/html/client-mailing-audit.json
 wp eval-file /tests/appointments.php
 
 wp eval-file /tests/appointments-upgrade.php
