@@ -113,10 +113,16 @@ worker_fixture_target(static function () {
         $report=$readiness->assess();
         prepared_expect(!$report['production_ready'] && $service->run($jobs['accepted'])['state']==='blocked' && $transport->calls===0,'missing external evidence blocks before claims');
         foreach (PeraCRM_Campaign_Readiness::EXTERNAL as $name=>$source) {
+            if ($name==='host_log_protections') { continue; }
             $fp=$report['configuration_fingerprint'];
             $readiness->record($fp,$name,$source,hash('sha256','synthetic-'.$name),wp_create_nonce('peracrm_readiness_'.$fp));
         }
-        prepared_expect($readiness->assess()['production_ready'],'explicit complete readiness');
+        $report=$readiness->assess();
+        prepared_expect($report['production_ready']
+            && $report['checks']['host_log_protections']['state']==='unverified'
+            && $report['warnings']===['host_log_protections:unverified']
+            && !in_array('host_log_protections:unverified',$report['blockers'],true),
+            'unverified host logs remain advisory while other send prerequisites hold');
         $lock='peracrm-production-'.substr(hash('sha256',$manifest['account_id'].'|'.$manifest['region']),0,40);
         $other=new wpdb(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
         prepared_expect((string)$other->get_var($other->prepare('SELECT GET_LOCK(%s,0)',$lock))==='1','second connection holds production account lock');

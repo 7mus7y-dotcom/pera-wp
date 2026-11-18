@@ -134,6 +134,14 @@ function peracrm_campaign_readiness_ui_render(): void
             foreach ($report['events'] as $key=>$value) { echo '<dt>'.esc_html(peracrm_campaign_readiness_ui_label($key)).'</dt><dd>'.(int)$value.'</dd>'; }
             echo '</dl>';
         }
+        if (!empty($report['warnings'])) {
+            echo '<section><h2>Deployment warnings</h2><p>These items do not block sending. Unverified log protection means private preference and unsubscribe links may remain in server logs accessible to log readers.</p><ul>';
+            foreach ($report['warnings'] as $warning) {
+                $parts=explode(':',$warning,2);
+                echo '<li data-readiness-warning="'.esc_attr($warning).'">'.esc_html(peracrm_campaign_readiness_ui_label($parts[0]).(isset($parts[1])?' — '.peracrm_campaign_readiness_ui_label($parts[1]):'')).'</li>';
+            }
+            echo '</ul></section>';
+        }
         echo '<section><h2>Outstanding blockers</h2><ul>';
         foreach ($report['blockers'] as $blocker) {
             $parts=explode(':',$blocker,2);

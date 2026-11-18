@@ -27,6 +27,10 @@ worker_fixture_target(static function () {
     foreach (PeraCRM_Campaign_Readiness::EXTERNAL as $name=>$source) {
         prepared_expect($report['checks'][$name]['state']==='unverified','missing evidence '.$name);
     }
+    prepared_expect($report['warnings']===['host_log_protections:unverified']
+        && !in_array('host_log_protections:unverified',$report['blockers'],true)
+        && in_array('dns_dkim_dmarc:unverified',$report['blockers'],true),
+        'host logging advisory does not weaken other evidence checks');
     $fingerprint=$report['configuration_fingerprint'];
     prepared_expect(is_string($fingerprint),'configuration is bound');
     $nonce=wp_create_nonce('peracrm_readiness_'.$fingerprint);
@@ -39,6 +43,7 @@ worker_fixture_target(static function () {
     prepared_expect($service->assess()['checks']['dns_dkim_dmarc']['state']==='insufficient_evidence','attestation never masquerades as provider observation');
     foreach (PeraCRM_Campaign_Readiness::EXTERNAL as $name=>$source) { $service->record($fingerprint,$name,$source,$digest,$nonce); }
     $report=$service->assess();
+    prepared_expect($report['warnings']===[],'recorded host log evidence resolves its warning');
     prepared_expect($report['checks']['dns_dkim_dmarc']['state']==='recorded'
         && $report['checks']['dns_dkim_dmarc']['actor']===$admin
         && !$report['production_ready'],'scoped dated actor audit is diagnostic only');

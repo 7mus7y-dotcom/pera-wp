@@ -93,8 +93,14 @@ The local cap is the lower of the configured limit and observed SES capacity. Th
 account-region ledger conservatively counts pending and recent reservations across
 jobs and invocations; refreshing quota never clears spend, pending ownership or breakers.
 
-All existing readiness evidence remains required, including DNS, IAM/quota, SNS/DLQ,
-host logs, retention, old-mailbox policy and restore verification. Record evidence only
+Readiness evidence remains required for DNS, IAM/quota, SNS/DLQ, retention,
+old-mailbox policy and restore verification. Host/log protection is a non-blocking
+deployment advisory: unverified, stale or insufficient evidence remains visible in
+`checks` and `warnings`, rather than being reported as verified or blocking dispatch.
+Private preference/unsubscribe tokens may remain in server logs until host logging
+is hardened; log readers may be able to use those links. This policy does not open
+dispatch, approve job IDs, clear suppression, or relax provider/runtime checks.
+Record evidence only
 after actual verification using the administrator readiness page. Evidence expires after
 30 days and is bound to the CRM configuration, deployment, public endpoint pins,
 principal, sender and local limits. Changing approved jobs, the credential-file path,

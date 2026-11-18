@@ -35,6 +35,8 @@ module.exports = async function ({browser,page,target,context,employeeContext}) 
    }
    const blockers=await page.locator('[data-readiness-blocker]').evaluateAll(rows=>rows.map(r=>r.dataset.readinessBlocker));
    if(JSON.stringify(blockers)!==JSON.stringify(cli.blockers)) throw Error('UI/actual CLI blockers disagree');
+   const warnings=await page.locator('[data-readiness-warning]').evaluateAll(rows=>rows.map(r=>r.dataset.readinessWarning));
+   if(JSON.stringify(warnings)!==JSON.stringify(cli.warnings)) throw Error('UI/actual CLI warnings disagree');
   }
   for(const label of ['Prerequisite','Evidence type','Redacted artifact SHA-256']) {
    if(!(await page.getByLabel(label,{exact:true}).count())) throw Error('Missing accessible label '+label);
