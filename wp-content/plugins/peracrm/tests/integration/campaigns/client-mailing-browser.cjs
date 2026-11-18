@@ -27,7 +27,12 @@ module.exports = async function ({browser}) {
  await panel.locator('[data-client-mailing-status="subscribed"]').waitFor();
  if(await panel.getByRole('button',{name:'Add to mailing list',exact:true}).count()) throw Error('Existing subscriber exposes add action');
  await panel.getByRole('link',{name:'Manage subscriber',exact:true}).click();
- await page.getByRole('button',{name:'Withdraw marketing permission',exact:true}).click();
+ page.once('dialog',dialog=>dialog.accept());
+ await Promise.all([
+  page.waitForURL(url=>url.searchParams.get('subscriber_notice')==='saved'),
+  page.getByRole('button',{name:'Withdraw marketing permission',exact:true}).click(),
+ ]);
+ await page.getByText('Suppressions: unsubscribe',{exact:true}).waitFor();
  await page.goto(clientURL);
  await panel.locator('[data-client-mailing-status="suppressed"]').waitFor();
  if(await panel.locator('[name="permission_confirmed"]').count()) throw Error('Withdrawn client exposes permission override');
