@@ -218,31 +218,37 @@ function peracrm_campaigns_unlink_subscriber_client($address)
 function peracrm_campaigns_record_consent($address, $state, $evidence)
 {
     return peracrm_campaigns_staff_mutate($address, static function ($email, $subscriber, $suppression, $actor) use ($state, $evidence) {
-        global $wpdb;
-        if (!$subscriber || !in_array($state, ['unknown', 'pending', 'subscribed', 'unsubscribed'], true)) {
-            throw new InvalidArgumentException('Existing subscriber and valid consent state required.');
-        }
-        $evidence = peracrm_campaigns_evidence($evidence, $state === 'subscribed');
-        if ($state === 'subscribed' && (peracrm_campaigns_has_suppression($suppression) || $subscriber['subscription_state'] === 'unsubscribed')) {
-            throw new InvalidArgumentException('Suppressed/withdrawn permission requires a later verified resubscription flow.');
-        }
-        // Never replay older evidence as a new permission action.
-        if (!empty($subscriber['recorded_at']) && $evidence['occurred_at'] < $subscriber['recorded_at']) {
-            throw new InvalidArgumentException('Consent evidence predates the current permission record.');
-        }
-        $data = $evidence;
-        unset($data['occurred_at']);
-        $data += ['subscription_state' => $state, 'recorded_at' => $evidence['occurred_at'],
-            'confirmed_at' => $state === 'subscribed' ? $evidence['occurred_at'] : null,
-            'withdrawn_at' => $state === 'unsubscribed' ? $evidence['occurred_at'] : ($subscriber['withdrawn_at'] ?? null),
-            'updated_at' => gmdate('Y-m-d H:i:s'), 'version' => (int) $subscriber['version'] + 1];
-        if ($state === 'unsubscribed') {
-            peracrm_campaigns_repository_suppress($email, 'unsubscribe', $evidence, $actor);
-        }
-        peracrm_campaigns_db_require($wpdb->update(peracrm_table('peracrm_subscribers'), $data, ['id' => $subscriber['id']]));
-        peracrm_campaigns_repository_event($email, $subscriber, 'consent_changed', $state, $evidence, $actor);
-        return true;
+        return peracrm_campaigns_store_consent($email, $subscriber, $suppression, $actor, $state, $evidence);
     });
+}
+
+/** @internal Caller owns an authorized mailbox transaction. */
+function peracrm_campaigns_store_consent($email, $subscriber, $suppression, $actor, $state, $evidence)
+{
+    global $wpdb;
+    if (!$subscriber || !in_array($state, ['unknown', 'pending', 'subscribed', 'unsubscribed'], true)) {
+        throw new InvalidArgumentException('Existing subscriber and valid consent state required.');
+    }
+    $evidence = peracrm_campaigns_evidence($evidence, $state === 'subscribed');
+    if ($state === 'subscribed' && (peracrm_campaigns_has_suppression($suppression) || $subscriber['subscription_state'] === 'unsubscribed')) {
+        throw new InvalidArgumentException('Suppressed/withdrawn permission requires a later verified resubscription flow.');
+    }
+    // Never replay older evidence as a new permission action.
+    if (!empty($subscriber['recorded_at']) && $evidence['occurred_at'] < $subscriber['recorded_at']) {
+        throw new InvalidArgumentException('Consent evidence predates the current permission record.');
+    }
+    $data = $evidence;
+    unset($data['occurred_at']);
+    $data += ['subscription_state' => $state, 'recorded_at' => $evidence['occurred_at'],
+        'confirmed_at' => $state === 'subscribed' ? $evidence['occurred_at'] : null,
+        'withdrawn_at' => $state === 'unsubscribed' ? $evidence['occurred_at'] : ($subscriber['withdrawn_at'] ?? null),
+        'updated_at' => gmdate('Y-m-d H:i:s'), 'version' => (int) $subscriber['version'] + 1];
+    if ($state === 'unsubscribed') {
+        peracrm_campaigns_repository_suppress($email, 'unsubscribe', $evidence, $actor);
+    }
+    peracrm_campaigns_db_require($wpdb->update(peracrm_table('peracrm_subscribers'), $data, ['id' => $subscriber['id']]));
+    peracrm_campaigns_repository_event($email, $subscriber, 'consent_changed', $state, $evidence, $actor);
+    return true;
 }
 
 /** Suppress even when no subscriber exists; reasons are cumulative, never cleared. */

@@ -410,6 +410,10 @@
   gap: 14px;
 }
 
+.crm-client-mailing-email {
+  overflow-wrap: anywhere;
+}
+
 .crm-form-stack label {
   display: block;
   margin-bottom: 6px;

@@ -20,6 +20,7 @@ require_once PERACRM_INC . '/campaigns/schema-lock.php';
 require_once PERACRM_INC . '/campaigns/readiness.php';
 require_once PERACRM_INC . '/campaigns/management.php';
 require_once PERACRM_INC . '/campaigns/import.php';
+require_once PERACRM_INC . '/campaigns/client-mailing.php';
 require_once PERACRM_INC . '/campaigns/preferences.php';
 require_once PERACRM_INC . '/campaigns/routes.php';
 require_once PERACRM_INC . '/campaigns/recipient-withdrawal-routes.php';

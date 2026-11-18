@@ -840,6 +840,8 @@ peracrm_frontend_render_shell_header();
 
             <?php peracrm_frontend_render_partial('appointments-panel', ['client_id'=>$client_id,'hidden_panels'=>$hidden_panels]); ?>
 
+            <?php peracrm_frontend_render_partial('client-mailing-panel', ['client_id'=>$client_id]); ?>
+
           </div>
         </div>
 
