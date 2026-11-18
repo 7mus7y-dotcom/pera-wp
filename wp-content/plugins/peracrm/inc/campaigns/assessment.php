@@ -183,10 +183,15 @@ final class PeraCRM_Campaign_Readiness
         $dispatch=peracrm_campaign_queue_dispatch_allowed();
         $out=['production_ready'=>false,'dispatch_enabled'=>$dispatch,'snapshot_only'=>true,
             'scope_fingerprint'=>$this->binding?hash('sha256',json_encode($this->binding,JSON_THROW_ON_ERROR)):null,
-            'configuration_fingerprint'=>null,'checks'=>[],'blockers'=>$dispatch?[]:['dispatch_disabled']];
+            'configuration_fingerprint'=>null,'checks'=>[],'blockers'=>$dispatch?[]:['dispatch_disabled'],'warnings'=>[]];
         $check=static function (string $name,string $state,string $source) use (&$out) {
             $out['checks'][$name]=['state'=>$state,'source'=>$source];
-            if (!in_array($state,['validated','recorded','configured'],true)) { $out['blockers'][]=$name.':'.$state; }
+            if (!in_array($state,['validated','recorded','configured'],true)) {
+                // Owner policy: log protection remains visible, but missing host
+                // evidence alone is not a functional sending prerequisite.
+                $category=$name==='host_log_protections'?'warnings':'blockers';
+                $out[$category][]=$name.':'.$state;
+            }
         };
         if (defined('PERACRM_CAMPAIGN_DISPATCH')) {
             require_once __DIR__.'/production-runtime.php';
