@@ -37,7 +37,7 @@ $gate = peracrm_subscribers_readiness(); ?>
 try { $batch = peracrm_subscribers_batch($batch_id); $entries = peracrm_subscribers_batch_rows($batch_id, (int) ($_GET['preview_page'] ?? 1)); } catch (Throwable $error) { $batch = null; }
 if (!$batch) : ?><p>Batch unavailable.</p><?php else : ?>
 <h2>Batch preview</h2><p>Status: <?php echo esc_html($batch['status']); ?> · <?php echo (int) $batch['total']; ?> rows · Expires <?php echo esc_html($batch['expires_at']); ?> UTC</p>
-<p>Rows are temporary bookkeeping, separate from subscriber changes. Application processes up to 25 rows per request; retry continues unfinished rows. Committed rows are retained after a partial failure. After three storage failures a row fails permanently; failed suppressions block opted-in rows. Cancel or expiry removes remaining payloads.</p>
+<p>Rows are temporary bookkeeping, separate from subscriber changes. Application processes up to <?php echo (int) PERACRM_SUBSCRIBER_APPLY_ROWS; ?> rows per request, stopping between rows after 15 seconds; retry continues unfinished rows. Committed rows are retained after a partial failure. After three storage failures a row fails permanently; failed suppressions block opted-in rows. Cancel or expiry removes remaining payloads.</p>
 <pre class="peracrm-batch-summary"><?php echo esc_html($batch['summary_json']); ?></pre>
 <div class="peracrm-subscriber-table" tabindex="0" role="region" aria-label="Import preview"><table><thead><tr><th>Row</th><th>Mailbox</th><th>State</th><th>Preview / exclusions</th><th>Apply result</th></tr></thead><tbody>
 <?php foreach ($entries as $entry) : $row = json_decode($entry['payload_json'], true); $preview = $row['preview'] ?? []; $flags = [];
@@ -49,7 +49,7 @@ if (isset($preview['client_match'])) { $flags[] = 'client: ' . $preview['client_
 <?php endforeach; ?></tbody></table></div>
 <?php $preview_page = max(1, (int) ($_GET['preview_page'] ?? 1)); if ($preview_page > 1) : ?><a href="<?php echo esc_url(add_query_arg(['batch' => $batch_id, 'preview_page' => $preview_page - 1], peracrm_subscribers_url('import/'))); ?>">Previous rows</a><?php endif; ?>
 <?php if (count($entries) === 50) : ?><a href="<?php echo esc_url(add_query_arg(['batch' => $batch_id, 'preview_page' => $preview_page + 1], peracrm_subscribers_url('import/'))); ?>">Next rows</a><?php endif; ?>
-<?php if ($can_write && in_array($batch['status'], ['preview','applying'], true)) : foreach (['apply' => 'Apply next 25 rows', 'cancel' => 'Cancel and remove preview', 'export' => 'Download safe preview CSV'] as $operation => $label) { peracrm_subscribers_form_start($operation, $batch_id); echo '<button class="btn btn--ghost" type="submit">' . esc_html($label) . '</button></form>'; } endif; ?>
+<?php if ($can_write && in_array($batch['status'], ['preview','applying'], true)) : foreach (['apply' => 'Apply next ' . PERACRM_SUBSCRIBER_APPLY_ROWS . ' rows', 'cancel' => 'Cancel and remove preview', 'export' => 'Download safe preview CSV'] as $operation => $label) { peracrm_subscribers_form_start($operation, $batch_id); echo '<button class="btn btn--ghost" type="submit">' . esc_html($label) . '</button></form>'; } endif; ?>
 <?php endif; endif; ?>
 <?php if ($can_write) : ?><h2>New preview</h2>
 <?php peracrm_subscribers_form_start('preview'); ?>
