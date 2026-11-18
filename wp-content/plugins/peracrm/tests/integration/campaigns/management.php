@@ -76,10 +76,22 @@ wp_set_current_user($admin);
 peracrm_subscribers_readiness(['enabled' => false,'consent_mapping' => 'fixture-map','suppression_sources' => 'fixture-inventory','retention' => 'fixture-retention']);
 wp_set_current_user($manager);
 // Partial requests, cancellation, expiry and bounded retry failures.
-$many = []; for ($i=0;$i<27;$i++) { $many[] = management_row('phase2-many-' . $i . '@example.test'); }
+$many = []; for ($i=0;$i<502;$i++) { $many[] = management_row('phase2-many-' . $i . '@example.test'); }
 $partial = management_preview($many);
-management_expect(peracrm_subscribers_apply_batch($partial)['status'] === 'applying', 'first request commits only 25 rows');
-management_expect(peracrm_subscribers_apply_batch($partial)['status'] === 'complete', 'second request resumes remaining rows');
+$apply_started = hrtime(true);
+$first_apply = peracrm_subscribers_apply_batch($partial);
+$apply_elapsed = (hrtime(true) - $apply_started) / 1000000000;
+management_expect($first_apply['status'] === 'applying', 'a request never completes more than 500 of 502 rows');
+$done = array_sum(array_map(static function ($row) { return $row['status'] === 'done' ? (int) $row['total'] : 0; }, $first_apply['counts']));
+management_expect($done > 0 && $done <= 500, 'first request makes bounded progress before its row or time limit');
+management_expect($apply_elapsed >= 15 || $done === 500, 'a request below the time budget processes the full 500-row chunk');
+for ($request = 0; $request < 502 && $first_apply['status'] === 'applying'; $request++) {
+    $first_apply = peracrm_subscribers_apply_batch($partial);
+    $next_done = array_sum(array_map(static function ($row) { return $row['status'] === 'done' ? (int) $row['total'] : 0; }, $first_apply['counts']));
+    management_expect($next_done > $done && $next_done - $done <= 500, 'resumed requests commit only remaining rows within the request limit');
+    $done = $next_done;
+}
+management_expect($first_apply['status'] === 'complete' && $done === 502, 'resumed requests finish all 502 rows without duplicate application');
 $cancel = management_preview([management_row('phase2-cancel@example.test')]); peracrm_subscribers_cancel_batch($cancel);
 management_expect(peracrm_subscribers_batch_rows($cancel) === [] && !management_identity('phase2-cancel@example.test'), 'cancel cleans payload without applying');
 $cleanup_retry = management_preview([management_row('phase2-cleanup-retry@example.test')]);

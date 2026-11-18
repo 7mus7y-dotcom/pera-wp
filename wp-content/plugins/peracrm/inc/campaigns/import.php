@@ -3,6 +3,7 @@ if (!defined('ABSPATH')) { exit; }
 
 const PERACRM_SUBSCRIBER_CSV_BYTES = 1048576;
 const PERACRM_SUBSCRIBER_CSV_ROWS = 1000;
+const PERACRM_SUBSCRIBER_APPLY_ROWS = 500;
 
 /** Pure bounded parsing. Mapping indexes are explicit; no guessed headings or sales writes. */
 function peracrm_subscribers_parse_csv($stream, $mapping)
@@ -239,13 +240,14 @@ function peracrm_subscribers_apply_row($entry)
     });
 }
 
-/** Up to 25 rows/request. Earlier committed rows survive failure; failed rows retry at most 3 times. */
+/** Up to 500 rows/request, yielding between rows after 15 seconds. Committed rows survive retries. */
 function peracrm_subscribers_apply_batch($id)
 {
     peracrm_subscribers_require_staff(true);
     return peracrm_with_target_blog(static function () use ($id) {
         return peracrm_subscribers_batch_lock($id, static function () use ($id) {
             global $wpdb;
+            $deadline = hrtime(true) + 15 * 1000000000;
             $batch = peracrm_subscribers_batch($id);
             if (in_array($batch['status'], ['complete', 'partial_failed'], true)) { return ['status' => $batch['status'], 'counts' => json_decode($batch['summary_json'], true)]; }
             if (!in_array($batch['status'], ['preview', 'applying'], true) || $batch['expires_at'] <= gmdate('Y-m-d H:i:s')) { throw new RuntimeException('Batch expired or closed.'); }
@@ -253,10 +255,12 @@ function peracrm_subscribers_apply_batch($id)
             $table = peracrm_table('peracrm_subscriber_import_rows');
             $batches = peracrm_table('peracrm_subscriber_batches');
             peracrm_campaigns_db_require($wpdb->update($batches, ['status' => 'applying'], ['id' => $id]));
-            $entries = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE batch_id=%s AND status='pending' ORDER BY priority, line_number LIMIT 25", $id), ARRAY_A);
+            $entries = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE batch_id=%s AND status='pending' ORDER BY priority, line_number LIMIT %d", $id, PERACRM_SUBSCRIBER_APPLY_ROWS), ARRAY_A);
             peracrm_campaigns_db_require(true);
             try {
             foreach ($entries as $entry) {
+                // Leave unstarted rows pending so the next request resumes safely.
+                if (hrtime(true) >= $deadline) { break; }
                 if (!peracrm_subscribers_intake_allowed((bool) $batch['synthetic'])) { throw new RuntimeException('Intake gate was closed.'); }
                 if ((int) $entry['priority'] === 1) {
                     $failed_suppression = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE batch_id=%s AND priority=0 AND status IN ('pending','failed')", $id));
