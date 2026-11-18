@@ -422,6 +422,7 @@ wp eval-file /tests/sns-http-race.php verify
 wp eval-file /tests/ses-suppression-late.php
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"
 wp eval-file /tests/event-processing.php
+wp eval-file /tests/retention.php
 for processing_scenario in duplicate interrupted; do
     rm -f /tmp/peracrm-processing-held /tmp/peracrm-processing-winner /tmp/peracrm-processing-loser
     wp eval-file /tests/event-processing-race.php prepare "$processing_scenario"

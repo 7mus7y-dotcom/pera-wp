@@ -169,6 +169,11 @@ final class PeraCRM_SES_Processing
         });
     }
     /** SELECT-only aggregate snapshot; no raw identifiers, facts or arbitrary stored codes. */
+    /** Nonsecret pins for the separate administrator retention boundary. */
+    public function retentionBinding(): array
+    {
+        return ['scope'=>$this->scope,'policy'=>$this->policy,'blog'=>$this->blog];
+    }
     public function health(): array
     {
         $this->context(); global $wpdb;

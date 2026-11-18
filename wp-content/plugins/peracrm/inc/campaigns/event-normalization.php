@@ -105,8 +105,7 @@ final class PeraCRM_SES_Quarantine
             $receipt=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_sns_receipts')
                 .' WHERE scope_hash=%s AND message_id=%s FOR UPDATE',$this->scope,$id),ARRAY_A);
             self::db($receipt?:false);
-            if ($receipt['authentication_version']!=='sns-v2-sha256'
-                || !hash_equals($receipt['payload_hash'],hash('sha256',$receipt['canonical_payload']))) { throw new PeraCRM_SNS_Error('sns_storage'); }
+            if (!peracrm_sns_receipt_integrity($receipt)) { throw new PeraCRM_SNS_Error('sns_storage'); }
             $links=peracrm_table('peracrm_campaign_ses_normalizations');
             $key=['scope_hash'=>$this->scope,'receipt_id'=>$id];
             $prior=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$links} WHERE scope_hash=%s AND receipt_id=%s FOR UPDATE",$this->scope,$id),ARRAY_A);
@@ -116,6 +115,8 @@ final class PeraCRM_SES_Quarantine
                     || $prior['policy_hash']!==$this->policy) { throw new PeraCRM_SNS_Error('sns_storage'); }
                 $result=$prior['quarantine_reason'];
             } else {
+                // A retired body can only reuse its already committed normalization.
+                if ($receipt['authentication_version']==='sns-v2-retired') { throw new PeraCRM_SNS_Error('sns_storage'); }
                 $facts=[]; $result=$receipt['quarantine_reason'];
                 // Freshness quarantine is preserved. No automatic redrive of old/future receipts.
                 if ($result==='application_pending') {
