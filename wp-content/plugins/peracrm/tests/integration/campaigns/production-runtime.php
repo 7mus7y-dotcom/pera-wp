@@ -33,7 +33,7 @@ worker_fixture_target(static function () {
     $doc['footer']='Synthetic fixture footer'; $doc['footer_approved']=true;
     prepared_expect(!is_wp_error(peracrm_campaign_configuration_save($previous['revision'],$doc)),'production fixture configuration');
     $jobs=[];
-    foreach (['accepted','withdrawn','reserved','paused','future','cancelled','unknown','recovery'] as $kind) {
+    foreach (['accepted','withdrawn','reserved','paused','future','cancelled','unknown','recovery','diagnostic'] as $kind) {
         $jobs[$kind]=production_source($kind==='reserved'?'production@example.test':$kind.'@campaign-fixture.org');
     }
     $deployment='production-fixture'; prepared_setup($deployment);
@@ -239,10 +239,39 @@ worker_fixture_target(static function () {
         prepared_expect($unknownTest['state']==='unknown' && $unknownCalls===1,'unknown test response is reported honestly');
         prepared_expect(peracrm_campaign_draft_test_queue_process($api,$lostHTTP)['state']==='idle' && $unknownCalls===1,'unknown test is not automatically retried');
 
+        // The real SDK transport supplies a redacted diagnostic to the production runner.
+        $budget->recover($budget->health()['breaker_version']);
+        $diagnosticCalls=0;
+        $diagnosticHTTP=static function () use (&$diagnosticCalls) {
+            $diagnosticCalls++;
+            return ['errno'=>28,'status'=>0,'headers'=>'private-response-header','body'=>'private-response-body',
+                'timings_ms'=>['dns'=>20,'connect'=>0,'tls'=>0,'total'=>3000],'uploaded_bytes'=>0];
+        };
+        $diagnosticTransport=new PeraCRM_Campaign_SES_SDK_Transport(
+            $adapter->preparation()->scope(),$adapter->credentials(),$diagnosticHTTP);
+        $diagnosticService=new PeraCRM_Campaign_Production_Runtime(
+            $adapter,$config,$api,$diagnosticTransport,static fn()=>null);
+        $diagnosticResult=$diagnosticService->run($jobs['diagnostic'],1);
+        $diagnostic=get_option('peracrm_campaign_transport_last_failure');
+        prepared_expect($diagnosticResult['state']==='blocked' && $diagnosticCalls===1
+            && $diagnostic['job_id']===$jobs['diagnostic']
+            && $diagnostic['delivery_id']>0
+            && $diagnostic['transport']['code']==='transfer_incomplete'
+            && $diagnostic['transport']['errno']===28
+            && $diagnostic['transport']['total_ms']===3000,
+            'unknown send retains scalar transport diagnosis under its job and delivery');
+        prepared_expect(!str_contains(json_encode($diagnostic),'private-response')
+            && !str_contains(json_encode($diagnostic),'@')
+            && !str_contains(json_encode($diagnostic),str_repeat('Z',40)),
+            'persisted diagnostic excludes provider text, mailboxes and credentials');
+        prepared_expect($diagnosticService->run($jobs['diagnostic'])['state']==='blocked'
+            && $diagnosticCalls===1,'diagnostic capture never retries unknown delivery or clears breaker');
+
+
     } finally {
         unlink($file); rmdir($private); remove_filter('home_url',$home,999);
         $current=peracrm_campaign_configuration(true); peracrm_campaign_configuration_save($current['revision'],$previous['document']);
-        foreach (['peracrm_campaign_scheduler_last','peracrm_campaign_scheduler_last_success'] as $key) { delete_option($key); }
+        foreach (['peracrm_campaign_scheduler_last','peracrm_campaign_scheduler_last_success','peracrm_campaign_transport_last_failure'] as $key) { delete_option($key); }
     }
 });
 echo "PASS production runtime WordPress/MySQL fixture\n";
