@@ -64,9 +64,9 @@ function peracrm_campaign_render($model, $format = 'review_v1')
     foreach ($sections as $section) {
         $brand=!empty($section['brand']);
         $footer=!empty($section['footer']) || isset($section['slot']);
-        $style=$footer?'padding:16px 24px;background:#f1f5fb;color:#526178;font-size:13px;':'padding:20px 24px;border-bottom:1px solid #e5eaf2;';
+        $style=$footer?'padding:16px 24px;background:#f1f5fb;color:#526178;font-size:13px;':'padding:20px 24px;';
         if ($brand) { $style='padding:20px 24px;background:#002d72;color:#fff;font-size:12px;'; }
-        if (!empty($section['property_card'])) { $style='padding:24px;background:#f1f5fb;border-bottom:1px solid #d6dfed;'; }
+        if (!empty($section['property_card'])) { $style='padding:24px;background:#f1f5fb;'; }
         $html.='<tr><td style="'.$style.'overflow-wrap:anywhere;word-break:break-word">';
         if ($brand) {
             $logo=(defined('PERACRM_URL') ? PERACRM_URL : 'https://www.peraproperty.com/wp-content/plugins/peracrm').'/logos-icons/pera-email-logo.png';
