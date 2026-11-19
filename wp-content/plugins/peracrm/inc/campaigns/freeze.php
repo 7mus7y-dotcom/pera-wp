@@ -92,9 +92,9 @@ function peracrm_campaign_freeze_operation($campaign_id, $attempt_id, $version, 
     });
 }
 
-function peracrm_campaign_freeze_continue($campaign_id, $attempt_id, $version, $nonce, $limit=200)
+function peracrm_campaign_freeze_continue($campaign_id, $attempt_id, $version, $nonce, $limit=2000)
 {
-    if (!is_int($limit) || $limit < 1 || $limit > 200) { return new WP_Error('campaign_invalid', 'Batch size must be between 1 and 200.'); }
+    if (!is_int($limit) || $limit < 1 || $limit > 2000) { return new WP_Error('campaign_invalid', 'Batch size must be between 1 and 2000.'); }
     $result=peracrm_campaign_freeze_operation($campaign_id, $attempt_id, $version, $nonce, static function ($draft, $attempt) use ($limit) {
         global $wpdb;
         if ($attempt['state'] !== 'materializing') { throw new UnexpectedValueException(); }

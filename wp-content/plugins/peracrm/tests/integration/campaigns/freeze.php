@@ -19,7 +19,7 @@ function freeze_capture($document) {
     return [$draft,$capture,wp_create_nonce('peracrm_campaign_freeze_'.$draft['id'])];
 }
 function freeze_start($set) { [$d,$s,$n]=$set; return peracrm_campaign_freeze_start($d['id'],$d['revision'],(int)$s['id'],$s['content_hash'],$d['document'],$n); }
-function freeze_next($a,$nonce,$limit=200) {
+function freeze_next($a,$nonce,$limit=2000) {
     $next=peracrm_campaign_freeze_continue((int)$a['campaign_id'],(int)$a['id'],(int)$a['version'],$nonce,$limit);
     freeze_expect(!is_wp_error($next),'bounded continuation'); return $next;
 }
@@ -168,7 +168,11 @@ freeze_expect(peracrm_campaign_frozen_get($id,1)===$history && peracrm_campaign_
 // Shared audience semantics must produce identical outcomes when inputs do not change.
 wp_set_current_user($manager); $parity_set=freeze_capture($doc); [$pd,$ps,$pn]=$parity_set;
 $cursor=''; do { $preview=peracrm_campaign_audience_preview($pd['id'],1,$pd['document']['audience'],$cursor); $cursor=$preview['cursor']; } while (!$preview['complete']);
-$parity=freeze_finish(freeze_start($parity_set),$pn); $pc=json_decode($parity['counts_json'],true);
+$parity=freeze_next(freeze_start($parity_set),$pn,200);
+$previous_considered=(int)$parity['considered'];
+$parity=peracrm_campaign_freeze_continue((int)$pd['id'],(int)$parity['id'],(int)$parity['version'],$pn);
+freeze_expect(!is_wp_error($parity) && (int)$parity['considered']-$previous_considered===2000,'default 2000 batch resumes existing 200-row progress');
+$parity=freeze_finish($parity,$pn); $pc=json_decode($parity['counts_json'],true);
 freeze_expect($pc['duplicate']===0 && (int)$parity['considered']===$preview['considered'] && $pc['eligible']===$preview['eligible'] && array_diff_key($pc,['eligible'=>true,'duplicate'=>true])===$preview['exclusions'],'shared eligibility parity against unchanged live inputs');
 // Configuration changes invalidate both uncaptured starts and publication bindings.
 $stale_set=freeze_capture($doc); wp_set_current_user($admin);

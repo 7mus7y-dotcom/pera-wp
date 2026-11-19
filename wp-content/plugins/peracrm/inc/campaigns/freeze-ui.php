@@ -71,7 +71,7 @@ function peracrm_campaign_freeze_panel($id, $selected = 0, $before = 0, $after =
         if ($attempt['state'] === 'failed') { echo '<p role="alert">A batch failed and was rolled back. Reload current state, then resume this exact saved revision or cancel. Changed configuration or a later saved revision requires cancellation and a new revision.</p>'; }
         if ($attempt['state'] === 'cancelled') { echo '<p>Cancelled permanently. Save a new draft revision before reviewing and freezing again. The cancelled revision tombstone remains intact.</p>'; }
         if ($owner && $attempt['state'] === 'materializing') {
-            if (!(int)$attempt['complete']) { peracrm_campaign_freeze_button('continue','Continue next 200 candidates'); }
+            if (!(int)$attempt['complete']) { peracrm_campaign_freeze_button('continue','Continue next 2000 candidates'); }
             elseif ($counts['eligible'] > 0) { peracrm_campaign_freeze_button('publish','Publish frozen revision'); }
             else { echo '<p role="alert">No included recipients. Publication is unavailable. Cancel and save a newly corrected revision.</p>'; }
             peracrm_campaign_freeze_button('cancel','Cancel materialization');
@@ -145,7 +145,7 @@ function peracrm_campaign_freeze_route()
         if ($operation==='review') {
             $advisory=peracrm_campaign_audience_preview($id,$revision,$input['audience'] ?? []);
             ob_start(); echo '<h4>Review saved revision '.(int)$revision.'</h4>'; peracrm_campaign_freeze_output($review['content']);
-            echo '<p>'.esc_html(($advisory['complete'] ? 'Complete' : 'Partial (first 200 candidates)').' advisory count · As of '.$advisory['as_of'].' UTC · Considered '.$advisory['considered'].' · Eligible '.$advisory['eligible'].' · Excluded '.array_sum($advisory['exclusions'])).'. These are advisory counts; freeze reevaluates eligibility.</p>'; peracrm_campaign_freeze_button('start','Freeze revision');
+            echo '<p>'.esc_html(($advisory['complete'] ? 'Complete' : 'Partial (first 2000 candidates)').' advisory count · As of '.$advisory['as_of'].' UTC · Considered '.$advisory['considered'].' · Eligible '.$advisory['eligible'].' · Excluded '.array_sum($advisory['exclusions'])).'. These are advisory counts; freeze reevaluates eligibility.</p>'; peracrm_campaign_freeze_button('start','Freeze revision');
             wp_send_json_success(['review_html'=>ob_get_clean(),'proof'=>$review['review_proof'],'capture_nonce'=>wp_create_nonce('peracrm_campaign_snapshot_'.$id.'_'.$revision)]);
         }
         wp_send_json_success(['html'=>peracrm_campaign_freeze_panel($id,in_array($operation,['history','recipients'],true) ? $attempt : 0,(int)($_POST['before'] ?? 0),(int)($_POST['after'] ?? 0))]);
