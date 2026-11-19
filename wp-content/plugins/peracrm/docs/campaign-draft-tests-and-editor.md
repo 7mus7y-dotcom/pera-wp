@@ -52,3 +52,6 @@ python3 /home/d21882/_work/pera-wp/wp-content/plugins/peracrm/tools/install-draf
 The installer configures this permitted test inbox against the current deployment fingerprint, writes an owner-only runner outside the web root and installs one marked cron entry every minute with `flock`. Other cron entries, including the normal campaign dispatcher, are preserved. Re-running replaces only the marked test-runner entry. It initializes a heartbeat; the frontend refuses to enqueue when the heartbeat is over three minutes old. SES credential loading remains CLI-only. No PHP subprocess or credential access is added to HTTP handlers.
 
 For diagnostics only, the runner command is `wp ... peracrm campaigns draft-test-process --format=json`. Users do not run a command for each test email.
+
+
+The installer records `PHP_BINARY` from the successfully bootstrapped WP-CLI process and pins both that interpreter and the WP-CLI path in the private runner. Cron therefore uses the same PHP runtime even when its PATH omits `/usr/local/bin` or resolves `php` to an older system version. Re-run the installer after deploying this fix to regenerate an existing runner; the marked cron entry remains unique.
