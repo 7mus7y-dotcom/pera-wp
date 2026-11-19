@@ -105,7 +105,7 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             if ($deliverable) {
                 $html.='<a href="'.esc_attr($section['url']).'" style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['button_label'] ?? ($section['heading'] ?: 'View content')).'</a>';
             } else {
-                $html.='<span style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">View content · navigation disabled</span>';
+                $html.='<span style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['button_label'] ?? 'View content').' · navigation disabled</span>';
             }
             if (isset($section['button_label']) && $section['button_label']!==$section['heading']) { $text[]=$section['button_label']; }
             $text[]=$section['url'];

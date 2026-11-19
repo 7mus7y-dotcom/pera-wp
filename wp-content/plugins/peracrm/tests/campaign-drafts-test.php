@@ -31,3 +31,5 @@ $GLOBALS['campaign_impersonating']=false;
 $rich_doc=peracrm_campaign_draft_document(['text_format'=>'basic_v1','introduction'=>'**Hi**','blocks'=>[['type'=>'cta','heading'=>'Rent','text'=>'Local management','label'=>'Contact','url'=>'https://example.org/']]]);
 campaign_expect($rich_doc['introduction']==='**Hi**' && $rich_doc['text_format']==='basic_v1' && $rich_doc['blocks'][0]['heading']==='Rent' && $rich_doc['blocks'][0]['text']==='Local management','basic formatting and optional CTA fields round-trip normalization');
 campaign_expect(draft_rejects(['text_format'=>'html']) && draft_rejects(['blocks'=>[['type'=>'cta','text'=>str_repeat('x',4001)]]]),'unsupported rich format and oversized CTA text rejected');
+
+campaign_expect(peracrm_campaign_draft_document(['main_text'=>'Legacy'])===peracrm_campaign_draft_document(['main_text'=>'Legacy','text_format'=>'plain']),'default formatting remains canonically equal to existing drafts');

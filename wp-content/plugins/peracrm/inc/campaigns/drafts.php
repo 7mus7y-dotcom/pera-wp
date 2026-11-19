@@ -29,9 +29,9 @@ function peracrm_campaign_draft_document($input)
         throw new InvalidArgumentException('Unsupported campaign document.');
     }
     $out = ['schema_version' => 1];
-    if (isset($input['text_format'])) {
+    if (array_key_exists('text_format',$input)) {
         if (!in_array($input['text_format'],['plain','basic_v1'],true)) { throw new InvalidArgumentException('Unsupported text format.'); }
-        $out['text_format']=$input['text_format'];
+        if ($input['text_format']==='basic_v1') { $out['text_format']='basic_v1'; }
     }
     foreach (['internal_name'=>160,'subject'=>200,'preheader'=>300,'language'=>35,'sender_id'=>64,'introduction'=>4000,'main_text'=>16000] as $key=>$limit) {
         $out[$key] = peracrm_campaign_draft_text($input[$key] ?? '', $limit, in_array($key, ['introduction','main_text'], true));
