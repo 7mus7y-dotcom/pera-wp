@@ -63,9 +63,9 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await action('Review saved revision').waitFor();
  }
  async function finish() {
-  for(let batch=0;await action('Continue next 200 candidates').count();batch++) {
+  for(let batch=0;await action('Continue next 2000 candidates').count();batch++) {
    if(batch>30) throw Error('Unbounded continuation loop');
-   await click('Continue next 200 candidates');
+   await click('Continue next 2000 candidates');
   }
  }
  for(const [size,width,height] of [['desktop',1440,1000],['mobile',390,844]]) {
@@ -112,7 +112,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   const ended=req=>{if(req.url().includes('admin-ajax.php') && req.postData()?.includes('peracrm_campaign_freeze')) inFlight--;};
   page.on('request',started);page.on('requestfinished',ended);page.on('requestfailed',ended);
   const next=page.waitForResponse(responseFor);
-  await action('Continue next 200 candidates').evaluate(button=>{button.click();button.click();button.click();});
+  await action('Continue next 2000 candidates').evaluate(button=>{button.click();button.click();button.click();});
   await next; await feedback().filter({hasText:'Server state loaded'}).waitFor();
   if(maxInFlight!==1) throw Error('Multiple continuation requests in flight');
   page.off('request',started);page.off('requestfinished',ended);page.off('requestfailed',ended);
@@ -120,7 +120,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await page.reload(); if(await page.locator('[data-freeze-counts]').innerText()!==count) throw Error('Reload lost progress');
   // A real SQL failure rolls back and appears after explicit state refresh.
   await context.addCookies([{name:'freeze_fixture_failure',value:'1',url:target}]);
-  await click('Continue next 200 candidates',false);
+  await click('Continue next 2000 candidates',false);
   await screenshot('error',size);
   await context.clearCookies({name:'freeze_fixture_failure'});
   await click('Reload current state');
@@ -129,7 +129,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   // Competing page holds a stale version; server rejects it and UI requires refresh.
   const rival=await context.newPage(); await rival.goto(saved);
   const stale=await rival.evaluate(()=>{const b=document.querySelector('[data-campaign-freeze]'),a=b.querySelector('[data-freeze-attempt]');return {action:'peracrm_campaign_freeze',operation:'continue',nonce:b.dataset.nonce,service_nonce:b.dataset.serviceNonce,id:b.dataset.id,attempt:a.dataset.freezeAttempt,version:a.dataset.freezeVersion};});
-  await click('Continue next 200 candidates');
+  await click('Continue next 2000 candidates');
   if((await context.request.post(endpoint,{form:stale})).status()!==409) throw Error('Competing stale continuation accepted');
   await rival.close();
   await finish();

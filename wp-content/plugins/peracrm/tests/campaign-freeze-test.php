@@ -16,7 +16,7 @@ foreach ([0,3] as $actor) {
 $GLOBALS['campaign_actor']=1; $GLOBALS['campaign_impersonating']=true;
 campaign_expect(is_wp_error(peracrm_campaign_freeze_start(10,2,1,'',$document,'')) && snapshot_rejects(static function () { peracrm_campaign_frozen_get(10,2); }),'freeze denies impersonated write and read');
 $GLOBALS['campaign_impersonating']=false;
-foreach ([0,201,'200',-1] as $limit) { campaign_expect(is_wp_error(peracrm_campaign_freeze_continue(10,1,1,'',$limit)),'freeze enforces bounded integer batch size'); }
+foreach ([0,2001,'2000',-1] as $limit) { campaign_expect(is_wp_error(peracrm_campaign_freeze_continue(10,1,1,'',$limit)),'freeze enforces bounded integer batch size'); }
 $GLOBALS['campaign_actor']=2;
 campaign_expect(is_wp_error(peracrm_campaign_freeze_cleanup(10,1,'')),'manual cleanup requires administrator');
 // Exercise the real draft-save guard with a locked active attempt in a focused stub.
