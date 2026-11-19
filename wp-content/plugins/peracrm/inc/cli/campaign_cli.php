@@ -137,7 +137,13 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             if (!in_array($data['result'],['completed','time_bound'],true)) { $exit=4; }
         }
     } catch (PeraCRM_Campaign_Operations_Blocked $e) { $data=['error'=>'campaign_operation_blocked']; $exit=4; }
-    catch (Throwable $e) { $code=$e->getMessage(); $data=['error'=>(str_starts_with($operation,'dispatch-') || $operation==='draft-test') && preg_match('/\A(?:production|operator|deployment|budget|draft_test)_[a-z_]{1,64}\z/',$code) ? $code : 'campaign_command_rejected']; $exit=3; }
+    catch (Throwable $e) {
+        $code=$e->getMessage();
+        $safeSync=$operation==='dispatch-refresh' && $e instanceof PeraCRM_SES_Sync_Error;
+        $safeRuntime=(str_starts_with($operation,'dispatch-') || $operation==='draft-test')
+            && preg_match('/\A(?:production|operator|deployment|budget|draft_test)_[a-z_]{1,64}\z/',$code);
+        $data=['error'=>$safeSync || $safeRuntime ? $code : 'campaign_command_rejected']; $exit=3;
+    }
     // Never print exception/SQL/provider payloads. Only allowlisted service summaries reach stdout.
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
