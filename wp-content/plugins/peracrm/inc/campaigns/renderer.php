@@ -75,8 +75,9 @@ function peracrm_campaign_render($model, $format = 'review_v1')
         $html.='<tr><td style="'.$style.'overflow-wrap:anywhere;word-break:break-word">';
         if ($brand) {
             $logo=(defined('PERACRM_URL') ? PERACRM_URL : 'https://www.peraproperty.com/wp-content/plugins/peracrm').'/logos-icons/pera-email-logo.png';
-            $html.='<img src="'.esc_url($logo).'" alt="Pera Property" width="160" height="100" style="display:block;width:160px;max-width:100%;height:auto;border:0;margin:0 0 12px">';
+            $html.='<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 auto 12px"><tr><td align="center" style="padding:0"><img src="'.esc_url($logo).'" alt="Pera Property" width="160" height="100" style="display:block;width:160px;max-width:100%;height:auto;border:0;margin:0"></td></tr><tr><td align="center" style="padding:6px 0 0;font-family:Arial,sans-serif;font-size:8px;line-height:10px;mso-line-height-rule:exactly;color:#fff">since 2016</td></tr></table>';
             $text[]='Pera Property';
+            $text[]='since 2016';
         }
         if (!empty($section['footer'])) {
             $html.='<div style="margin:0 0 20px;padding:12px;background:#002d72;border-radius:8px"><p style="margin:0 0 12px;font-weight:700;color:#fff">Connect with Pera Property</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr>';
@@ -106,12 +107,16 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             $html.='</div>';$text[]=$section['details'];
         }
         if (!empty($section['url']) && peracrm_campaign_public_url($section['url'])!=='') {
+            // Use cell padding for the text/button gap: email clients can discard margins.
+            $button_gap=(!empty($section['text']) || !empty($section['details'])) ? 12 : 0;
+            $html.='<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="padding:'.$button_gap.'px 0 0">';
             // Captured delivery links remain functional; review-only rendering stays inert.
             if ($deliverable) {
                 $html.='<a href="'.esc_attr($section['url']).'" style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['button_label'] ?? ($section['heading'] ?: 'View content')).'</a>';
             } else {
                 $html.='<span style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['button_label'] ?? 'View content').' · navigation disabled</span>';
             }
+            $html.='</td></tr></table>';
             if (isset($section['button_label']) && $section['button_label']!==$section['heading']) { $text[]=$section['button_label']; }
             $text[]=$section['url'];
         }
