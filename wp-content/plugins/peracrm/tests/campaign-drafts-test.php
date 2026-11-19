@@ -33,3 +33,17 @@ campaign_expect($rich_doc['introduction']==='**Hi**' && $rich_doc['text_format']
 campaign_expect(draft_rejects(['text_format'=>'html']) && draft_rejects(['blocks'=>[['type'=>'cta','text'=>str_repeat('x',4001)]]]),'unsupported rich format and oversized CTA text rejected');
 
 campaign_expect(peracrm_campaign_draft_document(['main_text'=>'Legacy'])===peracrm_campaign_draft_document(['main_text'=>'Legacy','text_format'=>'plain']),'default formatting remains canonically equal to existing drafts');
+
+// Native form saves and AJAX JSON previews must compare the same paragraphs.
+foreach (["\r\n", "\r", "\n"] as $ending) {
+    $native=['introduction'=>'First'.$ending.'Second','main_text'=>'Main'.$ending.'Paragraph',
+        'blocks'=>[['type'=>'text','heading'=>'Text','text'=>'One'.$ending.'Two'],
+                   ['type'=>'cta','label'=>'Contact','url'=>'https://example.org/','text'=>'CTA'.$ending.'Paragraph']]];
+    $json=['introduction'=>"First\nSecond",'main_text'=>"Main\nParagraph",
+        'blocks'=>[['type'=>'text','heading'=>'Text','text'=>"One\nTwo"],
+                   ['type'=>'cta','label'=>'Contact','url'=>'https://example.org/','text'=>"CTA\nParagraph"]]];
+    campaign_expect(peracrm_campaign_draft_document($native)===peracrm_campaign_draft_document($json),
+        'native and AJAX line endings canonicalize identically across multiline fields');
+}
+$changed=$json; $changed['main_text']="Actually edited\nParagraph";
+campaign_expect(peracrm_campaign_draft_document($changed)!==peracrm_campaign_draft_document($json),'real unsaved text changes still differ');

@@ -167,6 +167,16 @@ worker_fixture_target(static function () {
             }
             return hash('sha256',wp_json_encode($state));
         };
+        $legacyTest=$draftTest['document'];
+        $legacyTest['introduction']="First\r\nSecond";
+        $legacyTest['main_text']="**Preview**\r\nAnother paragraph";
+        $legacyBytes=wp_json_encode($legacyTest);
+        $wpdb->update(peracrm_table('peracrm_campaign_drafts'),['document_json'=>$legacyBytes],['id'=>$draftTest['id']]);
+        peracrm_campaigns_db_require(true);
+        $browserTest=$legacyTest;
+        $browserTest['introduction']="First\nSecond";
+        $browserTest['main_text']="**Preview**\nAnother paragraph";
+        $draftTest['document']=$browserTest;
         $beforeTest=$protected(); $testCalls=[];
         $testHTTP=static function ($url,$curl) use (&$testCalls) {
             $testCalls[]=json_decode($curl[CURLOPT_POSTFIELDS],true);
@@ -188,6 +198,7 @@ worker_fixture_target(static function () {
         $queueID=str_repeat('a',32);
         $queuedTest=peracrm_campaign_draft_test_queue_submit($draftTest['id'],1,'accepted@campaign-fixture.org',$queueID,$draftTest['document']);
         prepared_expect($queuedTest['state']==='queued' && count($testCalls)===1 && $protected()===$beforeTest,'frontend request queues without provider calls or protected-ledger changes');
+        prepared_expect($wpdb->get_var($wpdb->prepare('SELECT document_json FROM '.peracrm_table('peracrm_campaign_drafts').' WHERE id=%d',$draftTest['id']))===$legacyBytes,'LF browser test accepts saved CRLF paragraphs without rewriting saved bytes');
         $queuedAgain=peracrm_campaign_draft_test_queue_submit($draftTest['id'],1,'accepted@campaign-fixture.org',$queueID,$draftTest['document']);
         prepared_expect($queuedAgain['request_id']===$queueID,'double-click preserves the same queued request');
         $processedTest=peracrm_campaign_draft_test_queue_process($api,$testHTTP);

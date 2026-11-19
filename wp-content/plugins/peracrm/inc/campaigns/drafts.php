@@ -19,6 +19,9 @@ function peracrm_campaign_drafts_url($suffix = '')
 function peracrm_campaign_draft_text($input, $limit, $multiline = false)
 {
     if (!is_string($input) || strlen($input) > $limit) { throw new InvalidArgumentException('A field exceeds its allowed size or has an invalid type.'); }
+    // Native form POST uses CRLF; textarea.value / JSON uses LF. Canonicalize
+    // both, including legacy saved documents, before comparing saved revisions.
+    if ($multiline) { $input=str_replace(["\r\n","\r"],"\n",$input); }
     return $multiline ? sanitize_textarea_field($input) : sanitize_text_field($input);
 }
 
