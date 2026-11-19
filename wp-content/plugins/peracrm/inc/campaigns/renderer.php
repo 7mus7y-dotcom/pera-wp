@@ -96,19 +96,19 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             if (!empty($section['footer'])) {
                 $footer_logo=(defined('PERACRM_URL') ? PERACRM_URL : 'https://www.peraproperty.com/wp-content/plugins/peracrm').'/logos-icons/pera-email-footer-logo.png';
                 $html.='<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 12px"><tr><td style="padding:0 10px 0 0;vertical-align:middle"><img src="'.esc_url($footer_logo).'" alt="" width="48" height="30" style="display:block;width:48px;height:30px;border:0"></td><td style="padding:0;vertical-align:middle"><h2 style="font-size:15px;line-height:1.3;margin:0;color:#002d72">'.esc_html($section['heading']).'</h2></td></tr></table>';
-            } elseif (!isset($section['slot'])) { $html.='<h2 style="font-size:22px;line-height:1.3;margin:0 0 12px;color:#002d72">'.esc_html($section['heading']).'</h2>'; }
+            } elseif (!isset($section['slot'])) { $html.='<h2 style="font-size:22px;line-height:1.3;margin:0 0 10px;color:#002d72">'.esc_html($section['heading']).'</h2>'; }
             $text[]=$section['heading'];
         }
-        if (!empty($section['image']) && peracrm_campaign_public_url($section['image'])!=='') { $html.='<img src="'.esc_url($section['image']).'" alt="'.esc_attr($section['alt']).'" style="display:block;width:100%;max-width:592px;height:auto;border:0;border-radius:8px;margin:0 0 16px">'; $text[]='Image: '.$section['image'].' · '.$section['alt']; }
+        if (!empty($section['image']) && peracrm_campaign_public_url($section['image'])!=='') { $html.='<img src="'.esc_url($section['image']).'" alt="'.esc_attr($section['alt']).'" style="display:block;width:100%;max-width:592px;height:auto;border:0;border-radius:8px;margin:0 0 10px">'; $text[]='Image: '.$section['image'].' · '.$section['alt']; }
         if (!empty($section['text'])) { $html.='<p style="margin:0;white-space:pre-line">'.peracrm_campaign_basic_text($section['text'],($section['format'] ?? 'plain')==='basic_v1').'</p>'; $text[]=peracrm_campaign_basic_text($section['text'],($section['format'] ?? 'plain')==='basic_v1',true); }
         if (!empty($section['details'])) {
-            $html.='<div style="margin:16px 0;padding:12px 16px;background:#fff;border:1px solid #d6dfed;border-radius:8px;font-size:14px">';
+            $html.='<div style="margin:10px 0 0;padding:12px 16px;background:#fff;border:1px solid #d6dfed;border-radius:8px;font-size:14px">';
             foreach (explode("\n",$section['details']) as $detail) { $html.='<p style="margin:4px 0">'.esc_html($detail).'</p>'; }
             $html.='</div>';$text[]=$section['details'];
         }
         if (!empty($section['url']) && peracrm_campaign_public_url($section['url'])!=='') {
             // Use cell padding for the text/button gap: email clients can discard margins.
-            $button_gap=(!empty($section['text']) || !empty($section['details'])) ? 12 : 0;
+            $button_gap=(!empty($section['text']) || !empty($section['details'])) ? 10 : 0;
             $html.='<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="padding:'.$button_gap.'px 0 0">';
             // Captured delivery links remain functional; review-only rendering stays inert.
             if ($deliverable) {
