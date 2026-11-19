@@ -90,4 +90,8 @@
 .crm-page--campaigns .campaign-format-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
 .crm-page--campaigns .campaign-format-toolbar { margin:0 0 8px; }
 .crm-page--campaigns .campaign-format-toolbar select { width:auto; min-height:36px; padding:6px 10px; }
-.crm-page--campaigns .campaign-test-send { margin-top:20px; padding-top:20px; border-top:1px solid var(--border-muted); }
+.crm-page--campaigns .campaign-test-send { display:grid; gap:12px; align-items:start; margin-top:0; min-width:0; }
+.crm-page--campaigns .peracrm-campaigns .campaign-test-send > :is(h4, p, label) { margin:0; }
+.crm-page--campaigns .campaign-test-send label { display:grid; gap:6px; min-width:0; }
+.crm-page--campaigns .peracrm-campaigns .campaign-test-send input[type="email"] { box-sizing:border-box; display:block; width:100%; max-width:100%; min-width:0; height:46px; min-height:46px; }
+.crm-page--campaigns .campaign-test-send > button { justify-self:start; margin:0; }
