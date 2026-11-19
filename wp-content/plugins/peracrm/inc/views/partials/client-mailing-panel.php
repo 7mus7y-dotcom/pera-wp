@@ -14,7 +14,7 @@ $intake = false;
 try { $intake = $may_write && peracrm_subscribers_intake_allowed(false); }
 catch (Throwable $error) { $mailing = ['status'=>'unavailable', 'email'=>'', 'subscriber_id'=>0]; }
 ?>
-<article id="crm-client-mailing-list" class="crm-panel-surface crm-section">
+<article id="crm-client-mailing-list" class="crm-panel-surface crm-section crm-client-mailing-panel">
   <header class="crm-section__header"><h3 class="crm-section__title"><?php esc_html_e('Mailing list', 'peracrm'); ?></h3></header>
   <?php if (isset($_GET['mailing_notice'])) : ?><p role="status" class="crm-notice"><?php echo esc_html($_GET['mailing_notice'] === 'saved' ? __('Mailing permission saved.', 'peracrm') : __('Could not save mailing permission. Reload and check the email, permission reference and subscriber intake.', 'peracrm')); ?></p><?php endif; ?>
   <p data-client-mailing-status="<?php echo esc_attr($mailing['status']); ?>"><strong><?php echo esc_html($labels[$mailing['status']]); ?></strong></p>

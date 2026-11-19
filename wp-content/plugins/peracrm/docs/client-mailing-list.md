@@ -1,6 +1,10 @@
 # Client mailing list
 
 Subscriber managers can see a **Mailing list** panel on an authorized client page.
+It sits in the final client action row, before Danger zone. The two panels share
+equal columns above 900px and stack mailing-first at 900px and below. If only one
+panel is authorized, it uses the full row. The mailing panel owns an 8px grid gap;
+its paragraph margins are reset locally to avoid adding the theme's 1em margin.
 It compares the client's current `_peracrm_email` profile field with Subscribers
 and suppression records, including opt-outs without a subscriber profile. Invalid,
 missing or duplicate email metadata is never repaired or guessed.
