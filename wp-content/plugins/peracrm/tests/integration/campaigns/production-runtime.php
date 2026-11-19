@@ -183,6 +183,26 @@ worker_fixture_target(static function () {
         prepared_expect($duplicateTest['already_attempted'] && count($testCalls)===1,'test request replay never resends');
         prepared_reject(fn()=>peracrm_campaign_draft_test($draftTest['id'],1,'another@campaign-fixture.org','fixture-send-once',true,$api,$testHTTP));
         prepared_expect($protected()===$beforeTest && peracrm_campaign_queue_dispatch_allowed(),'test preserves withdrawn consent, suppressions, subscriber tokens, queue and existing dispatch setting');
+        require_once WP_PLUGIN_DIR.'/peracrm/inc/campaigns/draft-test-queue.php';
+        update_option('peracrm_draft_test_runner_health',['at'=>time()],false);
+        $queueID=str_repeat('a',32);
+        $queuedTest=peracrm_campaign_draft_test_queue_submit($draftTest['id'],1,'accepted@campaign-fixture.org',$queueID,$draftTest['document']);
+        prepared_expect($queuedTest['state']==='queued' && count($testCalls)===1 && $protected()===$beforeTest,'frontend request queues without provider calls or protected-ledger changes');
+        $queuedAgain=peracrm_campaign_draft_test_queue_submit($draftTest['id'],1,'accepted@campaign-fixture.org',$queueID,$draftTest['document']);
+        prepared_expect($queuedAgain['request_id']===$queueID,'double-click preserves the same queued request');
+        $processedTest=peracrm_campaign_draft_test_queue_process($api,$testHTTP);
+        prepared_expect($processedTest['state']==='accepted' && count($testCalls)===2,'independent CLI runner sends queued test through signer');
+        prepared_expect(peracrm_campaign_draft_test_queue_status($draftTest['id'],$queueID)['state']==='accepted','frontend status reports SES acceptance');
+        prepared_expect(peracrm_campaign_draft_test_queue_process($api,$testHTTP)['state']==='idle' && count($testCalls)===2,'runner never retries an accepted request');
+        prepared_expect(peracrm_campaign_draft_test_queue_submit($draftTest['id'],1,'accepted@campaign-fixture.org',$queueID,$draftTest['document'])['state']==='accepted','replayed frontend request returns its terminal result');
+        prepared_expect($protected()===$beforeTest,'queued test preserves subscriber, consent, suppression, tokens and campaign ledgers');
+        $staleID=str_repeat('b',32);
+        peracrm_campaign_draft_test_queue_submit($draftTest['id'],1,'accepted@campaign-fixture.org',$staleID,$draftTest['document']);
+        $nextTest=peracrm_campaign_draft_save($draftTest['id'],1,array_replace($draftTest['document'],['subject'=>'Changed saved draft']));
+        prepared_expect(!is_wp_error($nextTest),'test draft can change while queued');
+        $staleResult=peracrm_campaign_draft_test_queue_process($api,$testHTTP);
+        prepared_expect($staleResult['state']==='failed' && $staleResult['error_code']==='draft_test_revision' && count($testCalls)===2,'changed saved revision is rejected before transport');
+        prepared_reject(fn()=>peracrm_campaign_draft_test_queue_submit($draftTest['id'],2,'accepted@campaign-fixture.org',str_repeat('c',32),array_replace($nextTest['document'],['subject'=>'Unsaved browser edit'])));
         // A process lost after budget begin must recover the original owner without resending.
         $worker=new PeraCRM_Campaign_Production_Worker($adapter,$config['job_ids'],static fn()=>PeraCRM_SES_Operator::authorize());
         $claim=$worker->claim($jobs['recovery'],1)[0]; $budget=$adapter->diagnosticBudget();
@@ -199,6 +219,15 @@ worker_fixture_target(static function () {
         prepared_expect($result['state']==='blocked' && $transport->calls===2,'production ambiguous outcome stops without retry');
         $service->run($jobs['unknown']); prepared_expect($transport->calls===2,'ambiguous replay never resends');
         prepared_expect(!str_contains(json_encode($result),str_repeat('Z',40)),'production output redacted');
+        $budget->recover($budget->health()['breaker_version']);
+        $unknownID=str_repeat('d',32);
+        peracrm_campaign_draft_test_queue_submit($draftTest['id'],2,'accepted@campaign-fixture.org',$unknownID,$nextTest['document']);
+        $unknownCalls=0;
+        $lostHTTP=static function () use (&$unknownCalls) { $unknownCalls++; return ['errno'=>1,'status'=>0,'headers'=>'','body'=>'']; };
+        $unknownTest=peracrm_campaign_draft_test_queue_process($api,$lostHTTP);
+        prepared_expect($unknownTest['state']==='unknown' && $unknownCalls===1,'unknown test response is reported honestly');
+        prepared_expect(peracrm_campaign_draft_test_queue_process($api,$lostHTTP)['state']==='idle' && $unknownCalls===1,'unknown test is not automatically retried');
+
     } finally {
         unlink($file); rmdir($private); remove_filter('home_url',$home,999);
         $current=peracrm_campaign_configuration(true); peracrm_campaign_configuration_save($current['revision'],$previous['document']);

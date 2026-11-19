@@ -22,7 +22,11 @@ function peracrm_campaign_cli($operation, $args, $assoc)
         $format=$assoc['format'] ?? 'json';
         if (!in_array($format,['json','text'],true)) { throw new InvalidArgumentException(); }
         $service=new PeraCRM_Campaign_Operations();
-        if ($operation==='draft-test') {
+        if ($operation==='draft-test-process') {
+            require_once dirname(__DIR__).'/campaigns/draft-test-queue.php';
+            $data=peracrm_campaign_draft_test_queue_process();
+            if (in_array($data['state'],['failed','unknown','rejected','expired'],true)) { $exit=4; }
+        } elseif ($operation==='draft-test') {
             require_once dirname(__DIR__).'/campaigns/draft-test.php';
             foreach (['campaign','revision'] as $key) { if (!is_string($assoc[$key] ?? null) || !preg_match('/\A[1-9][0-9]{0,9}\z/',$assoc[$key])) { throw new InvalidArgumentException(); } }
             if (!is_string($assoc['to'] ?? null) || !is_string($assoc['request-id'] ?? null)
@@ -138,6 +142,6 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
 }
-foreach (['draft-test','client-mailing-audit','retention','dispatch-run','dispatch-recover','dispatch-refresh','dispatch-scheduled','readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','internal-probe-status','rehearsal-proposal','rehearsal-send','rehearsal-status','fixture-run','fixture-recover'] as $operation) {
+foreach (['draft-test-process','draft-test','client-mailing-audit','retention','dispatch-run','dispatch-recover','dispatch-refresh','dispatch-scheduled','readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','internal-probe-status','rehearsal-proposal','rehearsal-send','rehearsal-status','fixture-run','fixture-recover'] as $operation) {
     WP_CLI::add_command('peracrm campaigns '.$operation, static function ($args,$assoc) use ($operation) { peracrm_campaign_cli($operation,$args,$assoc); });
 }

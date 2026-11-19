@@ -29,14 +29,23 @@ function peracrm_campaign_draft_test_request(array $content,string $recipient,ar
         'EmailTags'=>[['Name'=>'peracrm_draft_test','Value'=>hash('sha256',wp_json_encode($output))]]];
 }
 
-/** CLI only. No normal dispatch activation, queue writes or subscriber mutations.
- * Optional trusted PHP closures are fixture seams, never CLI/request arguments. */
-function peracrm_campaign_draft_test(int $id,int $revision,string $recipient,string $request_id,bool $send,?Closure $apiTransport=null,?Closure $execute=null): array
+
+/** Staff authority for test requests/status. Credentials are still CLI-only. */
+function peracrm_campaign_draft_test_authorize(): void
 {
-    PeraCRM_SES_Operator::authorize();
-    if ($id<1 || $revision<1 || !preg_match('/\A[a-zA-Z0-9_-]{8,64}\z/',$request_id)) { throw new InvalidArgumentException('draft_test_input'); }
-    return peracrm_with_target_blog(static function () use ($id,$revision,$recipient,$request_id,$send,$apiTransport,$execute) {
-        global $wpdb;
+    $actor=peracrm_get_actor_user_id();
+    if ($actor<1 || peracrm_is_impersonating_crm_user() || !peracrm_campaigns_schema_ready()
+        || !peracrm_campaigns_staff_can('peracrm_manage_campaigns',true)) { throw new RuntimeException('draft_test_forbidden'); }
+    foreach (['manage_options','peracrm_manage_subscribers','peracrm_view_campaign_reports'] as $cap) {
+        if (!user_can($actor,$cap)) { throw new RuntimeException('draft_test_forbidden'); }
+    }
+}
+
+/** Target context only. Does not load SES credentials or send. */
+function peracrm_campaign_draft_test_capture(int $id,int $revision,string $recipient): array
+{
+    peracrm_campaign_draft_test_authorize();
+    global $wpdb;
         $recipient=peracrm_campaigns_normalize_email($recipient);
         $draft=peracrm_campaign_draft_get($id);
         if (!$draft || (int)$draft['revision']!==$revision || $draft['status']!=='draft') { throw new RuntimeException('draft_test_revision'); }
@@ -56,6 +65,23 @@ function peracrm_campaign_draft_test(int $id,int $revision,string $recipient,str
         $content=peracrm_campaign_snapshot_candidate($draft);
         $request=peracrm_campaign_draft_test_request($content,$recipient,$base->binding(),$config['sender_email']);
         $binding=hash('sha256',wp_json_encode([$base->fingerprint(),$id,$revision,$recipient,$request]));
+    return ['recipient'=>$recipient,'draft'=>$draft,'deployment'=>$base,'config'=>$config,
+        'content'=>$content,'request'=>$request,'binding'=>$binding,
+        'content_hash'=>hash('sha256',peracrm_campaign_snapshot_json($content))];
+}
+
+/** CLI only. No normal dispatch activation, queue writes or subscriber mutations.
+ * Optional trusted PHP closures are fixture seams, never CLI/request arguments. */
+function peracrm_campaign_draft_test(int $id,int $revision,string $recipient,string $request_id,bool $send,?Closure $apiTransport=null,?Closure $execute=null,?string $expected_content_hash=null): array
+{
+    PeraCRM_SES_Operator::authorize();
+    if ($id<1 || $revision<1 || !preg_match('/\A[a-zA-Z0-9_-]{8,64}\z/',$request_id)) { throw new InvalidArgumentException('draft_test_input'); }
+    return peracrm_with_target_blog(static function () use ($id,$revision,$recipient,$request_id,$send,$apiTransport,$execute,$expected_content_hash) {
+        global $wpdb;
+        $capture=peracrm_campaign_draft_test_capture($id,$revision,$recipient);
+        $recipient=$capture['recipient']; $base=$capture['deployment']; $config=$capture['config'];
+        $content=$capture['content']; $request=$capture['request']; $binding=$capture['binding'];
+        if ($expected_content_hash!==null && !hash_equals($expected_content_hash,$capture['content_hash'])) { throw new RuntimeException('draft_test_content_changed'); }
         $key='peracrm_draft_test_'.hash('sha256',get_current_blog_id().'|'.peracrm_get_actor_user_id().'|'.$request_id);
         $prior=$wpdb->get_var($wpdb->prepare("SELECT option_value FROM {$wpdb->options} WHERE option_name=%s",$key));
         peracrm_campaigns_db_require(true);

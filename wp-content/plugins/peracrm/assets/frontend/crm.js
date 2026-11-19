@@ -2766,6 +2766,58 @@ document.addEventListener('DOMContentLoaded', function () {
           audienceNext.hidden = data.complete;
         }).catch(function (error) { if (generation === audienceGeneration) { cursor = ''; audienceResult.textContent = error.message; } });
       }
+      var testPanel=document.querySelector('[data-draft-test]');
+      if(testPanel) {
+        var testButton=testPanel.querySelector('[data-test-send]');
+        var testInbox=testPanel.querySelector('[data-test-inbox]');
+        var testFeedback=testPanel.querySelector('[data-test-feedback]');
+        var testID='',testState='idle',testBusy=false,testTimer,testGeneration=0;
+        function testControls() {
+          testButton.disabled=dirty || testBusy || ['queued','processing'].includes(testState) || testButton.dataset.configured!=='1';
+          testButton.textContent=['accepted','rejected','failed','expired','unknown'].includes(testState) ? 'Send another test email' : 'Send test email';
+        }
+        function showTest(data) {
+          testState=data.state;
+          if(data.request_id) testID=data.request_id;
+          var target=data.recipient || testInbox.value;
+          if(data.state==='queued') testFeedback.textContent='Test queued for saved revision '+data.revision+' to '+target+'. Usually sent within one minute.';
+          else if(data.state==='processing') testFeedback.textContent='Sending the test to '+target+'…';
+          else if(data.state==='accepted') testFeedback.textContent='Test accepted by SES for saved revision '+data.revision+' to '+target+'. Check your inbox and spam folder; acceptance is not proof of delivery.';
+          else if(data.state==='unknown') testFeedback.textContent='Send outcome unconfirmed. Check your inbox before requesting another test.';
+          else if(data.state==='expired') testFeedback.textContent='The test request expired. Check the test sender before requesting another test.';
+          else if(data.state==='failed' || data.state==='rejected') testFeedback.textContent=['draft_test_revision','draft_test_content_changed'].includes(data.error_code) ? 'The saved draft or its content changed before sending. Reload, review and request a new test.' : 'The test could not be sent'+(data.error_code ? ' ('+data.error_code+')' : '')+'.';
+          testControls();
+          if(['queued','processing'].includes(data.state)) testTimer=setTimeout(pollTest,8000);
+        }
+        function pollTest() {
+          clearTimeout(testTimer);
+          var generation=testGeneration;
+          request('test-status',{id:tools.dataset.id,request_id:testID}).then(function (data) { if(generation===testGeneration) showTest(data); }).catch(function () {
+            if(generation!==testGeneration) return;
+            testFeedback.textContent='Could not refresh test status. Retrying the status check…';
+            testTimer=setTimeout(pollTest,15000);
+          });
+        }
+        testButton.addEventListener('click',function () {
+          if(testButton.disabled || dirty) { testFeedback.textContent='Save the current draft before sending a test.'; return; }
+          testInbox.setCustomValidity(testInbox.value.trim() ? '' : 'Enter a test email address.');
+          if(!testInbox.reportValidity()) return;
+          if(!testID || ['accepted','rejected','failed','expired','unknown'].includes(testState)) {
+            var bytes=new Uint8Array(16); window.crypto.getRandomValues(bytes);
+            testID=Array.from(bytes).map(function (b) { return b.toString(16).padStart(2,'0'); }).join('');
+          }
+          var generation=++testGeneration;
+          clearTimeout(testTimer); testBusy=true; testControls(); testFeedback.textContent='Requesting one test email…';
+          request('test-submit',{id:tools.dataset.id,revision:form.elements.revision.value,recipient:testInbox.value.trim(),request_id:testID,document_json:JSON.stringify(documentModel())})
+            .then(function (data) { if(generation===testGeneration) showTest(data); }).catch(function (error) { if(generation===testGeneration) testFeedback.textContent=error.message+' No automatic resend will be attempted.'; })
+            .finally(function () { if(generation===testGeneration) { testBusy=false; testControls(); pollTest(); } });
+        });
+        form.addEventListener('input',function () { testControls(); });
+        form.addEventListener('change',function () { testControls(); });
+        form.addEventListener('click',function () { testControls(); });
+        window.addEventListener('pagehide',function () { clearTimeout(testTimer); });
+        testControls(); pollTest();
+      }
       tools.querySelector('[data-audience-start]').addEventListener('click', function () { audience(true); });
       audienceNext.addEventListener('click', function () { audience(false); });
       form.addEventListener('click', function (event) { if (event.target.closest('[data-block-add],[data-block-up],[data-block-down],[data-block-remove]')) invalidateAudience(); });
