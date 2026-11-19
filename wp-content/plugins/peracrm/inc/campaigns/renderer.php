@@ -106,12 +106,16 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             $html.='</div>';$text[]=$section['details'];
         }
         if (!empty($section['url']) && peracrm_campaign_public_url($section['url'])!=='') {
+            // Use cell padding for the text/button gap: email clients can discard margins.
+            $button_gap=(!empty($section['text']) || !empty($section['details'])) ? 16 : 0;
+            $html.='<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse"><tr><td style="padding:'.$button_gap.'px 0 0">';
             // Captured delivery links remain functional; review-only rendering stays inert.
             if ($deliverable) {
                 $html.='<a href="'.esc_attr($section['url']).'" style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['button_label'] ?? ($section['heading'] ?: 'View content')).'</a>';
             } else {
                 $html.='<span style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['button_label'] ?? 'View content').' · navigation disabled</span>';
             }
+            $html.='</td></tr></table>';
             if (isset($section['button_label']) && $section['button_label']!==$section['heading']) { $text[]=$section['button_label']; }
             $text[]=$section['url'];
         }
