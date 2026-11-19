@@ -41,9 +41,15 @@ def main():
     previous = subprocess.run([crontab, '-l'], text=True, capture_output=True)
     if previous.returncode and 'no crontab for' not in previous.stderr.lower():
         raise SystemExit('Cannot read the existing crontab; no changes made.')
-    fingerprint = run(base + ['eval', 'peracrm_with_target_blog(function () { PeraCRM_SES_Operator::authorize(); $d=peracrm_campaign_deployment_service(); if (!$d) WP_CLI::error("Deployment unavailable."); echo $d->fingerprint(); });'])
+    runtime = json.loads(run(base + ['eval', 'peracrm_with_target_blog(function () { PeraCRM_SES_Operator::authorize(); $d=peracrm_campaign_deployment_service(); if (!$d) WP_CLI::error("Deployment unavailable."); echo wp_json_encode(["fingerprint"=>$d->fingerprint(),"php_binary"=>PHP_BINARY]); });']))
+    fingerprint = runtime.get('fingerprint', '')
+    php = runtime.get('php_binary', '')
     if not re.fullmatch(r'[a-f0-9]{64}', fingerprint):
         raise SystemExit('Deployment fingerprint unavailable; no runner installed.')
+    if not isinstance(php, str) or not Path(php).is_absolute() or not Path(php).is_file() or not os.access(php, os.X_OK):
+        raise SystemExit('The working WP-CLI PHP interpreter is unavailable; no runner installed.')
+    # Cron may have a different PATH/PHP. Pin the interpreter that booted WP-CLI successfully.
+    base = [php] + base
     worker = private / 'campaign-test-runner.sh'
     lock = private / 'campaign-test-runner.lock'
     for path in (worker, lock, private / 'campaign-test-last.json'):
@@ -52,7 +58,7 @@ def main():
     setting = "array('enabled'=>true,'deployment_fingerprint'=>'" + fingerprint + "','recipients'=>array(" + "'" + args.to.replace("'", "\\'") + "'))"
     run([wp, '--path=' + str(site), 'config', 'set', 'PERACRM_CAMPAIGN_TEST_SEND', setting, '--raw'])
     command = shlex.join(base + ['peracrm', 'campaigns', 'draft-test-process', '--format=json'])
-    script = '#!/bin/sh\nset -u\numask 077\n' + command + '\n'
+    script = '#!/bin/sh\nset -u\numask 077\nexec ' + command + '\n'
     with tempfile.NamedTemporaryFile(mode='w', dir=private, delete=False) as handle:
         handle.write(script)
         staged = Path(handle.name)
@@ -68,7 +74,7 @@ def main():
     subprocess.run([crontab, '-'], input='\n'.join(lines) + '\n', text=True, check=True)
     # Initialize the heartbeat. This may also process one already requested test.
     result = subprocess.run(base + ['peracrm', 'campaigns', 'draft-test-process', '--format=json'], text=True, capture_output=True)
-    print(json.dumps({'installed': True, 'test_inbox': args.to, 'worker': str(worker),
+    print(json.dumps({'installed': True, 'test_inbox': args.to, 'worker': str(worker), 'php_binary': php,
                       'schedule': 'Every minute', 'initial_worker_exit': result.returncode}, indent=2))
     if result.returncode:
         print('Runner installed; inspect the test status in the editor or run draft-test-process for its diagnostic result.')

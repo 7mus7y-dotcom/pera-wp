@@ -19,7 +19,7 @@ with tempfile.TemporaryDirectory(prefix='peracrm-installer-test-') as directory:
     common = '#!' + sys.executable + '\nimport os,sys,json\nfrom pathlib import Path\nr=Path(os.environ["INSTALLER_TEST_ROOT"])\n'
     wp = common + '''
 with (r/'wp-calls.jsonl').open('a') as handle: handle.write(json.dumps(sys.argv[1:])+'\\n')
-if 'eval' in sys.argv: print('a'*64)
+if 'eval' in sys.argv: print(json.dumps({'fingerprint':'a'*64,'php_binary':str(r/'bin'/'php')}))
 elif 'draft-test-process' in sys.argv: print('{"state":"idle"}')
 else: print('Configured')
 '''
@@ -29,7 +29,8 @@ if sys.argv[1:] == ['-l']: print(p.read_text(),end='')
 elif sys.argv[1:] == ['-']: p.write_text(sys.stdin.read())
 else: raise SystemExit(9)
 '''
-    for name, content in [('wp', wp), ('crontab', crontab), ('flock', common)]:
+    php = common + "os.execv(sys.executable,[sys.executable]+sys.argv[1:])\n"
+    for name, content in [('wp', wp), ('php', php), ('crontab', crontab), ('flock', common)]:
         path = binary / name
         path.write_text(content)
         path.chmod(0o700)
@@ -47,6 +48,14 @@ else: raise SystemExit(9)
         worker = private / 'campaign-test-runner.sh'
         assert worker.stat().st_mode & 0o777 == 0o700
         assert subprocess.run(['sh', '-n', str(worker)], capture_output=True).returncode == 0
+        assert report['php_binary'] == str(binary/'php')
+        assert worker.read_text().splitlines()[-1].startswith('exec ')
+        # No PHP or wp can be found through this PATH; explicit interpreter+PHAR paths must work.
+        narrow = dict(env, PATH='/nonexistent')
+        executed = subprocess.run(['/bin/sh', str(worker)], capture_output=True, text=True, env=narrow)
+        assert executed.returncode == 0, executed.stderr
+        assert json.loads(executed.stdout)['state'] == 'idle'
+
     before = (root/'wp-calls.jsonl').read_text()
     worker.unlink()
     worker.symlink_to(root/'outside-script')
