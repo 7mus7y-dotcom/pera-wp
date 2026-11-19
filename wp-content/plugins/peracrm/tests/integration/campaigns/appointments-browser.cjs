@@ -195,6 +195,15 @@ module.exports = async function ({ browser, evidence = "/evidence" }) {
       .locator("[data-calendar-message]")
       .filter({ hasText: /appointments ·/ })
       .waitFor();
+    // Resize dispatches the calendar media-query render asynchronously. The
+    // message above can already be visible while the 600px desktop grid remains.
+    if (width <= 680) {
+      await page.locator("[data-calendar-content] .appointment-list").waitFor();
+    }
+    // Also let the shared header/search resize handlers complete their frame.
+    await page.evaluate(() => new Promise(resolve => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    }));
     assert(
       !(await page.evaluate(
         () => document.documentElement.scrollWidth > innerWidth + 1,
