@@ -14,7 +14,8 @@
 .crm-page--campaigns .peracrm-campaign-form { margin: 24px 0; }
 .crm-page--campaigns .peracrm-campaign-form > .campaign-editor-fields { padding: 0; margin: 0; border: 0; }
 .crm-page--campaigns .peracrm-campaign-form > .campaign-editor-fields > .campaign-card:last-of-type { margin-bottom: 16px; }
-.crm-page--campaigns .peracrm-campaign-form label { margin-block: 12px; font-size: .82rem; line-height: 1.5; font-weight: 600; color: var(--text); }
+.crm-page--campaigns .peracrm-campaign-form label,
+.crm-page--campaigns .campaign-test-send label { margin-block: 12px; font-size: .82rem; line-height: 1.5; font-weight: 600; color: var(--text); }
 .crm-page--campaigns .peracrm-campaigns input:not([type="checkbox"]):not([type="hidden"]),
 .crm-page--campaigns .peracrm-campaigns select,
 .crm-page--campaigns .peracrm-campaigns textarea { width: 100%; min-width: 0; min-height: 46px; padding: 11px 12px; border: 1px solid var(--border-muted); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: var(--crm-control-compact-font-size); font-weight: 400; line-height: 1.5; }

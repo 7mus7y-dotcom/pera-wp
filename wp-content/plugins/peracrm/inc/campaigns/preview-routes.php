@@ -26,6 +26,17 @@ function peracrm_campaign_preview_route()
             // The frame has an empty sandbox, plus this CSP; no executable/navigation elements are rendered.
             $meta='<meta http-equiv="Content-Security-Policy" content="'.esc_attr(peracrm_campaign_preview_csp()).'"><meta name="referrer" content="no-referrer">';
             $result['html']=str_replace('<head>','<head>'.$meta,$result['html']);
+        } elseif (in_array($operation,['test-submit','test-status'],true)) {
+            require_once __DIR__.'/draft-test-queue.php';
+            peracrm_campaign_draft_test_authorize();
+            $id=(int)($_POST['id'] ?? 0); $request_id=(string)($_POST['request_id'] ?? '');
+            if ($id<1) { throw new InvalidArgumentException(); }
+            if ($operation==='test-status') { $result=peracrm_campaign_draft_test_queue_status($id,$request_id); }
+            else {
+                $document=json_decode(wp_unslash($_POST['document_json'] ?? ''),true);
+                if (!is_array($document)) { throw new InvalidArgumentException(); }
+                $result=peracrm_campaign_draft_test_queue_submit($id,(int)($_POST['revision'] ?? 0),wp_unslash($_POST['recipient'] ?? ''),$request_id,$document);
+            }
         } elseif ($operation==='audience') {
             $rules=json_decode(wp_unslash($_POST['rules_json'] ?? ''),true);
             $result=peracrm_campaign_audience_preview((int)($_POST['id'] ?? 0),(int)($_POST['revision'] ?? 0),$rules,wp_unslash($_POST['cursor'] ?? ''));
@@ -33,7 +44,17 @@ function peracrm_campaign_preview_route()
         wp_send_json_success($result);
     } catch (UnexpectedValueException $error) { wp_send_json_error(['message'=>$error->getMessage()],409); }
     catch (InvalidArgumentException $error) { wp_send_json_error(['message'=>'Invalid preview input. Save valid fields or restart preview.'],422); }
-    catch (Throwable $error) { wp_send_json_error(['message'=>'Preview unavailable. Check access and storage readiness.'],503); }
+    catch (Throwable $error) {
+        $messages=[
+            'draft_test_forbidden'=>'Administrator access is required for test emails.',
+            'draft_test_revision'=>'The saved revision changed. Reload the campaign before sending a test.',
+            'draft_test_unsaved'=>'Save the current draft before sending a test.',
+            'draft_test_recipient_not_configured'=>'This test inbox is not configured. Ask an administrator to update the permitted test inboxes.',
+            'draft_test_recipient_blocked'=>'This inbox has a bounce, complaint or administrative delivery block.',
+            'draft_test_runner_offline'=>'The test sender is offline. Complete the one-time server setup or check its scheduled task.',
+        ];
+        wp_send_json_error(['message'=>$messages[$error->getMessage()] ?? 'Preview unavailable. Check access and storage readiness.'],503);
+    }
 }
 add_action('wp_ajax_peracrm_campaign_preview','peracrm_campaign_preview_route');
 add_action('wp_ajax_nopriv_peracrm_campaign_preview',static function () { peracrm_subscribers_private_headers(); wp_send_json_error(['message'=>'Campaign preview access is not permitted.'],403); });

@@ -11,8 +11,12 @@ module.exports = async function ({page,target,employeeContext,context}) {
   const endpoint=target+'/wp-admin/admin-ajax.php';
   const denied=await employeeContext.request.post(endpoint,{form:{action:'peracrm_campaign_preview',operation:'audience'}});
   if(denied.status()!==403) throw Error('Employee preview counts exposed');
+  const deniedTest=await employeeContext.request.post(endpoint,{form:{action:'peracrm_campaign_preview',operation:'test-submit'}});
+  if(deniedTest.status()!==403) throw Error('Employee test send exposed');
   const noNonce=await context.request.post(endpoint,{form:{action:'peracrm_campaign_preview',operation:'render'}});
   if(noNonce.status()!==403) throw Error('Preview accepted missing nonce');
+  const testNoNonce=await context.request.post(endpoint,{form:{action:'peracrm_campaign_preview',operation:'test-submit'}});
+  if(testNoNonce.status()!==403) throw Error('Test send accepted missing nonce');
   for(const [size,width,height] of [['desktop',1440,1000],['mobile',390,844]]) {
     await page.setViewportSize({width,height});
     await page.goto(target+'/crm/campaigns/new/');
@@ -51,6 +55,7 @@ module.exports = async function ({page,target,employeeContext,context}) {
     await page.locator('[data-campaign-status]').filter({hasText:'Saved'}).waitFor();
     await page.reload();
     if(await page.locator('[data-campaign-block]').first().locator('input[type=hidden]').first().inputValue()!=='property') throw Error('Selected order lost on reload');
+    await require('./draft-test-browser.cjs')({page});
     await page.getByRole('button',{name:'Preview audience counts',exact:true}).click();
     await page.locator('[data-audience-result]').filter({hasText:'Partial'}).waitFor();
     while(await page.locator('[data-audience-next]').isVisible()) {

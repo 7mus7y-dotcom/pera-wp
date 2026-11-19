@@ -1,6 +1,6 @@
 # Draft tests and editor controls
 
-Draft tests are explicit administrator CLI operations. SES credentials retain their existing protected-file, CLI-only boundary. The campaign editor shows a command for the current saved revision and a configured test inbox. Save changes before using it. The draft need not have an audience count or frozen revision.
+Draft tests are explicit administrator CLI operations. SES credentials retain their existing protected-file, CLI-only boundary. The campaign editor queues a test for the current saved revision and a configured test inbox. A dedicated CLI runner sends it in the background. Save changes before clicking Send test email. The draft need not have an audience count or frozen revision.
 
 Configure a separate test recipient allowlist (at most five normalized inboxes) in wp-config.php:
 
@@ -34,3 +34,21 @@ Sending authenticates the configured production principal, observes SES account 
 - CTA heading and supporting text are optional. The button label and absolute HTTP(S) URL remain required. Older CTA blocks remain valid.
 - Audience preview processes up to 2,000 candidates per click with the existing signed, revision-bound fixed-ID boundary. This changes advisory counting only, not freeze, queue or sending batch sizes.
 - Draft-table cells are vertically centred; horizontal alignment is unchanged. Audience action buttons share the existing action gap.
+
+## Frontend sending
+
+The editor now has a **Test email address** field and **Send test email** button below Save draft. It submits a nonce-protected administrator request and polls for the result, including across reloads. Unsaved fields, revision drift and changed rendered content are rejected. The inbox field is outside the draft form so an invalid test address cannot prevent saving the campaign.
+
+Requests are private, non-autoloaded target-blog option records bound to actor, campaign, saved revision, recipient and captured content hash. Duplicate submits reuse a single request. A separate CLI runner atomically claims one queued request per invocation, rechecks the initiating administrator and saved content, then calls the existing SES draft-test service. It never invokes normal campaign dispatch. Processing/unknown requests are never automatically retried. Requests expire after 15 minutes; stale processing is shown as unconfirmed rather than failed safely.
+
+One-time setup on the live host, after deployment:
+
+```sh
+python3 /home/d21882/_work/pera-wp/wp-content/plugins/peracrm/tools/install-draft-test-runner.py \
+  --path /home/d21882/public_html --url https://www.peraproperty.com \
+  --user 1 --to mus7y@yahoo.co.uk
+```
+
+The installer configures this permitted test inbox against the current deployment fingerprint, writes an owner-only runner outside the web root and installs one marked cron entry every minute with `flock`. Other cron entries, including the normal campaign dispatcher, are preserved. Re-running replaces only the marked test-runner entry. It initializes a heartbeat; the frontend refuses to enqueue when the heartbeat is over three minutes old. SES credential loading remains CLI-only. No PHP subprocess or credential access is added to HTTP handlers.
+
+For diagnostics only, the runner command is `wp ... peracrm campaigns draft-test-process --format=json`. Users do not run a command for each test email.

@@ -42,21 +42,3 @@ document.addEventListener('DOMContentLoaded', function () {
     editor.querySelector('[data-format-size]').addEventListener('change',function (event) { if(event.target.value) format(event.target.value); event.target.value=''; });
   });
 });
-
-document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('[data-test-command]').forEach(function (output) {
-    var select=output.parentElement.querySelector('[data-test-inbox]');
-    function update() {
-      var form=output.closest('form');
-      var status=form.querySelector('[data-campaign-status]');
-      if(status && /Unsaved/.test(status.textContent)) { output.textContent='Save the current draft before sending a test.'; return; }
-      var quoted="'"+select.value.replace(/'/g,"'\"'\"'")+"'";
-      output.textContent=output.dataset.base+' --to='+quoted+' --confirm=send-one-test --format=json';
-    }
-    select.addEventListener('change',update);
-    output.closest('form').addEventListener('input',function (event) { if(String(event.target.name||'').startsWith('document[')) update(); });
-    output.closest('form').addEventListener('change',function (event) { if(String(event.target.name||'').startsWith('document[')) update(); });
-    output.closest('form').addEventListener('click',function (event) { if(event.target.closest('[data-block-add],[data-block-up],[data-block-down],[data-block-remove]')) update(); });
-    update();
-  });
-});
