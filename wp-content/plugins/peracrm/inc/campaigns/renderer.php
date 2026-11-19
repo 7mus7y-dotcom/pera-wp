@@ -33,7 +33,12 @@ function peracrm_campaign_render($model, $format = 'review_v1')
     $deliverable = $format === 'deliverable_v2';
     if ($deliverable) { peracrm_campaign_deliverable_model_validate($model); }
     $captured=($model['content_context'] ?? '')==='immutable_capture';
-    $sections=[['brand'=>true,'text'=>$captured ? 'REVIEWED CONTENT · Prepared immutable revision. No email is sent. Domain/provider readiness unverified.' : 'DRAFT PREVIEW · Current editable content. Domain/provider readiness unverified.'],['heading'=>$model['subject'] ?: 'Subject missing','text'=>$model['preheader']],['text'=>$model['introduction'],'format'=>$model['text_format'] ?? 'plain'],['text'=>$model['main_text'],'format'=>$model['text_format'] ?? 'plain']];
+    $sections=[['brand'=>true,'text'=>$captured ? 'REVIEWED CONTENT · Prepared immutable revision. No email is sent. Domain/provider readiness unverified.' : 'DRAFT PREVIEW · Current editable content. Domain/provider readiness unverified.'],['heading'=>$model['subject'] ?: 'Subject missing','text'=>$model['preheader']]];
+    foreach (['introduction','main_text'] as $key) {
+        if (trim((string)($model[$key] ?? '')) !== '') {
+            $sections[]=['text'=>$model[$key],'format'=>$model['text_format'] ?? 'plain'];
+        }
+    }
     if ($deliverable) { $sections[0] = ['brand'=>true]; }
     foreach ($model['notices'] as $notice) { $sections[]=['text'=>'Missing: '.$notice]; }
     $destinations=[];

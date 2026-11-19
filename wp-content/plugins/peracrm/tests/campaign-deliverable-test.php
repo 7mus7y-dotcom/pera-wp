@@ -128,3 +128,21 @@ campaign_expect(str_contains($rich['text'],'Bold and italic Large <script>unsafe
 campaign_expect(str_contains($rich['html'],'Rent your apartment</h2>') && str_contains($rich['html'],'Help for overseas owners') && str_contains($rich['html'],'>Discuss rentals</a>'),'CTA heading, supporting text and button label remain distinct');
 $legacy=peracrm_campaign_render(array_replace($formatted,['text_format'=>'plain']),'deliverable_v2');
 campaign_expect(str_contains($legacy['html'],'**Bold**') && !str_contains($legacy['html'],'<strong>Bold</strong>'),'legacy plain text never changes interpretation');
+
+// Optional authored sections consume no padded table row when blank.
+$with_sections=array_replace($deliverable_model,['introduction'=>'Intro paragraph','main_text'=>'Main paragraph']);
+foreach (['review_v1','deliverable_v2'] as $mode) {
+    $filled=peracrm_campaign_render($with_sections,$mode);
+    foreach (['introduction','main_text'] as $key) {
+        foreach (['', " \n\t "] as $blank) {
+            $omitted=peracrm_campaign_render(array_replace($with_sections,[$key=>$blank]),$mode);
+            campaign_expect(substr_count($filled['html'],'<tr>')===substr_count($omitted['html'],'<tr>')+1,
+                'blank '.$key.' adds no padded row in '.$mode);
+            campaign_expect(str_contains($omitted['html'],$key==='introduction' ? 'Main paragraph' : 'Intro paragraph'),
+                'omitting '.$key.' retains the other section in '.$mode);
+        }
+    }
+    $neither=peracrm_campaign_render(array_replace($with_sections,['introduction'=>'','main_text'=>'']),$mode);
+    campaign_expect(substr_count($filled['html'],'<tr>')===substr_count($neither['html'],'<tr>')+2,
+        'both optional sections can be omitted in '.$mode);
+}
