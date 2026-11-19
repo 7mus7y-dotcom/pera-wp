@@ -269,6 +269,15 @@ final class PeraCRM_Campaign_Production_Runtime
                     $claims=$worker->claim($job,1);
                     if (!$claims) { break; }
                     $result=$worker->submitPrepared($claims[0],$preparation,$mapper,$preflight);
+                    if (($result['state']??null)==='unknown') {
+                        // One bounded nonautoload diagnostic; no request, mailbox or provider payload.
+                        update_option('peracrm_campaign_transport_last_failure',[
+                            'recorded_at'=>gmdate('Y-m-d H:i:s'),'job_id'=>$job,
+                            'delivery_id'=>(int)$claims[0]['id'],
+                            'transport'=>$native instanceof PeraCRM_Campaign_SES_SDK_Transport
+                                ? $native->lastDiagnostic() : null,
+                        ],false);
+                    }
                     $out['processed']++; $out['accepted']+=(int)($result['state']==='accepted');
                     $out['excluded']+=(int)($result['state']==='excluded');
                     if (in_array($result['state'],['unknown','failed'],true)) { $out['state']='blocked'; break; }

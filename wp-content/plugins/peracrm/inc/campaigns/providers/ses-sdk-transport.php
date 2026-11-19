@@ -18,6 +18,7 @@ final class PeraCRM_Campaign_SES_SDK_Transport implements PeraCRM_Campaign_SES_T
     private PeraCRM_Campaign_SES_Credentials $credentials;
     private ?Closure $execute;
     private Closure $clock;
+    private ?array $lastDiagnostic = null;
     private const UNKNOWN = ['complete'=>false, 'authenticated'=>false];
 
     public function __construct(array $scope, #[SensitiveParameter] PeraCRM_Campaign_SES_Credentials $credentials,
@@ -38,6 +39,9 @@ final class PeraCRM_Campaign_SES_SDK_Transport implements PeraCRM_Campaign_SES_T
         $this->execute = $execute;
         $this->clock = $clock ?? static fn(): int => hrtime(true);
     }
+
+    /** Fixed scalar projection only: never request/response text, addresses or credentials. */
+    public function lastDiagnostic(): ?array { return $this->lastDiagnostic; }
 
     public function send(#[SensitiveParameter] array $request, array $options): array
     {
@@ -98,6 +102,7 @@ final class PeraCRM_Campaign_SES_SDK_Transport implements PeraCRM_Campaign_SES_T
     private function submit(#[SensitiveParameter] array $request, array $options, bool $probe): array
     {
         $start = ($this->clock)();
+        $this->lastDiagnostic = ['code'=>'local_validation'];
         try {
             $endpoint = 'https://email.'.$this->scope['region'].'.amazonaws.com';
             if ($options !== $this->options() || $this->credentials->isExpired()
@@ -109,7 +114,7 @@ final class PeraCRM_Campaign_SES_SDK_Transport implements PeraCRM_Campaign_SES_T
                 $this->credentials
             );
             $remaining = 20000 - (int) ceil((($this->clock)() - $start) / 1000000);
-            if ($remaining <= 0) { return self::UNKNOWN; }
+            if ($remaining <= 0) { $this->lastDiagnostic=['code'=>'preparation_timeout']; return self::UNKNOWN; }
             $headers = [];
             foreach ($signed->getHeaders() as $name=>$values) {
                 foreach ($values as $value) { $headers[] = $name.': '.$value; }
@@ -123,9 +128,15 @@ final class PeraCRM_Campaign_SES_SDK_Transport implements PeraCRM_Campaign_SES_T
                 CURLOPT_REDIR_PROTOCOLS=>CURLPROTO_HTTPS, CURLOPT_PROXY=>'', CURLOPT_NETRC=>CURL_NETRC_IGNORED,
                 CURLOPT_HTTPAUTH=>CURLAUTH_NONE, CURLOPT_UNRESTRICTED_AUTH=>false,
                 CURLOPT_HTTP_VERSION=>CURL_HTTP_VERSION_1_1, CURLOPT_VERBOSE=>false, CURLOPT_HEADER=>false];
+            $this->lastDiagnostic = ['code'=>'executor_exception'];
             $raw = $this->execute !== null ? ($this->execute)((string) $signed->getUri(), $curl) : self::curl((string) $signed->getUri(), $curl);
-            $decoded = self::decode($raw);
-            if ((($this->clock)() - $start) >= 20000000000 && !isset($decoded['message_id'])) { return self::UNKNOWN; }
+            $this->lastDiagnostic = self::diagnosticSummary($raw);
+            $failure = null;
+            $decoded = self::decode($raw, $failure);
+            $this->lastDiagnostic['code'] = $failure ?? ($decoded['status']===200 ? 'accepted_response' : 'provider_response');
+            if ((($this->clock)() - $start) >= 20000000000 && !isset($decoded['message_id'])) {
+                $this->lastDiagnostic['code']='submission_timeout'; return self::UNKNOWN;
+            }
             return $decoded;
         } catch (Throwable $error) {
             // Never retain/rethrow the exception, request, bearer, credential or provider body.
@@ -173,60 +184,92 @@ final class PeraCRM_Campaign_SES_SDK_Transport implements PeraCRM_Campaign_SES_T
         try {
             if (!curl_setopt_array($handle, $options)) { return []; }
             $ok = curl_exec($handle);
-            return ['errno'=>$ok === false || $overflow ? 1 : curl_errno($handle),
-                'status'=>curl_getinfo($handle, CURLINFO_RESPONSE_CODE), 'headers'=>$headers, 'body'=>$body];
+            $errno=curl_errno($handle);
+            if ($errno===0 && ($ok===false || $overflow)) { $errno=$overflow ? 23 : 1; }
+            return ['errno'=>$errno,
+                'status'=>curl_getinfo($handle, CURLINFO_RESPONSE_CODE), 'headers'=>$headers, 'body'=>$body,
+                'timings_ms'=>[
+                    'dns'=>(int)round(curl_getinfo($handle,CURLINFO_NAMELOOKUP_TIME)*1000),
+                    'connect'=>(int)round(curl_getinfo($handle,CURLINFO_CONNECT_TIME)*1000),
+                    'tls'=>(int)round(curl_getinfo($handle,CURLINFO_APPCONNECT_TIME)*1000),
+                    'total'=>(int)round(curl_getinfo($handle,CURLINFO_TOTAL_TIME)*1000),
+                ],
+                'uploaded_bytes'=>(int)curl_getinfo($handle,CURLINFO_SIZE_UPLOAD)];
         } finally { curl_close($handle); }
     }
 
-    private static function decode(array $raw): array
+    private static function diagnosticSummary(array $raw): array
+    {
+        $out=['code'=>'response_invalid'];
+        foreach (['errno'=>999,'status'=>599,'uploaded_bytes'=>2097152] as $key=>$max) {
+            $value=$raw[$key]??null;
+            $out[$key]=is_int($value) && $value>=0 && $value<=$max ? $value : null;
+        }
+        foreach (['headers'=>16384,'body'=>65536] as $key=>$max) {
+            $value=$raw[$key]??null;
+            $out[$key.'_bytes']=is_string($value) ? min(strlen($value),$max+1) : null;
+        }
+        foreach (['dns','connect','tls','total'] as $key) {
+            $value=$raw['timings_ms'][$key]??null;
+            $out[$key.'_ms']=is_int($value) && $value>=0 && $value<=60000 ? $value : null;
+        }
+        return $out;
+    }
+
+    private static function undecodable(string $code, ?string &$failure): array
+    {
+        $failure=$code; return self::UNKNOWN;
+    }
+
+    private static function decode(array $raw, ?string &$failure=null): array
     {
         if (($raw['errno'] ?? null) !== 0 || !is_int($raw['status'] ?? null)
             || !is_string($raw['headers'] ?? null) || !is_string($raw['body'] ?? null)
-            || strlen($raw['headers']) > 16384 || strlen($raw['body']) > 65536) { return self::UNKNOWN; }
+            || strlen($raw['headers']) > 16384 || strlen($raw['body']) > 65536) { return self::undecodable('transfer_incomplete',$failure); }
         // Require one complete final response; interim 100 is permitted, redirects/proxy handshakes are not.
         $blocks = explode("\r\n\r\n", $raw['headers']);
-        if (array_pop($blocks) !== '') { return self::UNKNOWN; }
+        if (array_pop($blocks) !== '') { return self::undecodable('headers_incomplete',$failure); }
         while (count($blocks) > 1 && preg_match('~\AHTTP/1\.[01] 100(?: |\r\n|$)~', $blocks[0])) { array_shift($blocks); }
-        if (count($blocks) !== 1) { return self::UNKNOWN; }
+        if (count($blocks) !== 1) { return self::undecodable('response_blocks',$failure); }
         $lines = explode("\r\n", $blocks[0]);
         $status = array_shift($lines);
-        if (!preg_match('~\AHTTP/1\.[01] ([0-9]{3})(?: [^\r\n]*)?\z~', $status, $matches) || (int) $matches[1] !== $raw['status']) { return self::UNKNOWN; }
+        if (!preg_match('~\AHTTP/1\.[01] ([0-9]{3})(?: [^\r\n]*)?\z~', $status, $matches) || (int) $matches[1] !== $raw['status']) { return self::undecodable('status_line',$failure); }
         $headers = [];
         foreach ($lines as $line) {
-            if (!preg_match('/\A([!#$%&\x27*+.^_`|~0-9A-Za-z-]+):[ \t]*([^\r\n]*)\z/', $line, $match)) { return self::UNKNOWN; }
+            if (!preg_match('/\A([!#$%&\x27*+.^_`|~0-9A-Za-z-]+):[ \t]*([^\r\n]*)\z/', $line, $match)) { return self::undecodable('header_format',$failure); }
             $name = strtolower($match[1]);
-            if (isset($headers[$name])) { return self::UNKNOWN; }
+            if (isset($headers[$name])) { return self::undecodable('duplicate_header',$failure); }
             $headers[$name] = trim($match[2]);
         }
         if (preg_match('~\Aapplication/(?:x-amz-json-1\.1|json)(?:;\s*charset=utf-8)?\z~i', $headers['content-type'] ?? '') !== 1
             || preg_match('/\A[A-Za-z0-9-]{1,128}\z/', $headers['x-amzn-requestid'] ?? '') !== 1
             || isset($headers['content-encoding'])
-            || (isset($headers['content-length']) && $headers['content-length'] !== (string) strlen($raw['body']))) { return self::UNKNOWN; }
+            || (isset($headers['content-length']) && $headers['content-length'] !== (string) strlen($raw['body']))) { return self::undecodable('response_headers',$failure); }
         // SES returns a flat string-valued object. Reject duplicate (including
         // escaped duplicate) keys rather than trusting json_decode's last value.
         $string = '"(?:[^"\\\\\x00-\x1f]|\\\\(?:["\\\\/bfnrt]|u[0-9a-fA-F]{4}))*"';
-        if (!preg_match('~\A\s*\{\s*(?:'.$string.'\s*:\s*'.$string.'\s*(?:,\s*'.$string.'\s*:\s*'.$string.'\s*)*)?\}\s*\z~', $raw['body'])) { return self::UNKNOWN; }
+        if (!preg_match('~\A\s*\{\s*(?:'.$string.'\s*:\s*'.$string.'\s*(?:,\s*'.$string.'\s*:\s*'.$string.'\s*)*)?\}\s*\z~', $raw['body'])) { return self::undecodable('response_json',$failure); }
         preg_match_all('~('.$string.')\s*:\s*'.$string.'~', $raw['body'], $pairs);
         $seen = [];
         foreach ($pairs[1] as $key) {
             $key = json_decode($key, true, 2, JSON_THROW_ON_ERROR);
-            if (isset($seen[$key])) { return self::UNKNOWN; }
+            if (isset($seen[$key])) { return self::undecodable('duplicate_json_key',$failure); }
             $seen[$key] = true;
         }
         $data = json_decode($raw['body'], false, 8, JSON_THROW_ON_ERROR);
-        if (!$data instanceof stdClass) { return self::UNKNOWN; }
+        if (!$data instanceof stdClass) { return self::undecodable('response_object',$failure); }
         $result = ['complete'=>true, 'authenticated'=>true, 'status'=>$raw['status']];
         if ($raw['status'] === 200) {
             if (isset($headers['x-amzn-errortype']) || array_keys(get_object_vars($data)) !== ['MessageId'] || !is_string($data->MessageId)
-                || preg_match('/\A[A-Za-z0-9_-]{1,191}\z/', $data->MessageId) !== 1) { return self::UNKNOWN; }
+                || preg_match('/\A[A-Za-z0-9_-]{1,191}\z/', $data->MessageId) !== 1) { return self::undecodable('acceptance_format',$failure); }
             return $result + ['message_id'=>$data->MessageId];
         }
         // SES REST/JSON may identify errors in x-amzn-errortype or JSON __type.
         $headerCode = isset($headers['x-amzn-errortype']) ? explode(':', $headers['x-amzn-errortype'], 2)[0] : null;
         $bodyCode = isset($data->__type) && is_string($data->__type) ? substr(strrchr('#'.$data->__type, '#'), 1) : null;
-        if (($headerCode !== null && $bodyCode !== null && $headerCode !== $bodyCode) || isset($data->MessageId)) { return self::UNKNOWN; }
+        if (($headerCode !== null && $bodyCode !== null && $headerCode !== $bodyCode) || isset($data->MessageId)) { return self::undecodable('error_response_conflict',$failure); }
         $code = $headerCode ?? $bodyCode;
-        if (!is_string($code) || preg_match('/\A[A-Za-z]{1,80}\z/', $code) !== 1) { return self::UNKNOWN; }
+        if (!is_string($code) || preg_match('/\A[A-Za-z]{1,80}\z/', $code) !== 1) { return self::undecodable('error_response_format',$failure); }
         return $result + ['error_code'=>$code];
     }
 

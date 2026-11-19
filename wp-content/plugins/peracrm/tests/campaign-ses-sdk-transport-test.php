@@ -216,3 +216,37 @@ foreach ([
 ] as $bad) { campaign_expect($transport->sendDraftTest($bad)===['complete'=>false,'authenticated'=>false] && !$calls,'invalid draft-test destinations/scope/tags never reach transport'); }
 $response=['errno'=>1,'status'=>0,'headers'=>'','body'=>''];
 campaign_expect($transport->sendDraftTest($test_request)===['complete'=>false,'authenticated'=>false] && count($calls)===1,'ambiguous test transfer is unknown with no retry');
+
+// Diagnostic metadata never changes acceptance rules or retries, and cannot retain raw secrets.
+foreach ([
+    ['raw'=>array_replace($raw(),['errno'=>28,'status'=>0,'headers'=>'','body'=>'',
+        'timings_ms'=>['dns'=>12,'connect'=>0,'tls'=>0,'total'=>3000],'uploaded_bytes'=>0]),
+        'code'=>'transfer_incomplete','errno'=>28],
+    ['raw'=>array_replace($raw(),['headers'=>"HTTP/1.1 200 OK\r\n"]),
+        'code'=>'headers_incomplete','errno'=>0],
+    ['raw'=>$raw(200,'{"MessageId":"x","extra":"private"}'),
+        'code'=>'acceptance_format','errno'=>0],
+] as $case) {
+    $response=$case['raw']; $before=count($calls);
+    campaign_expect($transport->send($prepared,$options)===['complete'=>false,'authenticated'=>false]
+        && count($calls)===$before+1,'diagnosed unknown remains unknown after exactly one execution');
+    $diagnostic=$transport->lastDiagnostic();
+    campaign_expect($diagnostic['code']===$case['code'] && $diagnostic['errno']===$case['errno'],
+        'diagnostic identifies transfer versus response validation failure');
+    campaign_expect(array_keys($diagnostic)===['code','errno','status','uploaded_bytes','headers_bytes','body_bytes',
+        'dns_ms','connect_ms','tls_ms','total_ms'],'diagnostic exposes a closed scalar projection');
+}
+$response=array_replace($raw(),['errno'=>28,'status'=>0,'body'=>$secret.$token,
+    'headers'=>$fields['mailbox'].$fields['unsubscribe_url'],
+    'timings_ms'=>['dns'=>$secret,'total'=>999999999,'unexpected'=>$token],
+    'uploaded_bytes'=>$secret,'extra'=>$token]);
+$transport->send($prepared,$options);
+$diagnostic=json_encode($transport->lastDiagnostic());
+foreach ([$key,$secret,$token,$fields['mailbox'],$fields['unsubscribe_url'],'unexpected'] as $private) {
+    campaign_expect(!str_contains($diagnostic,$private),'diagnostic drops raw and malformed private values');
+}
+campaign_expect($throwing->lastDiagnostic()===['code'=>'executor_exception'],
+    'executor exception records only its fixed stage');
+$response=$raw(); $transport->send($prepared,$options);
+campaign_expect($transport->lastDiagnostic()['code']==='accepted_response'
+    && $transport->lastDiagnostic()['errno']===0,'successful response replaces the previous failure diagnostic');
