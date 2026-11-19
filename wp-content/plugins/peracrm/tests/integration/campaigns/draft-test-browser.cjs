@@ -2,6 +2,15 @@
 module.exports=async function ({page}) {
   const panel=page.locator('[data-draft-test]');
   const button=panel.locator('[data-test-send]');
+  const layout=await panel.evaluate(el=>{
+    const card=el.getBoundingClientRect(),style=getComputedStyle(el);
+    const field=el.querySelector('[data-test-inbox]').getBoundingClientRect();
+    const button=el.querySelector('[data-test-send]').getBoundingClientRect();
+    return {inside:field.left>=card.left+parseFloat(style.paddingLeft)-1 && field.right<=card.right-parseFloat(style.paddingRight)+1,
+      fieldHeight:field.height,buttonGap:button.top-field.bottom};
+  });
+  if(!layout.inside || layout.fieldHeight>48 || layout.buttonGap<10) throw Error('Draft test field overflows, is oversized or touches its button');
+
   if(await button.count()!==1 || await panel.locator('[data-test-command]').count()) throw Error('Real test form did not replace CLI instructions');
   if(await panel.locator('[data-test-inbox]').evaluate(el=>el.form!==null)) throw Error('Test inbox validation can block draft saving');
   await button.evaluate(el=>{el.dataset.configured='1';el.disabled=false;});
