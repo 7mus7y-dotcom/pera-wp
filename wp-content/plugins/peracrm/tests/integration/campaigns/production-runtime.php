@@ -151,6 +151,38 @@ worker_fixture_target(static function () {
         $withdrawal=peracrm_campaign_recipient_withdrawal_service();
         prepared_expect($withdrawal->request('GET',false,$query['token'],'',[])[0]===200,'generic production withdrawal displays without mutation');
         prepared_expect($withdrawal->request('POST',true,$query['token'],'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0]===200 && !peracrm_campaigns_is_eligible('accepted@campaign-fixture.org',[]),'generic production one-click withdrawal');
+        // A requested draft test is independent of this inbox's marketing withdrawal.
+        require_once WP_PLUGIN_DIR.'/peracrm/inc/campaigns/draft-test.php';
+        define('PERACRM_CAMPAIGN_TEST_SEND',['enabled'=>true,'deployment_fingerprint'=>$fingerprint,
+            'recipients'=>['accepted@campaign-fixture.org','another@campaign-fixture.org']]);
+        $draftTest=peracrm_campaign_draft_save(0,0,['internal_name'=>'Draft test','subject'=>'Draft only',
+            'sender_id'=>'production','language'=>'en','main_text'=>'**Preview**','text_format'=>'basic_v1']);
+        prepared_expect(!is_wp_error($draftTest),'test draft saved independently of queue');
+        $protected=static function () use ($wpdb) {
+            $state=[];
+            foreach (['peracrm_subscribers','peracrm_email_suppressions','peracrm_subscription_events','peracrm_email_suppression_events',
+                'peracrm_campaign_queue_jobs','peracrm_campaign_deliveries','peracrm_subscriber_tokens'] as $table) {
+                $state[$table]=$wpdb->get_results('SELECT * FROM '.peracrm_table($table),ARRAY_A);
+                peracrm_campaigns_db_require(true);
+            }
+            return hash('sha256',wp_json_encode($state));
+        };
+        $beforeTest=$protected(); $testCalls=[];
+        $testHTTP=static function ($url,$curl) use (&$testCalls) {
+            $testCalls[]=json_decode($curl[CURLOPT_POSTFIELDS],true);
+            $body='{"MessageId":"draft-test-synthetic"}';
+            return ['errno'=>0,'status'=>200,'body'=>$body,'headers'=>"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nx-amzn-RequestId: fixture-test\r\nContent-Length: ".strlen($body)."\r\n\r\n"];
+        };
+        $inspect=peracrm_campaign_draft_test($draftTest['id'],1,'accepted@campaign-fixture.org','fixture-preview-only',false,$api,$testHTTP);
+        prepared_expect($inspect['state']==='preview' && !$testCalls && $protected()===$beforeTest,'draft test inspection has no provider or protected-ledger writes');
+        prepared_reject(fn()=>peracrm_campaign_draft_test($draftTest['id'],2,'accepted@campaign-fixture.org','fixture-stale-version',true,$api,$testHTTP));
+        prepared_reject(fn()=>peracrm_campaign_draft_test($draftTest['id'],1,'unlisted@campaign-fixture.org','fixture-wrong-inbox',true,$api,$testHTTP));
+        $sentTest=peracrm_campaign_draft_test($draftTest['id'],1,'accepted@campaign-fixture.org','fixture-send-once',true,$api,$testHTTP);
+        prepared_expect($sentTest['state']==='accepted' && count($testCalls)===1,'saved draft goes through real signer to one explicit test inbox');
+        $duplicateTest=peracrm_campaign_draft_test($draftTest['id'],1,'accepted@campaign-fixture.org','fixture-send-once',true,$api,$testHTTP);
+        prepared_expect($duplicateTest['already_attempted'] && count($testCalls)===1,'test request replay never resends');
+        prepared_reject(fn()=>peracrm_campaign_draft_test($draftTest['id'],1,'another@campaign-fixture.org','fixture-send-once',true,$api,$testHTTP));
+        prepared_expect($protected()===$beforeTest && peracrm_campaign_queue_dispatch_allowed(),'test preserves withdrawn consent, suppressions, subscriber tokens, queue and existing dispatch setting');
         // A process lost after budget begin must recover the original owner without resending.
         $worker=new PeraCRM_Campaign_Production_Worker($adapter,$config['job_ids'],static fn()=>PeraCRM_SES_Operator::authorize());
         $claim=$worker->claim($jobs['recovery'],1)[0]; $budget=$adapter->diagnosticBudget();

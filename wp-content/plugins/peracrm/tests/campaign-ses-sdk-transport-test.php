@@ -197,3 +197,22 @@ campaign_expect(!$probeTransport->send($probeRequest,[])['complete'] && count($c
     'campaign transport does not accept probe payloads');
 campaign_expect(!$transport->sendInternalProbe()['complete'] && count($calls)===1,
     'another AWS scope cannot send the fixed probe');
+
+// Draft-test messages use the same signed SES transport but have no recipient tokens or List headers.
+require_once $root.'/inc/campaigns/draft-test.php';
+$test_content=$saved['payload']['content'];
+$test_request=peracrm_campaign_draft_test_request($test_content,'owner@example.org',$scope,$test_content['sender']['email']);
+$response=$raw(); $calls=[];
+campaign_expect($transport->sendDraftTest($test_request)['message_id']==='fixture-sdk-id' && count($calls)===1,'draft test makes exactly one signed request');
+$wire=json_decode($calls[0][1][CURLOPT_POSTFIELDS],true);
+campaign_expect($wire['Destination']===['ToAddresses'=>['owner@example.org']] && str_starts_with($wire['Content']['Simple']['Subject']['Data'],'[TEST] '),'one explicit test recipient and subject marker');
+campaign_expect(!isset($wire['Content']['Simple']['Headers']) && !str_contains(wp_json_encode($wire),'{{recipient_') && str_contains($wire['Content']['Simple']['Body']['Html']['Data'],'inactive in test email'),'test has inactive preference links and no one-click header or token');
+$calls=[];
+foreach ([
+    array_replace($test_request,['Destination'=>['ToAddresses'=>['owner@example.org','other@example.org']]]),
+    array_replace($test_request,['Destination'=>['ToAddresses'=>['owner@example.org'],'CcAddresses'=>['other@example.org']]]),
+    array_replace($test_request,['ConfigurationSetName'=>'other']),
+    array_replace($test_request,['EmailTags'=>[['Name'=>'peracrm_attempt','Value'=>str_repeat('a',64)]]]),
+] as $bad) { campaign_expect($transport->sendDraftTest($bad)===['complete'=>false,'authenticated'=>false] && !$calls,'invalid draft-test destinations/scope/tags never reach transport'); }
+$response=['errno'=>1,'status'=>0,'headers'=>'','body'=>''];
+campaign_expect($transport->sendDraftTest($test_request)===['complete'=>false,'authenticated'=>false] && count($calls)===1,'ambiguous test transfer is unknown with no retry');

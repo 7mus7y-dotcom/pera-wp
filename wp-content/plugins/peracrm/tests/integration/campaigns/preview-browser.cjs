@@ -29,6 +29,18 @@ module.exports = async function ({page,target,employeeContext,context}) {
     await page.getByRole('button',{name:'Search content',exact:true}).click();
     await page.waitForFunction(()=>document.querySelectorAll('[data-content-results] button').length===20);
     await page.locator('[data-content-results] button').first().click();
+    const selectedArticle=page.locator('[data-campaign-block]').last();
+    if(!(await selectedArticle.locator('[data-content-title]').innerText()).includes('Phase3B')) throw Error('Selected article title missing');
+    const selectedID=await selectedArticle.locator('[data-content-id]').innerText();
+    const pageURL=page.url();
+    await page.getByLabel('Search title',{exact:true}).fill('#'+selectedID);
+    // No Search click: wait for the debounced AJAX result for this exact ID.
+    await page.waitForFunction(id=>{
+      const buttons=[...document.querySelectorAll('[data-content-results] button')];
+      return buttons.length===1 && buttons[0].textContent.endsWith('#'+id);
+    },selectedID);
+    if(page.url()!==pageURL) throw Error('Live content search navigated');
+    await page.getByLabel('Search title',{exact:true}).fill('Phase3B');
     await page.getByLabel('Content kind',{exact:true}).selectOption('property');
     await page.getByRole('button',{name:'Search content',exact:true}).click();
     await page.locator('[data-content-results] button').first().filter({hasText:'property'}).waitFor();
@@ -60,7 +72,8 @@ module.exports = async function ({page,target,employeeContext,context}) {
     if(!(await page.locator('[data-audience-result]').innerText()).includes('eligible: 0')) throw Error('Zero audience did not reconcile');
     await page.locator('[data-audience-result]').screenshot({path:'/evidence/campaign-audience-'+size+'.png',style:captureStyle});
     // Unsaved form preview, same renderer, no storage mutation, no active links.
-    await page.getByLabel('Main text',{exact:true}).fill('UNSAVED PREVIEW '+ 'x'.repeat(250));
+    await page.getByLabel('Main text',{exact:true}).fill('UNSAVED PREVIEW **bold copy** [large]large copy[/large] '+ 'x'.repeat(250));
+    await page.locator('[data-text-format]').selectOption('basic_v1');
     const responsePromise=page.waitForResponse(r=>r.url()===endpoint && r.request().postData()?.includes('render'));
     await page.getByRole('button',{name:size==='mobile'?'Mobile preview':'Desktop preview',exact:true}).click();
     const response=await responsePromise;
@@ -68,6 +81,7 @@ module.exports = async function ({page,target,employeeContext,context}) {
     await page.locator('[data-preview-feedback]').filter({hasText:'Draft preview of form'}).waitFor();
     const frame=page.frameLocator('[data-email-frame]');
     await frame.getByText('UNSAVED PREVIEW',{exact:false}).waitFor();
+    if(await frame.locator('strong').filter({hasText:'bold copy'}).count()!==1 || await frame.locator('span[style="font-size:20px"]').count()!==1) throw Error('Basic formatting missing from preview');
     const logoLoaded=await frame.locator('img[alt="Pera Property"]').evaluate(img=>img.complete ? img.naturalWidth>0 : new Promise(resolve=>{
       img.addEventListener('load',()=>resolve(img.naturalWidth>0),{once:true});
       img.addEventListener('error',()=>resolve(false),{once:true});

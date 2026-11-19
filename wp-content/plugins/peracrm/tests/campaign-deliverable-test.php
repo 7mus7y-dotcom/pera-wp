@@ -117,3 +117,14 @@ $old_row=array_replace($saved,['payload_json'=>wp_json_encode($old_payload),'con
 $old_decoded=peracrm_with_target_blog(fn()=>peracrm_campaign_snapshot_decode($old_row));
 campaign_expect($old_decoded['payload_json']===$old_row['payload_json'] && $old_decoded['content_hash']===$old_row['content_hash'] && $old_decoded['payload']===$old_payload, 'pre-fix v2 diagnostic bytes and hash preserved exactly');
 echo "PASS image diagnostics isolated from deliverable HTML/text with historical v2 compatibility\n";
+
+$formatted=$deliverable_model;
+$formatted['text_format']='basic_v1';
+$formatted['introduction']='**Bold** and *italic* [large]Large[/large] <script>unsafe</script>';
+$formatted['blocks']=[['type'=>'cta','heading'=>'Rent your apartment','text'=>'Help for overseas owners','label'=>'Discuss rentals','url'=>'https://example.org/rent']];
+$rich=peracrm_campaign_render($formatted,'deliverable_v2');
+campaign_expect(str_contains($rich['html'],'<strong>Bold</strong>') && str_contains($rich['html'],'<em>italic</em>') && str_contains($rich['html'],'font-size:20px') && !str_contains($rich['html'],'<script>'),'basic formatting renders only fixed escaped HTML');
+campaign_expect(str_contains($rich['text'],'Bold and italic Large <script>unsafe</script>') && !str_contains($rich['text'],'**'),'plain-text alternative removes formatting syntax');
+campaign_expect(str_contains($rich['html'],'Rent your apartment</h2>') && str_contains($rich['html'],'Help for overseas owners') && str_contains($rich['html'],'>Discuss rentals</a>'),'CTA heading, supporting text and button label remain distinct');
+$legacy=peracrm_campaign_render(array_replace($formatted,['text_format'=>'plain']),'deliverable_v2');
+campaign_expect(str_contains($legacy['html'],'**Bold**') && !str_contains($legacy['html'],'<strong>Bold</strong>'),'legacy plain text never changes interpretation');

@@ -14,6 +14,7 @@ function peracrm_campaign_render_model($input, $configuration = null)
         if ($sender['id']===$doc['sender_id'] && $sender['approved']) { $model['sender']=$sender['name'].' <'.$sender['email'].'> · Reply-to: '.$sender['reply_to']; }
     }
     return peracrm_with_target_blog(static function () use ($doc,$model) {
+        $model['text_format']=$doc['text_format'] ?? 'plain';
         $ids=[];foreach ($doc['blocks'] as $b) { if (isset($b['id'])) { $ids[]=$b['id']; } }
         if ($ids) { _prime_post_caches($ids,false,true); }
         foreach ($doc['blocks'] as $b) {
@@ -32,7 +33,7 @@ function peracrm_campaign_render($model, $format = 'review_v1')
     $deliverable = $format === 'deliverable_v2';
     if ($deliverable) { peracrm_campaign_deliverable_model_validate($model); }
     $captured=($model['content_context'] ?? '')==='immutable_capture';
-    $sections=[['brand'=>true,'text'=>$captured ? 'REVIEWED CONTENT · Prepared immutable revision. No email is sent. Domain/provider readiness unverified.' : 'DRAFT PREVIEW · Current editable content. Domain/provider readiness unverified.'],['heading'=>$model['subject'] ?: 'Subject missing','text'=>$model['preheader']],['text'=>$model['introduction']],['text'=>$model['main_text']]];
+    $sections=[['brand'=>true,'text'=>$captured ? 'REVIEWED CONTENT · Prepared immutable revision. No email is sent. Domain/provider readiness unverified.' : 'DRAFT PREVIEW · Current editable content. Domain/provider readiness unverified.'],['heading'=>$model['subject'] ?: 'Subject missing','text'=>$model['preheader']],['text'=>$model['introduction'],'format'=>$model['text_format'] ?? 'plain'],['text'=>$model['main_text'],'format'=>$model['text_format'] ?? 'plain']];
     if ($deliverable) { $sections[0] = ['brand'=>true]; }
     foreach ($model['notices'] as $notice) { $sections[]=['text'=>'Missing: '.$notice]; }
     $destinations=[];
@@ -40,7 +41,7 @@ function peracrm_campaign_render($model, $format = 'review_v1')
         $type=$block['type'];
         if (isset($block['notice'])) { $sections[]=['heading'=>ucfirst($type).' block','text'=>$block['notice']];continue; }
         if ($type==='text') { $sections[]=['heading'=>$block['heading'],'text'=>$block['text']];continue; }
-        if ($type==='cta') { $section=['heading'=>$block['label'],'text'=>'','url'=>$block['url']]; }
+        if ($type==='cta') { $section=['heading'=>$block['heading'] ?? $block['label'],'text'=>$block['text'] ?? '','url'=>$block['url'],'button_label'=>$block['label']]; }
         else {
             $section=['heading'=>$block['title'],'text'=>$block['excerpt']."\nLanguage: ".$block['language'],'url'=>$block['url'],'image'=>$block['image'],'alt'=>$block['alt']];
             if (!$deliverable && !empty($block['image_notice'])) { $section['text'].="\n".$block['image_notice']; }
@@ -93,7 +94,7 @@ function peracrm_campaign_render($model, $format = 'review_v1')
             $text[]=$section['heading'];
         }
         if (!empty($section['image']) && peracrm_campaign_public_url($section['image'])!=='') { $html.='<img src="'.esc_url($section['image']).'" alt="'.esc_attr($section['alt']).'" style="display:block;width:100%;max-width:592px;height:auto;border:0;border-radius:8px;margin:0 0 16px">'; $text[]='Image: '.$section['image'].' · '.$section['alt']; }
-        if (!empty($section['text'])) { $html.='<p style="margin:0;white-space:pre-line">'.esc_html($section['text']).'</p>'; $text[]=$section['text']; }
+        if (!empty($section['text'])) { $html.='<p style="margin:0;white-space:pre-line">'.peracrm_campaign_basic_text($section['text'],($section['format'] ?? 'plain')==='basic_v1').'</p>'; $text[]=peracrm_campaign_basic_text($section['text'],($section['format'] ?? 'plain')==='basic_v1',true); }
         if (!empty($section['details'])) {
             $html.='<div style="margin:16px 0;padding:12px 16px;background:#fff;border:1px solid #d6dfed;border-radius:8px;font-size:14px">';
             foreach (explode("\n",$section['details']) as $detail) { $html.='<p style="margin:4px 0">'.esc_html($detail).'</p>'; }
@@ -102,10 +103,11 @@ function peracrm_campaign_render($model, $format = 'review_v1')
         if (!empty($section['url']) && peracrm_campaign_public_url($section['url'])!=='') {
             // Captured delivery links remain functional; review-only rendering stays inert.
             if ($deliverable) {
-                $html.='<a href="'.esc_attr($section['url']).'" style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['heading'] ?: 'View content').'</a>';
+                $html.='<a href="'.esc_attr($section['url']).'" style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['button_label'] ?? ($section['heading'] ?: 'View content')).'</a>';
             } else {
-                $html.='<span style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">View content · navigation disabled</span>';
+                $html.='<span style="display:inline-block;padding:10px 18px;background:#002d72;color:#fff;border-radius:4px">'.esc_html($section['button_label'] ?? 'View content').' · navigation disabled</span>';
             }
+            if (isset($section['button_label']) && $section['button_label']!==$section['heading']) { $text[]=$section['button_label']; }
             $text[]=$section['url'];
         }
         if (isset($section['slot'])) {
@@ -198,4 +200,19 @@ function peracrm_campaign_staff_preview_html($html)
     // Renderer emits only these anchors. Historical v1 contains none. Remove all
     // anchor tags in the display projection, retaining their styles and escaped labels.
     return str_replace('</a>', '</span>', preg_replace('~<a href="[^"]*"([^>]*)>~', '<span$1>', $html));
+}
+
+/** Opt-in basic text syntax. Escape first; replacements contain fixed HTML only. */
+function peracrm_campaign_basic_text(string $text,bool $formatted,bool $plain=false): string
+{
+    if (!$formatted) { return $plain ? $text : esc_html($text); }
+    $value=$plain ? $text : esc_html($text);
+    $rules=[
+        '~\*\*([^*]+)\*\*~u'=>['<strong>$1</strong>','$1'],
+        '~(?<!\*)\*([^*\n]+)\*(?!\*)~u'=>['<em>$1</em>','$1'],
+        '~\[small\]([^\[]+)\[/small\]~u'=>['<span style="font-size:13px">$1</span>','$1'],
+        '~\[large\]([^\[]+)\[/large\]~u'=>['<span style="font-size:20px">$1</span>','$1'],
+    ];
+    foreach ($rules as $pattern=>$replacement) { $value=preg_replace($pattern,$replacement[$plain ? 1 : 0],$value); }
+    return $value;
 }

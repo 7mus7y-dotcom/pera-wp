@@ -63,3 +63,9 @@ $e=ses_event(); $e['mail']['timestamp']='2026-10-24T12:00:00Z'; $before=$normali
 $e['mail']['timestamp']='2026-10-24T12:00:00.000000Z';
 sns_expect($before===$normalizer->normalize(ses_event_json($e)),'timestamp precision canonicalized');
 echo "PASS bounded SES normalization; no HTTP or application authority\n";
+
+$e=ses_event('Delivery');
+$e['mail']['tags']['peracrm_draft_test']=[str_repeat('a',64)];
+ses_event_reject(fn()=>$normalizer->normalize(ses_event_json($e)),'draft_test_message');
+$e['mail']['tags']['peracrm_draft_test']=['not-a-binding'];
+ses_event_reject(fn()=>$normalizer->normalize(ses_event_json($e)),'invalid_tags');

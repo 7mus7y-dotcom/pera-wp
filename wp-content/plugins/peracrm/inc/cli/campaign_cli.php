@@ -16,12 +16,20 @@ function peracrm_campaign_cli($operation, $args, $assoc)
         if ($operation==='suppression-sync') { $allowed=['format','pages','confirm','restart']; }
         if ($operation==='rehearsal-proposal') { $allowed=['format','job']; }
         if ($operation==='rehearsal-send') { $allowed=['format','job','binding','confirm']; }
+        if ($operation==='draft-test') { $allowed=['format','campaign','revision','to','request-id','confirm']; }
         if ($operation==='retention') { $allowed=['format','limit','confirm']; }
         if ($args || array_diff(array_keys($assoc), $allowed)) { throw new InvalidArgumentException(); }
         $format=$assoc['format'] ?? 'json';
         if (!in_array($format,['json','text'],true)) { throw new InvalidArgumentException(); }
         $service=new PeraCRM_Campaign_Operations();
-        if ($operation==='retention') {
+        if ($operation==='draft-test') {
+            require_once dirname(__DIR__).'/campaigns/draft-test.php';
+            foreach (['campaign','revision'] as $key) { if (!is_string($assoc[$key] ?? null) || !preg_match('/\A[1-9][0-9]{0,9}\z/',$assoc[$key])) { throw new InvalidArgumentException(); } }
+            if (!is_string($assoc['to'] ?? null) || !is_string($assoc['request-id'] ?? null)
+                || (isset($assoc['confirm']) && $assoc['confirm']!=='send-one-test')) { throw new InvalidArgumentException(); }
+            $data=peracrm_campaign_draft_test((int)$assoc['campaign'],(int)$assoc['revision'],$assoc['to'],$assoc['request-id'],isset($assoc['confirm']));
+            if (!in_array($data['state'],['preview','accepted'],true)) { $exit=4; }
+        } elseif ($operation==='retention') {
             require_once dirname(__DIR__).'/campaigns/retention.php';
             if (isset($assoc['confirm']) && $assoc['confirm']!=='retire-expired-diagnostics') { throw new InvalidArgumentException(); }
             $raw=$assoc['limit']??'25';
@@ -125,11 +133,11 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             if (!in_array($data['result'],['completed','time_bound'],true)) { $exit=4; }
         }
     } catch (PeraCRM_Campaign_Operations_Blocked $e) { $data=['error'=>'campaign_operation_blocked']; $exit=4; }
-    catch (Throwable $e) { $code=$e->getMessage(); $data=['error'=>str_starts_with($operation,'dispatch-') && preg_match('/\A(?:production|operator|deployment|budget)_[a-z_]{1,64}\z/',$code) ? $code : 'campaign_command_rejected']; $exit=3; }
+    catch (Throwable $e) { $code=$e->getMessage(); $data=['error'=>(str_starts_with($operation,'dispatch-') || $operation==='draft-test') && preg_match('/\A(?:production|operator|deployment|budget|draft_test)_[a-z_]{1,64}\z/',$code) ? $code : 'campaign_command_rejected']; $exit=3; }
     // Never print exception/SQL/provider payloads. Only allowlisted service summaries reach stdout.
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
 }
-foreach (['client-mailing-audit','retention','dispatch-run','dispatch-recover','dispatch-refresh','dispatch-scheduled','readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','internal-probe-status','rehearsal-proposal','rehearsal-send','rehearsal-status','fixture-run','fixture-recover'] as $operation) {
+foreach (['draft-test','client-mailing-audit','retention','dispatch-run','dispatch-recover','dispatch-refresh','dispatch-scheduled','readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','internal-probe-status','rehearsal-proposal','rehearsal-send','rehearsal-status','fixture-run','fixture-recover'] as $operation) {
     WP_CLI::add_command('peracrm campaigns '.$operation, static function ($args,$assoc) use ($operation) { peracrm_campaign_cli($operation,$args,$assoc); });
 }

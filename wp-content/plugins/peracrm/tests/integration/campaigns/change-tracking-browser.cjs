@@ -22,7 +22,7 @@ module.exports = async function ({page,target}) {
       const responsePromise=page.waitForResponse(isAudience);
       await page.getByRole('button',{name:'Preview audience counts',exact:true}).click();
       const json=await (await responsePromise).json();
-      if(!json.success || json.data.complete || json.data.considered!==200 || !json.data.cursor) throw Error('Expected resumable 200-row audience batch');
+      if(!json.success || json.data.complete || json.data.considered!==2000 || !json.data.cursor) throw Error('Expected resumable 2000-row audience batch');
       await result.filter({hasText:'Partial'}).waitFor();
       if(!(await next.isVisible())) throw Error('Partial progress has no continuation');
       return {cursor:json.data.cursor,status:await status.innerText(),text:await result.innerText()};
@@ -59,8 +59,8 @@ module.exports = async function ({page,target}) {
     const continued=await continuedResponse.json();
     // The actual posted cursor must be the one issued before any selector interaction.
     const posted=continuedResponse.request().postData() || '';
-    if(!posted.includes(initial.cursor) || !continued.success || continued.data.considered!==400 || await status.innerText()!==initial.status) throw Error('Selector interactions lost or restarted the signed audience cursor');
-    console.log('PASS change tracking '+size+': selector typing/kind/search/pagination preserve saved status and exact audience cursor; continuation reaches 400');
+    if(!posted.includes(initial.cursor) || !continued.success || continued.data.considered!==4000 || await status.innerText()!==initial.status) throw Error('Selector interactions lost or restarted the signed audience cursor');
+    console.log('PASS change tracking '+size+': selector typing/kind/search/pagination preserve saved status and exact audience cursor; continuation reaches 4000');
     const mutations=[
       ['select article',async()=>{await search('article');await page.locator('[data-content-results] button').first().click();}],
       ['select property',async()=>{await search('property');await page.locator('[data-content-results] button').first().click();}],

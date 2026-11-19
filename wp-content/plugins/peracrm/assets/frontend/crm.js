@@ -2678,7 +2678,7 @@ document.addEventListener('DOMContentLoaded', function () {
       function documentModel() {
         var data = new FormData(form);
         var doc = {schema_version: 1, blocks: [], audience: {version: 1}};
-        ['internal_name','subject','preheader','language','sender_id','introduction','main_text'].forEach(function (key) { doc[key] = String(data.get('document[' + key + ']') || ''); });
+        ['internal_name','subject','preheader','language','sender_id','introduction','main_text','text_format'].forEach(function (key) { doc[key] = String(data.get('document[' + key + ']') || ''); });
         ['language','topic'].forEach(function (key) { doc.audience[key] = String(data.get('document[audience][' + key + ']') || ''); });
         blocks.querySelectorAll('[data-campaign-block]').forEach(function (block) {
           var item = {};
@@ -2709,6 +2709,7 @@ document.addEventListener('DOMContentLoaded', function () {
               var block = blocks.lastElementChild;
               block.querySelector('input[name$="[id]"]').value = String(item.id);
               block.querySelector('[data-content-id]').textContent = String(item.id);
+              block.querySelector('[data-content-title]').textContent = item.title;
               reindex(blocks,'[data-campaign-block]','blocks'); changed(); invalidateAudience();
             });
             row.append(label,select); results.appendChild(row);
@@ -2716,7 +2717,18 @@ document.addEventListener('DOMContentLoaded', function () {
           nextContent = data.next; tools.querySelector('[data-content-next]').hidden = nextContent === null;
         }).catch(function (error) { if (generation === searchGeneration) feedback.textContent = error.message; });
       }
-      tools.querySelector('[data-content-search]').addEventListener('click', function () { search(0); });
+      var searchTimer;
+      function scheduleSearch() {
+        clearTimeout(searchTimer); searchGeneration++; nextContent=null;
+        tools.querySelector('[data-content-next]').hidden=true;
+        tools.querySelector('[data-content-results]').replaceChildren();
+        searchTimer=setTimeout(function () { search(0); },300);
+      }
+      tools.querySelector('[data-content-term]').addEventListener('input',scheduleSearch);
+      tools.querySelector('[data-content-kind]').addEventListener('change',scheduleSearch);
+      form.elements['document[language]'].addEventListener('change',scheduleSearch);
+      tools.querySelector('[data-content-term]').addEventListener('keydown',function (event) { if (event.key==='Enter') { event.preventDefault(); clearTimeout(searchTimer); search(0); } });
+      tools.querySelector('[data-content-search]').addEventListener('click', function () { clearTimeout(searchTimer); search(0); });
       tools.querySelector('[data-content-next]').addEventListener('click', function () {
         var current = JSON.stringify([tools.querySelector('[data-content-kind]').value,tools.querySelector('[data-content-term]').value,form.elements['document[language]'].value]);
         search(current === searchBinding ? nextContent : 0);

@@ -44,6 +44,31 @@ final class PeraCRM_Campaign_SES_SDK_Transport implements PeraCRM_Campaign_SES_T
         return $this->submit($request, $options, false);
     }
 
+    /** Explicit operational preview. Normal campaign validation remains unchanged. */
+    public function sendDraftTest(#[SensitiveParameter] array $request): array
+    {
+        try {
+        $keys=array_keys($request); sort($keys);
+        $simple=$request['Content']['Simple'] ?? [];
+        if ($keys!==['ConfigurationSetName','Content','Destination','EmailTags','FromEmailAddress','ReplyToAddresses']
+            || $request['ConfigurationSetName']!==$this->scope['configuration_set']
+            || array_keys($request['Destination'])!==['ToAddresses'] || count($request['Destination']['ToAddresses'])!==1
+            || !peracrm_campaign_submission_mailbox($request['Destination']['ToAddresses'][0])
+            || count($request['ReplyToAddresses'])!==1 || !peracrm_campaign_submission_mailbox($request['ReplyToAddresses'][0])
+            || !is_string($request['FromEmailAddress']) || preg_match('/[\r\n]/',$request['FromEmailAddress'])
+            || array_keys($request['Content'])!==['Simple'] || array_keys($simple)!==['Subject','Body']
+            || array_keys($simple['Body'])!==['Html','Text']
+            || count($request['EmailTags'])!==1 || ($request['EmailTags'][0]['Name'] ?? '')!=='peracrm_draft_test'
+            || !preg_match('/\A[a-f0-9]{64}\z/',$request['EmailTags'][0]['Value'] ?? '')) { return self::UNKNOWN; }
+        foreach ([$simple['Subject'],$simple['Body']['Html'],$simple['Body']['Text']] as $part) {
+            if (array_keys($part)!==['Data','Charset'] || !is_string($part['Data']) || $part['Charset']!=='UTF-8' || strlen($part['Data'])>1048576) { return self::UNKNOWN; }
+        }
+        if (!str_starts_with($simple['Subject']['Data'],'[TEST] ') || preg_match('/[\r\n]/',$simple['Subject']['Data'])
+            || str_contains($simple['Body']['Html']['Data'],'{{') || str_contains($simple['Body']['Text']['Data'],'{{')) { return self::UNKNOWN; }
+        return $this->submit($request,$this->options(),true);
+        } catch (Throwable $error) { return self::UNKNOWN; }
+    }
+
     /** Fixed operational message, outside the subscriber campaign contract. */
     public function sendInternalProbe(): array
     {
