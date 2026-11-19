@@ -8238,6 +8238,47 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   margin-bottom: var(--crm-client-stack-gap, 12px);
 }
 
+/* Final client actions: mailing first, Danger zone second. */
+.crm-page--client-view .crm-client-bottom-panels {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--crm-client-stack-gap, 12px);
+  min-width: 0;
+}
+
+.crm-page--client-view .crm-client-bottom-panels > .crm-section {
+  grid-column: auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.crm-page--client-view .crm-client-bottom-panels > :only-child {
+  grid-column: 1 / -1;
+}
+
+/* Grid gap owns mailing-panel rhythm; paragraph margins must not add another gap. */
+.crm-page--client-view .crm-client-mailing-panel {
+  --crm-section-gap: 8px;
+  align-content: start;
+}
+
+.crm-page--client-view .crm-client-mailing-panel > p,
+.crm-page--client-view .crm-client-mailing-panel .crm-form-stack > p {
+  margin: 0;
+}
+
+.crm-page--client-view .crm-client-mailing-panel .crm-form-stack {
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .crm-page--client-view .crm-client-bottom-panels {
+    grid-template-columns: 1fr;
+  }
+}
+
 .crm-page--client-view .crm-client-related--enquiries .peracrm-linked-properties-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
