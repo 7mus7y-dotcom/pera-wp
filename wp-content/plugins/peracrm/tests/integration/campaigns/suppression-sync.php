@@ -97,6 +97,22 @@ peracrm_with_target_blog(static function () {
         if (str_starts_with($point,'initialize')) { sns_expect($svc->health()===$old,'failed successor initialization preserves prior completion'); }
         sns_expect($svc->run(1)['state']==='completed','next scan starts cleanly after '.$point);
     }
+    // Real SQL storage and deduplication with the production host precision setting.
+    $fractional=sync_page('fractional-'.bin2hex(random_bytes(5)).'@example.test');
+    $fractional['SuppressedDestinationSummaries'][0]['LastUpdateTime']=1700000000.123;
+    $fractionalPins=sync_pins(); $precision=ini_get('serialize_precision');
+    try {
+        ini_set('serialize_precision','100');
+        $fractionalService=sync_service($fractionalPins,static fn()=>$fractional);
+        sns_expect($fractionalService->run(1)['state']==='completed','fractional timestamp commits under precision 100');
+        $facts=suppress_rows('peracrm_campaign_ses_sync_facts');
+        $events=suppress_rows('peracrm_email_suppression_events');
+        ini_set('serialize_precision','3');
+        sns_expect($fractionalService->run(1)['state']==='completed'
+            && suppress_rows('peracrm_campaign_ses_sync_facts')===$facts
+            && suppress_rows('peracrm_email_suppression_events')===$events,
+            'precision changes retain existing facts and avoid duplicate suppression events');
+    } finally { ini_set('serialize_precision',$precision); }
     $v=sync_pins(); $read=static fn()=>sync_page($box); $wrong=$v; $wrong['account_id']='999999999999';
     sync_reject_sql(fn()=>new PeraCRM_SES_Suppression_Sync($v,new PeraCRM_Sync_Fixture_Reader($wrong,$read)),'sync_scope');
     $svc=sync_service($v,$read);

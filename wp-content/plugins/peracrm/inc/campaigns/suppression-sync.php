@@ -199,6 +199,19 @@ final class PeraCRM_SES_Suppression_Sync
             $wpdb->suppress_errors($quiet);
         }
     }
+    /** Stable round-trip number encoding, independent of host serialize_precision.
+     * Some hosts use 100: fractional SES timestamps then overflow VARCHAR(32).
+     * Restore the process setting before any database, callback or network work.
+     */
+    private static function providerTimestamp(int|float $timestamp): string
+    {
+        $precision=ini_get('serialize_precision');
+        if ($precision===false || ini_set('serialize_precision','-1')===false) { throw new PeraCRM_SES_Sync_Error(); }
+        try { $encoded=json_encode($timestamp,JSON_THROW_ON_ERROR); }
+        finally { ini_set('serialize_precision',$precision); }
+        if (strlen($encoded)>32) { throw new PeraCRM_SES_Sync_Error('sync_invalid_page'); }
+        return $encoded;
+    }
     private function commitPage(array $expected,#[SensitiveParameter] array $page,int $connection,string $guard): array
     {
         return $this->transaction($connection,$guard,function () use ($expected,$page,$connection,$guard) {
@@ -215,7 +228,7 @@ final class PeraCRM_SES_Suppression_Sync
             foreach ($page['SuppressedDestinationSummaries'] as $entry) {
                 $entry['normalized_email']=peracrm_campaigns_normalize_email($entry['EmailAddress']);
                 $entry['reason']=$entry['Reason']==='BOUNCE'?'hard_bounce':'complaint';
-                $entry['updated']=json_encode($entry['LastUpdateTime'],JSON_THROW_ON_ERROR);
+                $entry['updated']=self::providerTimestamp($entry['LastUpdateTime']);
                 $entry['hash']=hash('sha256',json_encode([$entry['EmailAddress'],$entry['Reason'],$entry['updated']],JSON_THROW_ON_ERROR));
                 $entries[]=$entry;
             }

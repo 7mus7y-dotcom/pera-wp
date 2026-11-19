@@ -48,3 +48,21 @@ $GLOBALS['campaign_roles'][2]['administrator']->add_cap('peracrm_manage_subscrib
 $exit=0; try { (WP_CLI::$commands['peracrm campaigns suppression-sync'])([],['pages'=>'1','confirm'=>'account-deny-only']); } catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
 campaign_expect($exit===2 && json_decode(WP_CLI::$output,true)['state']==='disabled','authorized explicit sync remains production disabled');
 echo "PASS suppression sync policy, signature, retries, duplicate-key and disabled CLI regressions\n";
+
+// Fractional provider timestamps must fit storage and retain identity across PHP settings.
+$encodeTimestamp=new ReflectionMethod(PeraCRM_SES_Suppression_Sync::class,'providerTimestamp');
+$originalPrecision=ini_get('serialize_precision');
+try {
+    foreach ([1700000000.123, 1795098933.123, 0.5, 1.0e-200, 1700000000] as $timestamp) {
+        $canonical=null;
+        foreach (['100','3','17','-1'] as $precision) {
+            ini_set('serialize_precision',$precision);
+            $encoded=$encodeTimestamp->invoke(null,$timestamp);
+            campaign_expect(strlen($encoded)<=32 && (float)json_decode($encoded)===(float)$timestamp,
+                'fractional timestamp fits storage without losing its numeric value');
+            campaign_expect(ini_get('serialize_precision')===$precision,'timestamp encoding restores host precision');
+            if ($canonical===null) { $canonical=$encoded; }
+            campaign_expect($canonical===$encoded,'provider fact identity is independent of host precision');
+        }
+    }
+} finally { ini_set('serialize_precision',$originalPrecision); }
