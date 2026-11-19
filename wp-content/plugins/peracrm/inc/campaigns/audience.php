@@ -48,10 +48,10 @@ function peracrm_campaign_audience_preview($id,$revision,$rules,$cursor='')
             $boundary=(int)$wpdb->get_var("SELECT COALESCE(MAX(id),0) FROM {$subscribers}");peracrm_campaigns_db_require(true);
             $state=$binding+['boundary'=>$boundary,'last'=>0,'as_of'=>gmdate('Y-m-d H:i:s'),'expires'=>time()+1800,'considered'=>0,'counts'=>array_fill_keys(['eligible','suppression','consent','linked_client','language','topic','rules'],0)];
         }
-        $rows=peracrm_campaign_audience_batch($state['last'],$state['boundary'],201);
-        $more=count($rows)>200;
+        $rows=peracrm_campaign_audience_batch($state['last'],$state['boundary'],2001);
+        $more=count($rows)>2000;
         $filters=$rules;unset($filters['version']);
-        foreach (array_slice($rows,0,200) as $row) {
+        foreach (array_slice($rows,0,2000) as $row) {
             $reason=peracrm_campaigns_eligibility_reason($row,['post_type'=>$row['linked_type'],'post_status'=>$row['linked_status'],'disposition'=>$row['linked_disposition']],$filters);
             $state['counts'][$reason]++;$state['considered']++;$state['last']=(int)$row['id'];
         }

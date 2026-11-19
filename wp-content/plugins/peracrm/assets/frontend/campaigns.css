@@ -82,3 +82,11 @@
   .crm-page--campaigns .campaign-stat { padding: 12px; }
   .crm-page--campaigns .peracrm-campaigns .btn { width: 100%; }
 }
+
+/* Campaign-list cells keep their existing horizontal alignment. */
+.crm-page--campaigns [data-draft-campaigns] :is(th, td) { vertical-align: middle; }
+.crm-page--campaigns .campaign-audience-actions,
+.crm-page--campaigns .campaign-format-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.crm-page--campaigns .campaign-format-toolbar { margin:0 0 8px; }
+.crm-page--campaigns .campaign-format-toolbar select { width:auto; min-height:36px; padding:6px 10px; }
+.crm-page--campaigns .campaign-test-send { margin-top:20px; padding-top:20px; border-top:1px solid var(--border-muted); }

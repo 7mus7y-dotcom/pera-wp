@@ -83,6 +83,10 @@ final class PeraCRM_SES_Event_Normalizer
             $destinations=self::recipients($mail->destination ?? null);
             $tags=self::object($mail->tags ?? null);
             self::need(self::tag($tags,'ses:configuration-set')===$this->scope['configuration_set'],'wrong_scope');
+            if (isset($tags->peracrm_draft_test)) {
+                self::need(preg_match('/\A[a-f0-9]{64}\z/',self::tag($tags,'peracrm_draft_test'))===1,'invalid_tags');
+                throw new PeraCRM_SES_Event_Error('draft_test_message');
+            }
             $binding=[];
             foreach (['delivery','attempt','snapshot','envelope'] as $key) {
                 $value=self::tag($tags,'peracrm_'.$key);

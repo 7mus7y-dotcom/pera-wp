@@ -131,7 +131,10 @@ function peracrm_campaign_content_search($type,$term,$after,$language)
         $post_type=$type==='article' ? 'post' : 'property';
         $object=get_post_type_object($post_type);
         if (!$object || !is_post_type_viewable($object)) { return ['items'=>[],'next'=>null,'notice'=>'Property content unavailable: the post type is not registered as public by an active plugin.']; }
-        $rows=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->posts} WHERE post_type=%s AND post_status='publish' AND post_password='' AND ID>%d AND post_title LIKE %s ORDER BY ID ASC LIMIT 21",$post_type,$after,'%'.$wpdb->esc_like($term).'%'));
+        $term=trim($term);
+        $by_id=preg_match('/\A#?([1-9][0-9]{0,9})\z/',$term,$match)===1;
+        $predicate=$by_id ? $wpdb->prepare('ID=%d',(int)$match[1]) : $wpdb->prepare('post_title LIKE %s','%'.$wpdb->esc_like($term).'%');
+        $rows=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->posts} WHERE post_type=%s AND post_status='publish' AND post_password='' AND ID>%d AND {$predicate} ORDER BY ID ASC LIMIT 21",$post_type,$after));
         peracrm_campaigns_db_require(true);
         $has_more=count($rows)>20;$rows=array_slice($rows,0,20);
         if ($rows) { update_meta_cache('post',array_map(static function ($p) { return (int)$p->ID; },$rows)); }

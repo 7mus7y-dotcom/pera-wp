@@ -24,11 +24,15 @@ function peracrm_campaign_draft_text($input, $limit, $multiline = false)
 
 function peracrm_campaign_draft_document($input)
 {
-    $keys = ['schema_version','internal_name','subject','preheader','language','sender_id','introduction','main_text','blocks','audience'];
+    $keys = ['schema_version','internal_name','subject','preheader','language','sender_id','introduction','main_text','text_format','blocks','audience'];
     if (!is_array($input) || array_diff(array_keys($input), $keys) || (isset($input['schema_version']) && $input['schema_version'] !== 1)) {
         throw new InvalidArgumentException('Unsupported campaign document.');
     }
     $out = ['schema_version' => 1];
+    if (isset($input['text_format'])) {
+        if (!in_array($input['text_format'],['plain','basic_v1'],true)) { throw new InvalidArgumentException('Unsupported text format.'); }
+        $out['text_format']=$input['text_format'];
+    }
     foreach (['internal_name'=>160,'subject'=>200,'preheader'=>300,'language'=>35,'sender_id'=>64,'introduction'=>4000,'main_text'=>16000] as $key=>$limit) {
         $out[$key] = peracrm_campaign_draft_text($input[$key] ?? '', $limit, in_array($key, ['introduction','main_text'], true));
     }
@@ -46,7 +50,7 @@ function peracrm_campaign_draft_document($input)
             $out['blocks'][] = ['type'=>$block['type'],'id'=>(int)$block['id']];
             continue;
         }
-        $allowed = $block['type'] === 'text' ? ['type','heading','text'] : ['type','label','url'];
+        $allowed = $block['type'] === 'text' ? ['type','heading','text'] : ['type','heading','text','label','url'];
         if (array_diff(array_keys($block), $allowed)) { throw new InvalidArgumentException('Unsupported block fields.'); }
         if ($block['type'] === 'text') {
             $out['blocks'][] = ['type'=>'text','heading'=>peracrm_campaign_draft_text($block['heading'] ?? '',160), 'text'=>peracrm_campaign_draft_text($block['text'] ?? '',4000,true)];
@@ -56,6 +60,7 @@ function peracrm_campaign_draft_document($input)
                 throw new InvalidArgumentException('CTA links must be absolute HTTP or HTTPS URLs without credentials.');
             }
             $out['blocks'][] = ['type'=>'cta','label'=>peracrm_campaign_draft_text($block['label'] ?? '',160), 'url'=>esc_url_raw($url, ['http','https'])];
+            foreach (['heading'=>160,'text'=>4000] as $key=>$limit) { if (isset($block[$key]) && $block[$key] !== '') { $out['blocks'][count($out['blocks'])-1][$key]=peracrm_campaign_draft_text($block[$key],$limit,$key==='text'); } }
         }
     }
     if (strlen(wp_json_encode($out)) > 131072) { throw new InvalidArgumentException('Campaign document is too large.'); }

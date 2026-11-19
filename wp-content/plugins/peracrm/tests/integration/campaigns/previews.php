@@ -34,6 +34,11 @@ $second=peracrm_campaign_content_search('article','Phase3B',$first['next'],'en')
 echo 'Selector page diagnostics: '.wp_json_encode(['first'=>array_column($first['items'],'id'),'second'=>array_column($second['items'],'id'),'next'=>$second['next']])."\n";
 preview_expect(count($first['items'])===20 && count($second['items'])===5 && $second['next']===null,'public selector stable bounded pagination excludes private/draft/password/deleted');
 preview_expect(!array_intersect(array_column($first['items'],'id'),array_column($second['items'],'id')),'selector pages do not overlap');
+foreach ([(string)$ids['articles'][0], '#'.$ids['articles'][0]] as $term) {
+    $exact=peracrm_campaign_content_search('article',$term,0,'en');
+    preview_expect(array_column($exact['items'],'id')===[$ids['articles'][0]] && $exact['next']===null,'numeric/hash search selects one public article by ID');
+}
+preview_expect(peracrm_campaign_content_search('article','#'.$ids['property'],0,'en')['items']===[],'ID search preserves content-kind restriction');
 $p=peracrm_campaign_content_resolve('property',$ids['property'],'en');
 preview_expect(str_contains($p['property']['summary'],'USD 350,000–400,000') && str_contains($p['property']['summary'],'2 beds') && !str_contains($p['property']['summary'],'unavailable') && count($p['property']['units'])===2 && $p['property']['units'][0]['v2_gross_size_min']===90.0,'canonical raw v2 pricing/size, missing unit values and no deprecated prices');
 preview_expect($p['image']!=='' && str_ends_with($p['image'],'.png'),'property main_image inherits public parent visibility');
@@ -78,7 +83,7 @@ delete_user_meta($manager,PERACRM_VIEW_AS_USER_META_KEY);
 // Batched synthetic subscribers cover every exclusion and no linked-client inference.
 peracrm_with_target_blog(static function () {
     global $wpdb;
-    foreach (range(1,405) as $i) {
+    foreach (range(1,4005) as $i) {
         $email='phase3b-'.$i.'@example.test';
         $data=['email'=>$email,'normalized_email'=>$email,'client_id'=>null,'subscription_state'=>'subscribed','source'=>'fixture','source_ref'=>'source','evidence_ref'=>'evidence','policy_version'=>'v1','recorded_at'=>'2020-01-01 00:00:00','confirmed_at'=>'2020-01-01 00:00:00','preferred_language'=>'en','preferences_json'=>'["news"]','created_at'=>gmdate('Y-m-d H:i:s'),'updated_at'=>gmdate('Y-m-d H:i:s'),'version'=>1];
         if ($i%7===0) { $data['subscription_state']='pending'; }
@@ -97,7 +102,7 @@ $expected=peracrm_with_target_blog(static function () use ($document) {
 });
 $queries=[];$capture=static function ($sql) use (&$queries) { $queries[]=$sql;return $sql; };
 add_filter('query',$capture);$batch=peracrm_campaign_audience_preview($draft['id'],1,$document['audience']);remove_filter('query',$capture);
-preview_expect(!$batch['complete'] && $batch['considered']===200 && count($queries)<=10,'first bounded batch, constant query count');
+preview_expect(!$batch['complete'] && $batch['considered']===2000 && count($queries)<=10,'first bounded batch, constant query count');
 $cursor=$batch['cursor'];
 $concurrent_id=peracrm_with_target_blog(static function () {
     global $wpdb;
