@@ -85,11 +85,11 @@ worker_fixture_target(static function () {
             return ['complete'=>true,'status'=>200,'body'=>$body];
         };
         $transport=new class implements PeraCRM_Campaign_SES_Transport {
-            public int $calls=0; public string $mode='accepted'; public array $requests=[];
+            public int $calls=0; public string $mode='accepted'; public string $prefix='production-fixture-'; public array $requests=[];
             public function send(array $request,array $options): array {
                 ++$this->calls; $this->requests[]=$request;
                 if ($this->mode==='unknown') { throw new RuntimeException('synthetic transport loss'); }
-                return ['complete'=>true,'authenticated'=>true,'status'=>200,'message_id'=>'production-fixture-'.$this->calls];
+                return ['complete'=>true,'authenticated'=>true,'status'=>200,'message_id'=>$this->prefix.$this->calls];
             }
         };
         $service=new PeraCRM_Campaign_Production_Runtime($adapter,$config,$api,$transport,static fn()=>null);
@@ -150,7 +150,7 @@ worker_fixture_target(static function () {
         $request=$transport->requests[0];
         prepared_expect($request['Destination']===['ToAddresses'=>['accepted@campaign-fixture.org']] && count($request['EmailTags'])===4 && count($request['Content']['Simple']['Headers'])===2,'production correlation and one-click headers');
         $service->run($jobs['accepted']); prepared_expect($transport->calls===1,'accepted replay cannot resend');
-        $batchTransport=clone $transport; $batchTransport->calls=0;
+        $batchTransport=clone $transport; $batchTransport->calls=0; $batchTransport->prefix='production-batch-';
         $batchService=new PeraCRM_Campaign_Production_Runtime($adapter,$config,$api,$batchTransport,static fn()=>null);
         prepared_reject(fn()=>$batchService->scheduled(101));
         prepared_reject(fn()=>$batchService->run($jobs['batch'],101));
