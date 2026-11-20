@@ -81,7 +81,27 @@ function peracrm_subscribers_staff_post()
     $operation = (string) ($_POST['operation'] ?? '');
     $destination = peracrm_subscribers_url();
     try {
-        if (in_array($operation, ['profile', 'withdraw', 'link_client', 'unlink_client'], true)) {
+        if ($operation === 'delivery_export') {
+            $destination = peracrm_delivery_review_url();
+            $rows = peracrm_delivery_review_export((int) ($_POST['review_job'] ?? 0),
+                is_string($_POST['review_search'] ?? null) ? wp_unslash($_POST['review_search']) : '',
+                ($_POST['review_all_sources'] ?? '') !== '1');
+            peracrm_subscribers_private_headers();
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename=unsent-recipient-review.csv');
+            $out = fopen('php://output', 'w');
+            foreach ($rows as $row) { fputcsv($out, $row, ',', '"', ''); }
+            fclose($out); exit;
+        } elseif ($operation === 'delivery_cleanup') {
+            $destination = peracrm_delivery_review_url();
+            $result = peracrm_delivery_review_remove(
+                is_string($_POST['email'] ?? null) ? wp_unslash($_POST['email']) : '',
+                (int) ($_POST['subscriber_id'] ?? 0), (int) ($_POST['subscriber_version'] ?? 0),
+                ($_POST['confirmed'] ?? '') === '1'
+            );
+            if (is_wp_error($result)) { throw new RuntimeException('Cleanup was not accepted.'); }
+            $destination = add_query_arg('cleanup_notice', 'removed', $destination);
+        } elseif (in_array($operation, ['profile', 'withdraw', 'link_client', 'unlink_client'], true)) {
             $row = peracrm_subscribers_detail((int) ($_POST['subscriber_id'] ?? 0));
             if (!$row) { throw new RuntimeException('Subscriber unavailable.'); }
             if ($operation === 'profile') {
