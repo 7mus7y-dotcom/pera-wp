@@ -3334,6 +3334,69 @@ text-decoration:underline;
   display: inline;
 }
 
+/* Homepage discovery CTA: compact, readable and compatible with dark mode. */
+.home-featured-properties .property-card--catalogue .property-card__inner--catalogue {
+  padding: 22px 16px;
+  background: linear-gradient(160deg, rgba(13, 86, 175, .07), transparent 58%);
+}
+.home-featured-properties .property-card__catalogue-body {
+  width: 100%;
+  gap: 13px;
+}
+.home-featured-properties .property-card__catalogue-body > h3 {
+  font-size: clamp(1.18rem, 1.7vw, 1.45rem);
+  line-height: 1.2;
+}
+.home-featured-properties .property-card__catalogue-body > p.text-sm {
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+.home-discovery-links {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.home-discovery-links a {
+  display: flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 5px;
+  border: 1px solid var(--border-neutral);
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--inverse);
+  text-decoration: none;
+  font-size: .83rem;
+  font-weight: 600;
+  transition: border-color .18s, background-color .18s;
+}
+.home-discovery-links a:hover,
+.home-discovery-links a:focus-visible {
+  border-color: var(--brand);
+  background: rgba(13, 86, 175, .07);
+}
+.home-featured-properties #home-featured-load {
+  width: 100%;
+  justify-content: center;
+  white-space: normal;
+}
+.home-featured-properties #home-featured-load[hidden] { display: none; }
+.home-discovery-advanced {
+  font-size: .86rem;
+  font-weight: 600;
+  color: var(--brand);
+  text-decoration: none;
+}
+.home-discovery-advanced:hover { text-decoration: underline; }
+.home-featured-properties .home-discovery-status {
+  font-size: .8rem;
+  color: var(--text-soft);
+  min-height: 0;
+}
+.home-featured-properties .home-discovery-status:empty { display: none; }
+
 /* Feature grid layout */
 .feature-grid {
   max-width: var(--container);
