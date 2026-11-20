@@ -776,12 +776,13 @@ document.addEventListener('DOMContentLoaded', function () {
     updateStripControls();
   });
 
-  /* Property gallery: images and an optional uploaded apartment tour share one lightbox. */
+  /* Property gallery: images and uploaded videos share one lightbox. */
   var propertyLightbox = document.getElementById('property-lightbox');
   if (propertyLightbox) {
     var galleryTriggers = Array.prototype.slice.call(document.querySelectorAll('.property-gallery__trigger'));
     var lightboxImage = propertyLightbox.querySelector('.lightbox__img');
     var lightboxVideo = propertyLightbox.querySelector('.lightbox__video');
+    var lightboxSource = lightboxVideo && lightboxVideo.querySelector('source');
     var lightboxContent = propertyLightbox.querySelector('.lightbox__content');
     var lightboxPlay = propertyLightbox.querySelector('.lightbox__video-play');
     var lightboxPause = propertyLightbox.querySelector('.lightbox__video-pause');
@@ -811,7 +812,20 @@ document.addEventListener('DOMContentLoaded', function () {
       if (lightboxPlay) lightboxPlay.hidden = !isVideo;
       if (lightboxPause) lightboxPause.hidden = true;
 
-      if (!isVideo) {
+      if (isVideo) {
+        lightboxVideo.setAttribute('aria-label', label);
+        if (trigger.dataset.galleryPoster) {
+          lightboxVideo.poster = trigger.dataset.galleryPoster;
+        } else {
+          lightboxVideo.removeAttribute('poster');
+        }
+        if (lightboxSource.getAttribute('src') !== trigger.dataset.gallerySrc ||
+            lightboxSource.type !== trigger.dataset.galleryMime) {
+          lightboxSource.src = trigger.dataset.gallerySrc;
+          lightboxSource.type = trigger.dataset.galleryMime;
+          lightboxVideo.load();
+        }
+      } else {
         lightboxImage.src = trigger.dataset.gallerySrc;
         lightboxImage.alt = label;
       }
@@ -841,11 +855,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (lightboxVideo && lightboxPlay) {
       lightboxPlay.addEventListener('click', function () {
+        if (lightboxVideo.hidden || !propertyLightbox.classList.contains('is-open')) return;
+        var requestedIndex = activeGalleryIndex;
         var playback = lightboxVideo.play();
         lightboxVideo.focus();
         if (playback && typeof playback.catch === 'function') {
           playback.catch(function () {
-            if (propertyLightbox.classList.contains('is-open') && !lightboxVideo.hidden) {
+            if (requestedIndex === activeGalleryIndex && propertyLightbox.classList.contains('is-open') && !lightboxVideo.hidden) {
               lightboxPlay.hidden = false;
               lightboxPlay.focus();
             }
@@ -856,10 +872,16 @@ document.addEventListener('DOMContentLoaded', function () {
         lightboxPause.addEventListener('click', function () { lightboxVideo.pause(); });
       }
       lightboxVideo.addEventListener('playing', function () {
+        if (lightboxVideo.hidden || !propertyLightbox.classList.contains('is-open')) {
+          stopGalleryVideo();
+          return;
+        }
+        if (lightboxVideo.paused) return;
         lightboxPlay.hidden = true;
         if (lightboxPause) lightboxPause.hidden = false;
       });
       lightboxVideo.addEventListener('pause', function () {
+        if (!lightboxVideo.paused) return;
         if (lightboxPause) lightboxPause.hidden = true;
         if (propertyLightbox.classList.contains('is-open') && !lightboxVideo.hidden && !lightboxVideo.ended) {
           lightboxPlay.hidden = false;
@@ -867,6 +889,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
       lightboxVideo.addEventListener('ended', function () {
+        if (!lightboxVideo.ended || lightboxVideo.hidden || !propertyLightbox.classList.contains('is-open')) return;
         if (lightboxPause) lightboxPause.hidden = true;
         lightboxPlay.hidden = false;
         if (document.activeElement === lightboxPause) lightboxPlay.focus();
@@ -879,7 +902,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var heroVideoButton = document.querySelector('[data-open-property-video]');
     if (heroVideoButton) {
       heroVideoButton.addEventListener('click', function () {
-        var videoTrigger = document.querySelector('.property-gallery__video-trigger');
+        var videoTrigger = document.querySelector('[data-gallery-primary-video]');
         var videoIndex = galleryTriggers.indexOf(videoTrigger);
         if (!videoTrigger || videoIndex === -1) return;
         openPropertyGallery(videoIndex, heroVideoButton);

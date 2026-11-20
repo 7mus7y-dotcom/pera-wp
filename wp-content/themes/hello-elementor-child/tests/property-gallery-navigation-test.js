@@ -131,3 +131,109 @@ nextButton.click();
 expect(strip.scrollLeft === 660, 'next targets a wide landscape tile');
 previousButton.click();
 expect(strip.scrollLeft === 130, 'previous handles unequal tile widths');
+
+const modalSource = source.slice(end, source.lastIndexOf('});'));
+const control = () => ({
+  ...button(),
+  attributes: {},
+  getAttribute(name) { return this.attributes[name]; },
+  setAttribute(name, value) { this.attributes[name] = value; },
+  removeAttribute(name) { delete this.attributes[name]; },
+  focus() { modalDocument.activeElement = this; }
+});
+const classes = () => {
+  const values = new Set();
+  return {
+    add: (value) => values.add(value),
+    remove: (value) => values.delete(value),
+    contains: (value) => values.has(value)
+  };
+};
+const trigger = (galleryType, gallerySrc, label, galleryMime, galleryPoster) => ({
+  ...control(),
+  attributes: { 'aria-label': label },
+  dataset: { galleryType, gallerySrc, galleryMime, galleryPoster }
+});
+const photo = trigger('image', '/main.jpg', 'Main image');
+const primary = trigger('video', '/primary.webm', 'Primary video', 'video/webm', '/main.jpg');
+const offer = trigger('video', '/offer.mp4', 'Offer caption', 'video/mp4', '/main.jpg');
+const finalPhoto = trigger('image', '/end.jpg', 'Last image');
+const mediaSource = control();
+Object.defineProperty(mediaSource, 'src', {
+  get() { return this.getAttribute('src'); },
+  set(value) { this.setAttribute('src', value); }
+});
+const player = {
+  ...control(),
+  paused: true,
+  currentTime: 0,
+  loads: 0,
+  plays: 0,
+  events: {},
+  addEventListener(type, callback) { this.events[type] = callback; },
+  querySelector: () => mediaSource,
+  load() { this.loads++; },
+  play() { this.plays++; this.paused = false; this.events.playing(); },
+  pause() { this.paused = true; }
+};
+const image = control();
+const caption = control();
+const close = control();
+const previous = control();
+const next = control();
+const play = control();
+const pause = control();
+const hero = control();
+const modal = {
+  ...control(),
+  classList: classes(),
+  querySelector(selector) {
+    return ({
+      '.lightbox__img': image,
+      '.lightbox__video': player,
+      '.lightbox__video-play': play,
+      '.lightbox__video-pause': pause,
+      '.lightbox__caption': caption,
+      '.lightbox__close': close,
+      '[data-gallery-prev]': previous,
+      '[data-gallery-next]': next
+    })[selector];
+  },
+  querySelectorAll: () => [close]
+};
+const modalDocument = {
+  getElementById: () => modal,
+  querySelectorAll: () => [photo, primary, offer, finalPhoto],
+  querySelector(selector) {
+    return selector === '[data-open-property-video]' ? hero : primary;
+  },
+  body: { classList: classes() }
+};
+vm.runInNewContext(modalSource, { document: modalDocument });
+expect(player.plays === 0 && player.loads === 0, 'gallery initialization does not start playback');
+
+hero.click();
+expect(mediaSource.src === '/primary.webm' && mediaSource.type === 'video/webm', 'hero opens the existing primary source');
+play.click();
+player.currentTime = 7;
+next.click();
+expect(player.paused && player.currentTime === 0, 'changing video slides stops and resets the previous video');
+expect(mediaSource.src === '/offer.mp4' && mediaSource.type === 'video/mp4', 'offer slide loads its own MP4');
+expect(player.poster === '/main.jpg' && caption.textContent === 'Offer caption', 'offer shows the main poster and row caption');
+expect(player.plays === 1 && !play.hidden, 'the next video waits for an explicit play action');
+play.click();
+player.currentTime = 12;
+next.click();
+expect(player.paused && player.currentTime === 0 && player.hidden, 'advancing to a photo stops and hides the player');
+player.paused = false;
+player.events.playing();
+expect(player.paused, 'a video cannot keep playing on an image slide');
+previous.click();
+play.click();
+player.currentTime = 9;
+close.click();
+expect(player.paused && player.currentTime === 0 && modal.getAttribute('aria-hidden') === 'true', 'closing resets the active offer video');
+hero.click();
+expect(mediaSource.src === '/primary.webm', 'opening the primary video again restores its source');
+
+console.log('Property gallery video playback tests passed');

@@ -12,7 +12,11 @@ if ( ! function_exists( 'pera_property_latest_offers_meta_key' ) ) {
 if ( ! function_exists( 'pera_property_latest_offers_get_rows' ) ) {
 	if ( ! function_exists( 'pera_property_latest_offers_validate_video_id' ) ) {
 		function pera_property_latest_offers_validate_video_id( $video_id ): int {
-			$video_id = absint( $video_id );
+			if ( ! is_int( $video_id ) && ! is_string( $video_id ) ) {
+				return 0;
+			}
+
+			$video_id = filter_var( $video_id, FILTER_VALIDATE_INT, array( 'options' => array( 'min_range' => 1 ) ) );
 			if ( $video_id < 1 || 'attachment' !== get_post_type( $video_id ) || 'video/mp4' !== get_post_mime_type( $video_id ) ) {
 				return 0;
 			}
@@ -38,16 +42,17 @@ if ( ! function_exists( 'pera_property_latest_offers_get_rows' ) ) {
 			}
 
 			$normalized[] = array(
-				'type'          => isset( $row['type'] ) ? (string) $row['type'] : '',
-				'floor'         => isset( $row['floor'] ) ? (string) $row['floor'] : '',
-				'net_sqm'       => isset( $row['net_sqm'] ) ? (string) $row['net_sqm'] : '',
-				'gross_sqm'     => isset( $row['gross_sqm'] ) ? (string) $row['gross_sqm'] : '',
-				'list_price'    => isset( $row['list_price'] ) ? (string) $row['list_price'] : '',
-				'cash_price'    => isset( $row['cash_price'] ) ? (string) $row['cash_price'] : '',
-				'notes'         => isset( $row['notes'] ) ? (string) $row['notes'] : '',
-				'floor_plan_id' => isset( $row['floor_plan_id'] ) ? (int) $row['floor_plan_id'] : 0,
-				'video_id'      => isset( $row['video_id'] ) ? pera_property_latest_offers_validate_video_id( $row['video_id'] ) : 0,
-				'video_text'    => isset( $row['video_text'] ) ? sanitize_text_field( (string) $row['video_text'] ) : '',
+				'type'            => isset( $row['type'] ) ? (string) $row['type'] : '',
+				'floor'           => isset( $row['floor'] ) ? (string) $row['floor'] : '',
+				'net_sqm'         => isset( $row['net_sqm'] ) ? (string) $row['net_sqm'] : '',
+				'gross_sqm'       => isset( $row['gross_sqm'] ) ? (string) $row['gross_sqm'] : '',
+				'list_price'      => isset( $row['list_price'] ) ? (string) $row['list_price'] : '',
+				'cash_price'      => isset( $row['cash_price'] ) ? (string) $row['cash_price'] : '',
+				'notes'           => isset( $row['notes'] ) ? (string) $row['notes'] : '',
+				'floor_plan_id'   => isset( $row['floor_plan_id'] ) ? (int) $row['floor_plan_id'] : 0,
+				'video_id'        => isset( $row['video_id'] ) ? pera_property_latest_offers_validate_video_id( $row['video_id'] ) : 0,
+				'video_text'      => isset( $row['video_text'] ) ? sanitize_text_field( (string) $row['video_text'] ) : '',
+				'show_in_gallery' => in_array( $row['show_in_gallery'] ?? false, array( true, 1, '1' ), true ),
 			);
 		}
 
@@ -117,16 +122,17 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 					<?php
 					if ( empty( $rows ) ) {
 						$rows[] = array(
-							'type'          => '',
-							'floor'         => '',
-							'net_sqm'       => '',
-							'gross_sqm'     => '',
-							'list_price'    => '',
-							'cash_price'    => '',
-							'notes'         => '',
-							'floor_plan_id' => 0,
-							'video_id'      => 0,
-							'video_text'    => '',
+							'type'            => '',
+							'floor'           => '',
+							'net_sqm'         => '',
+							'gross_sqm'       => '',
+							'list_price'      => '',
+							'cash_price'      => '',
+							'notes'           => '',
+							'floor_plan_id'   => 0,
+							'video_id'        => 0,
+							'video_text'      => '',
+							'show_in_gallery' => false,
 						);
 					}
 
@@ -168,7 +174,13 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 									<button type="button" class="button button-small pera-video-remove" <?php disabled( $video_id < 1 ); ?>><?php esc_html_e( 'Remove', 'hello-elementor-child' ); ?></button>
 								</div>
 							</td>
-							<td><input type="text" class="pera-video-text-field" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][video_text]" value="<?php echo esc_attr( (string) $row['video_text'] ); ?>" /></td>
+							<td><input type="text" class="pera-video-text-field" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][video_text]" value="<?php echo esc_attr( (string) $row['video_text'] ); ?>" />
+								<label>
+									<input type="checkbox" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][show_in_gallery]" value="1" <?php checked( $row['show_in_gallery'] ); ?> />
+									<?php esc_html_e( 'Show in property gallery', 'hello-elementor-child' ); ?>
+								</label>
+								<p class="description"><?php esc_html_e( 'Adds the selected MP4 to the main property gallery.', 'hello-elementor-child' ); ?></p>
+							</td>
 							<td>
 								<button type="button" class="button-link-delete pera-latest-offers-delete-row"><?php esc_html_e( 'Delete row', 'hello-elementor-child' ); ?></button>
 							</td>
@@ -211,7 +223,13 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 						<button type="button" class="button button-small pera-video-remove" disabled><?php esc_html_e( 'Remove', 'hello-elementor-child' ); ?></button>
 					</div>
 				</td>
-				<td><input type="text" class="pera-video-text-field" name="pera_latest_offers[__index__][video_text]" value="" /></td>
+				<td><input type="text" class="pera-video-text-field" name="pera_latest_offers[__index__][video_text]" value="" />
+					<label>
+						<input type="checkbox" name="pera_latest_offers[__index__][show_in_gallery]" value="1" />
+						<?php esc_html_e( 'Show in property gallery', 'hello-elementor-child' ); ?>
+					</label>
+					<p class="description"><?php esc_html_e( 'Adds the selected MP4 to the main property gallery.', 'hello-elementor-child' ); ?></p>
+				</td>
 				<td><button type="button" class="button-link-delete pera-latest-offers-delete-row"><?php esc_html_e( 'Delete row', 'hello-elementor-child' ); ?></button></td>
 			</tr>
 		</script>
@@ -338,16 +356,17 @@ if ( ! function_exists( 'pera_property_latest_offers_save' ) ) {
 			$video_id = isset( $row['video_id'] ) ? pera_property_latest_offers_validate_video_id( $row['video_id'] ) : 0;
 
 			$item = array(
-				'type'          => isset( $row['type'] ) ? sanitize_text_field( (string) $row['type'] ) : '',
-				'floor'         => isset( $row['floor'] ) ? sanitize_text_field( (string) $row['floor'] ) : '',
-				'net_sqm'       => isset( $row['net_sqm'] ) ? pera_property_latest_offers_sanitize_decimal( $row['net_sqm'] ) : '',
-				'gross_sqm'     => isset( $row['gross_sqm'] ) ? pera_property_latest_offers_sanitize_decimal( $row['gross_sqm'] ) : '',
-				'list_price'    => isset( $row['list_price'] ) ? pera_property_latest_offers_sanitize_price( $row['list_price'] ) : '',
-				'cash_price'    => isset( $row['cash_price'] ) ? pera_property_latest_offers_sanitize_price( $row['cash_price'] ) : '',
-				'notes'         => isset( $row['notes'] ) ? sanitize_textarea_field( (string) $row['notes'] ) : '',
-				'floor_plan_id' => $floor_plan_id,
-				'video_id'      => $video_id,
-				'video_text'    => isset( $row['video_text'] ) ? sanitize_text_field( (string) $row['video_text'] ) : '',
+				'type'            => isset( $row['type'] ) ? sanitize_text_field( (string) $row['type'] ) : '',
+				'floor'           => isset( $row['floor'] ) ? sanitize_text_field( (string) $row['floor'] ) : '',
+				'net_sqm'         => isset( $row['net_sqm'] ) ? pera_property_latest_offers_sanitize_decimal( $row['net_sqm'] ) : '',
+				'gross_sqm'       => isset( $row['gross_sqm'] ) ? pera_property_latest_offers_sanitize_decimal( $row['gross_sqm'] ) : '',
+				'list_price'      => isset( $row['list_price'] ) ? pera_property_latest_offers_sanitize_price( $row['list_price'] ) : '',
+				'cash_price'      => isset( $row['cash_price'] ) ? pera_property_latest_offers_sanitize_price( $row['cash_price'] ) : '',
+				'notes'           => isset( $row['notes'] ) ? sanitize_textarea_field( (string) $row['notes'] ) : '',
+				'floor_plan_id'   => $floor_plan_id,
+				'video_id'        => $video_id,
+				'video_text'      => isset( $row['video_text'] ) ? sanitize_text_field( (string) $row['video_text'] ) : '',
+				'show_in_gallery' => in_array( $row['show_in_gallery'] ?? false, array( true, 1, '1' ), true ),
 			);
 
 			$is_empty =

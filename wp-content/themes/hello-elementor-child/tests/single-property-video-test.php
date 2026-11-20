@@ -12,14 +12,9 @@ function expect_property_video( $condition, $label ) {
 	}
 }
 
-/** Mirror the template's media insertion rule with simple values for ordering checks. */
-function property_video_test_media_order( $photos, $has_video ) {
-	$media = $photos;
-	if ( $has_video ) {
-		array_splice( $media, empty( $photos ) ? 0 : 1, 0, array( 'video' ) );
-	}
-	return $media;
-}
+define( 'ABSPATH', __DIR__ );
+function add_action() {}
+require dirname( __DIR__ ) . '/inc/latest-offers-card.php';
 
 /** Mirror the hero control's validated-video display rule. */
 function property_video_test_show_hero_button( $validated_video_url ) {
@@ -46,23 +41,20 @@ expect_property_video( false !== strpos( $template, 'wp_http_validate_url( $vali
 expect_property_video( false !== strpos( $template, 'attachment_url_to_postid( $custom_video_candidate_url )' ), 'ACF array URL fallback resolves an attachment ID' );
 expect_property_video( false !== strpos( $template, 'attachment_url_to_postid( $custom_video_file )' ), 'ACF URL return value resolves an attachment ID' );
 
-expect_property_video( false !== strpos( $template, 'if ( $custom_video_url ) :' ), 'a valid uploaded video enables the gallery tile' );
-expect_property_video( false !== strpos( $template, 'property-gallery__video-trigger' ), 'video is rendered as a gallery tile' );
-expect_property_video( false !== strpos( $template, '$gallery_media_items = $gallery_items;' ), 'media ordering starts with the validated photos' );
-expect_property_video( false !== strpos( $template, 'empty( $gallery_items ) ? 0 : 1' ), 'video insertion point is first without photos and second with photos' );
-expect_property_video( false !== strpos( $template, "array( array( 'type' => 'video' ) )" ), 'video is inserted into the shared media order' );
-expect_property_video( 1 === substr_count( $template, 'property-gallery__video-trigger' ), 'video tile is rendered exactly once' );
-expect_property_video( 1 === substr_count( $template, 'data-gallery-type="video"' ), 'video has exactly one lightbox trigger' );
+expect_property_video( false !== strpos( $template, 'pera_property_gallery_media_items(' ), 'template uses the shared media ordering' );
+expect_property_video( false !== strpos( $template, 'data-gallery-primary-video' ), 'primary video gets a distinct hero target' );
+$photos = array( array( 'id' => 1 ), array( 'id' => 2 ), array( 'id' => 3 ) );
+$video = array( 'id' => 4, 'type' => 'video' );
 expect_property_video(
-	array( 'photo-1', 'video', 'photo-2', 'photo-3' ) === property_video_test_media_order( array( 'photo-1', 'photo-2', 'photo-3' ), true ),
-	'video follows the first photo instead of being appended and trigger order matches tile order'
+	array( 1, 4, 2, 3 ) === array_column( pera_property_gallery_media_items( $photos, array(), $video, array() ), 'id' ),
+	'primary video follows the first photo'
 );
 expect_property_video(
-	array( 'video' ) === property_video_test_media_order( array(), true ),
-	'video remains the sole gallery item when there are no photos'
+	array( $video ) === pera_property_gallery_media_items( array(), array(), $video, array() ),
+	'primary video remains the sole gallery item when there are no photos'
 );
 expect_property_video(
-	array( 'photo-1', 'photo-2', 'photo-3' ) === property_video_test_media_order( array( 'photo-1', 'photo-2', 'photo-3' ), false ),
+	$photos === pera_property_gallery_media_items( $photos, array(), array(), array() ),
 	'photo ordering is unchanged without a valid video'
 );
 expect_property_video( false !== strpos( $template, '$custom_video_poster_url' ), 'main image is normalized as the video poster' );
@@ -113,7 +105,7 @@ expect_property_video( false !== strpos( $script, "event.key === 'Escape'" ), 'E
 expect_property_video( false !== strpos( $script, "querySelectorAll('[data-gallery-close]')" ), 'close button and backdrop share close handling' );
 expect_property_video( false !== strpos( $script, 'galleryReturnFocus.focus();' ), 'focus returns to the gallery trigger' );
 expect_property_video( false !== strpos( $script, "document.querySelector('[data-open-property-video]')" ), 'hero video control is progressively enhanced' );
-expect_property_video( false !== strpos( $script, "document.querySelector('.property-gallery__video-trigger')" ), 'hero control locates the actual gallery video tile' );
+expect_property_video( false !== strpos( $script, "document.querySelector('[data-gallery-primary-video]')" ), 'hero control locates the actual gallery video tile' );
 expect_property_video( false !== strpos( $script, 'galleryTriggers.indexOf(videoTrigger)' ), 'hero control derives the video index instead of hard-coding it' );
 expect_property_video( false !== strpos( $script, 'if (!videoTrigger || videoIndex === -1) return;' ), 'missing gallery video trigger fails safely' );
 expect_property_video( false !== strpos( $script, 'openPropertyGallery(videoIndex, heroVideoButton);' ), 'hero control uses the shared modal path and records itself for focus restoration' );
