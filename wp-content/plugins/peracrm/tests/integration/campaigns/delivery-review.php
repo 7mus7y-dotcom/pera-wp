@@ -25,7 +25,7 @@ peracrm_with_target_blog(static function () use ($admin,$employee) {
     $row=peracrm_delivery_review_list('hard_bounce','review-hard')['rows'][0];
     review_expect($row['cleanup_candidate'] && (int)$row['subscriber_id']===$id && !empty($row['client_id']),'hard bounce flagged and authorized client linked');
     review_expect(peracrm_delivery_review_list('complaint','review-hard')['total']===0,'complaints kept separate');
-    review_expect(peracrm_delivery_review_list('hard_bounce','%')['total']===0,'search wildcard treated literally');
+    review_expect(peracrm_delivery_review_list('hard_bounce','review-%')['total']===0,'search wildcard treated literally');
     review_expect(is_wp_error(peracrm_delivery_review_remove($mail,$id,$version,false)),'unconfirmed removal rejected');
     review_expect(is_wp_error(peracrm_delivery_review_remove($mail,$id,$version+1,true)),'stale profile version rejected');
     wp_set_current_user($employee);

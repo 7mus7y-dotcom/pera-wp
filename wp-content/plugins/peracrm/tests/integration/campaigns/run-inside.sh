@@ -68,7 +68,6 @@ wait "$migration_stale_pid"
 wait "$migration_successor_pid"
 wp eval-file /tests/migration-worker.php verify
 wp eval-file /tests/management.php
-wp eval-file /tests/delivery-review.php
 
 # Isolated control-plane journals do not create campaign/source/recipient rows.
 wp eval-file /tests/sns-provisioning.php
@@ -511,3 +510,6 @@ appointment_b=$!
 wait "$appointment_a"
 wait "$appointment_b"
 wp eval-file /tests/appointments-race.php verify-edit
+
+# Leave review browser fixtures after suites that intentionally select global source rows.
+wp eval-file /tests/delivery-review.php

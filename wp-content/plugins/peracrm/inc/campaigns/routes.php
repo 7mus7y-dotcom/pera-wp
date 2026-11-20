@@ -93,7 +93,9 @@ function peracrm_subscribers_staff_post()
             foreach ($rows as $row) { fputcsv($out, $row, ',', '"', ''); }
             fclose($out); exit;
         } elseif ($operation === 'delivery_cleanup') {
-            $destination = peracrm_delivery_review_url();
+            $kind = is_string($_POST['review_kind'] ?? null) && in_array($_POST['review_kind'], ['hard_bounce','complaint','unsubscribe','administrative'], true) ? $_POST['review_kind'] : 'hard_bounce';
+            $search = is_string($_POST['review_search'] ?? null) ? substr(wp_unslash($_POST['review_search']), 0, 254) : '';
+            $destination = peracrm_delivery_review_url(['review_kind'=>$kind, 'review_search'=>$search]);
             $result = peracrm_delivery_review_remove(
                 is_string($_POST['email'] ?? null) ? wp_unslash($_POST['email']) : '',
                 (int) ($_POST['subscriber_id'] ?? 0), (int) ($_POST['subscriber_version'] ?? 0),

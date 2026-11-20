@@ -37,6 +37,7 @@ $jobId=max(0,(int)$get('review_job','0')); $zohoOnly=$get('review_all_sources')!
 <p>Remove only this subscriber profile. Existing suppression and CRM records remain.</p>
 <?php if ($item['linked_client_present']) : ?><p>This subscriber has a stored CRM link. The client and its contact history will remain.</p><?php endif; ?>
 <?php peracrm_subscribers_form_start('delivery_cleanup'); ?>
+<input type="hidden" name="review_kind" value="<?php echo esc_attr($kind); ?>"><input type="hidden" name="review_search" value="<?php echo esc_attr($search); ?>">
 <input type="hidden" name="email" value="<?php echo esc_attr($item['normalized_email']); ?>"><input type="hidden" name="subscriber_id" value="<?php echo (int)$item['subscriber_id']; ?>"><input type="hidden" name="subscriber_version" value="<?php echo (int)$item['subscriber_version']; ?>">
 <label class="peracrm-review-confirm"><input type="checkbox" name="confirmed" value="1" required> I reviewed <?php echo esc_html($item['normalized_email']); ?> and confirm removal of this subscriber profile.</label>
 <button class="btn btn--ghost" type="submit">Remove reviewed profile</button></form></details>
