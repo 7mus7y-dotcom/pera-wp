@@ -223,7 +223,7 @@ if ( function_exists( 'get_field' ) ) {
    FEATURED OPPORTUNITIES (HOME)
    Uses existing parts/property-card-v2
    ====================================================== */
-$featured_count = 6;
+$featured_count = 5;
 $featured_query = new WP_Query( array(
   'post_type'           => 'property',
   'post_status'         => 'publish',
@@ -232,59 +232,108 @@ $featured_query = new WP_Query( array(
   'order'               => 'DESC',
   'ignore_sticky_posts' => true,
 ) );
+$featured_total = (int) $featured_query->found_posts;
+$water_view_url = add_query_arg(
+  array( 'property_tags' => array(
+    'istanbul-property-for-sale-with-sea-views',
+    'istanbul-lake-views-apartments-for-sale',
+  ) ),
+  $archive_base_url
+);
 ?>
 
 <section class="section home-featured-properties">
   <div class="container">
-
     <div class="section-header section-header--center">
       <h2><?php echo esc_html( pera_ml_ui( 'Latest property for sale in Istanbul', 'theme.template.home_page.latest_property_for_sale_in_istanbul' ) ); ?></h2>
       <p class="lead"><?php echo esc_html( pera_ml_ui( 'The newest apartments, villas and investment opportunities recently added to our website.', 'theme.template.home_page.the_newest_apartments_villas_and_investment_opportunities_recently_added' ) ); ?></p>
     </div>
 
-    <div class="cards-slider cards-slider--features cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr( pera_ml_ui( 'Featured properties', 'theme.template.home_page.aria_label.featured_properties' ) ); ?>">
-      <?php if ( $featured_query->have_posts() ) : ?>
-        <?php $featured_index = 0; ?>
-        <?php while ( $featured_query->have_posts() ) : $featured_query->the_post(); ?>
+    <div id="home-featured-grid" class="cards-slider cards-slider--features cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr( pera_ml_ui( 'Featured properties', 'theme.template.home_page.aria_label.featured_properties' ) ); ?>">
+      <?php while ( $featured_query->have_posts() ) : $featured_query->the_post(); ?>
+        <div class="slider-card">
+          <?php pera_render_property_card( array( 'variant' => 'archive' ) ); ?>
+        </div>
+      <?php endwhile; ?>
+      <?php wp_reset_postdata(); ?>
 
-          <div class="slider-card">
-            <?php if ( $featured_index < 5 ) : ?>
-              <?php
-                pera_render_property_card( array(
-                  'variant' => 'archive',
-                ) );
-              ?>
-            <?php else : ?>
-              <div class="property-card property-card--archive property-card--catalogue">
-                <div class="property-card__inner property-card__inner--catalogue">
-                  <div class="property-card__catalogue-body">
-                    <span class="pill pill--brand pill--sm property-card__catalogue-kicker">
-                      <span class="property-card__catalogue-kicker-default"><?php echo esc_html( pera_ml_ui( 'FULL CATALOGUE', 'theme.template.home_page.full_catalogue' ) ); ?></span>
-                      <span class="property-card__catalogue-kicker-hover" aria-hidden="true"><?php echo esc_html( pera_ml_ui( '→ Browse all listings', 'theme.template.home_page.browse_all_listings' ) ); ?></span>
-                    </span>
-                    <h3><?php echo esc_html( pera_ml_ui( 'Browse all property for sale in Istanbul', 'theme.template.home_page.browse_all_property_for_sale_in_istanbul' ) ); ?></h3>
-                    <p class="text-sm"><?php echo esc_html( pera_ml_ui( 'Apartments • Villas • Projects', 'theme.template.home_page.apartments_villas_projects' ) ); ?></p>
-                    <div class="hero-actions">
-                      <a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/property/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'See all listings', 'theme.template.home_page.see_all_listings' ) ); ?></a>
-                      <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/property/#results' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Advanced search', 'theme.template.home_page.advanced_search' ) ); ?></a>
-                    </div>
-                  </div>
-                </div>
+      <div class="slider-card" id="home-featured-discovery">
+        <div class="property-card property-card--archive property-card--catalogue">
+          <div class="property-card__inner property-card__inner--catalogue">
+            <div class="property-card__catalogue-body">
+              <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'EXPLORE MORE', 'theme.template.home_page.explore_more' ) ); ?></span>
+              <h3><?php echo esc_html( pera_ml_ui( 'Find your ideal property in Istanbul', 'theme.template.home_page.find_your_ideal_property_in_istanbul' ) ); ?></h3>
+              <p class="text-sm"><?php echo esc_html( pera_ml_ui( 'Explore apartments, villas and investment opportunities across the city.', 'theme.template.home_page.explore_apartments_villas_and_investment_opportunities' ) ); ?></p>
+              <div class="home-discovery-links">
+                <a href="<?php echo esc_url( get_term_link( 'apartments', 'property_type' ) instanceof WP_Error ? $archive_base_url : get_term_link( 'apartments', 'property_type' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Apartments', 'theme.template.home_page.apartments' ) ); ?></a>
+                <a href="<?php echo esc_url( $water_view_url ); ?>"><?php echo esc_html( pera_ml_ui( 'Sea & lake views', 'theme.template.home_page.sea_and_lake_views' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/special/resales/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Resales', 'theme.template.home_page.resales' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/special/citizenship/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Citizenship', 'theme.template.home_page.citizenship' ) ); ?></a>
               </div>
-            <?php endif; ?>
+              <?php if ( $featured_total > 5 ) : ?>
+                <button id="home-featured-load" type="button" class="btn btn--solid btn--blue" data-offset="5" data-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>">
+                  <?php echo esc_html( pera_ml_ui( 'Load 6 more properties', 'theme.template.home_page.load_six_more_properties' ) ); ?>
+                </button>
+              <?php endif; ?>
+              <a class="home-discovery-advanced" href="<?php echo esc_url( $archive_base_url . '#results' ); ?>"><?php echo esc_html( pera_ml_ui( 'Advanced property search', 'theme.template.home_page.advanced_property_search' ) ); ?> &rarr;</a>
+              <p id="home-featured-status" class="home-discovery-status" role="status" aria-live="polite"></p>
+            </div>
           </div>
-
-          <?php $featured_index++; ?>
-        <?php endwhile; ?>
-      <?php else : ?>
-        <p class="no-results"><?php echo esc_html( pera_ml_ui( 'No featured properties available at the moment.', 'theme.template.home_page.no_featured_properties_available_at_the_moment' ) ); ?></p>
-      <?php endif; ?>
+        </div>
+      </div>
     </div>
-
   </div>
 </section>
 
-<?php wp_reset_postdata(); ?>
+<script>
+(function () {
+  const button = document.getElementById('home-featured-load');
+  const grid = document.getElementById('home-featured-grid');
+  const discovery = document.getElementById('home-featured-discovery');
+  const status = document.getElementById('home-featured-status');
+  if (!button || !grid || !discovery) return;
+
+  button.addEventListener('click', async function () {
+    if (button.disabled) return;
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    status.textContent = '';
+    const originalLabel = button.textContent;
+    button.textContent = <?php echo wp_json_encode( pera_ml_ui( 'Loading properties…', 'theme.template.home_page.loading_properties' ) ); ?>;
+    try {
+      const body = new URLSearchParams({
+        action: 'pera_home_featured_load_more',
+        offset: button.dataset.offset
+      });
+      const response = await fetch(button.dataset.endpoint, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+        body: body.toString()
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.success || !payload.data || !payload.data.html) {
+        throw new Error('Unable to load listings');
+      }
+      const fragment = document.createRange().createContextualFragment(payload.data.html);
+      const cards = Array.from(fragment.children);
+      grid.insertBefore(fragment, discovery);
+      button.dataset.offset = String(payload.data.next_offset);
+      if (!payload.data.has_more) button.hidden = true;
+      status.textContent = <?php echo wp_json_encode( pera_ml_ui( 'More properties loaded', 'theme.template.home_page.more_properties_loaded' ) ); ?>;
+      // Notify other card enhancements that new property card elements are present.
+      grid.dispatchEvent(new CustomEvent('pera:properties-appended', { bubbles: true, detail: { cards: cards } }));
+    } catch (error) {
+      status.textContent = <?php echo wp_json_encode( pera_ml_ui( 'Could not load properties. Please try again.', 'theme.template.home_page.could_not_load_properties' ) ); ?>;
+    } finally {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+      button.textContent = originalLabel;
+    }
+  });
+}());
+</script>
+
 
 <section class="section section-soft">
   <div class="container">
