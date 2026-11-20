@@ -138,13 +138,13 @@ final class PeraCRM_SES_Suppression_Sync
                 'error_code'=>empty($row['error_code'])?null:(new PeraCRM_SES_Sync_Error($row['error_code']))->getMessage()];
         } finally { $wpdb->suppress_errors($quiet); }
     }
-    /** Max 10 pages/250 entries per explicit invocation, 25-second work-start
+    /** Max 20 pages/500 entries per explicit invocation, 25-second work-start
      * budget including two bounded read attempts. Cursor/run stored per page.
      * Restart explicitly abandons only pagination progress, never deny history.
      */
     public function run(int $pages=1,bool $restart=false): array
     {
-        if ($pages<1 || $pages>10) { throw new InvalidArgumentException('sync_bounds'); }
+        if ($pages<1 || $pages>20) { throw new InvalidArgumentException('sync_bounds'); }
         global $wpdb;
         $quiet=$wpdb->suppress_errors(true); $owned=false; $connection=0; $guard=''; $runId=null; $start=hrtime(true);
         try {

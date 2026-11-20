@@ -200,3 +200,14 @@ before restoring dispatch. Repeating an already successful request reports uncha
 A previously created target evidence binding is retained and requires review rather
 than being overwritten. This helper is only for a reviewed rate increase; it cannot
 activate an inactive installation, change identity/sender/scope, or expand job access.
+
+
+### Multi-page provider suppression refresh
+
+Each production `dispatch-refresh` (including cron and rate-setup checks) processes
+up to 20 provider pages / 500 suppression entries under the existing work-start
+time budget. It stops immediately at the terminal page. If the page or time bound
+is reached, the saved cursor is continued by the next invocation; quota refresh
+is not reported complete and dispatch remains gated until the scan finishes.
+Individual provider requests remain limited to 25 entries, with the same signed
+read policy, response bounds, additive denial imports and page transactions.

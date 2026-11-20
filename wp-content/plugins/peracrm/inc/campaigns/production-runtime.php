@@ -174,7 +174,9 @@ final class PeraCRM_Campaign_Production_Runtime
     {
         $api=$this->api(); $account=$api->quota();
         if (($account['ProductionAccessEnabled']??null)!==true || ($account['EnforcementStatus']??null)!=='HEALTHY') { throw new RuntimeException('production_sandbox'); }
-        $sync=(new PeraCRM_SES_Suppression_Sync($this->pins,$api->reader()))->run(1,$restart);
+        // Complete ordinary multi-page lists in one bounded call. A partial scan
+        // retains its cursor; never publish quota/readiness before its terminal page.
+        $sync=(new PeraCRM_SES_Suppression_Sync($this->pins,$api->reader()))->run(20,$restart);
         if (($sync['state']??null)!=='completed' || !empty($sync['stale'])) {
             return ['state'=>'sync_incomplete','suppression'=>$sync,'dispatch_enabled'=>peracrm_campaign_queue_dispatch_allowed()];
         }

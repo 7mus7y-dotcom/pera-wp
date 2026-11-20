@@ -75,12 +75,26 @@ worker_fixture_target(static function () {
         prepared_expect($adapter->checks()['provider_identity']==='configured' && peracrm_campaign_production_http_ready($adapter), 'protected CLI identity and credential-free public factories');
         prepared_expect($base->checks()['provider_identity']==='unavailable','CLI credentials never enter HTTP deployment material');
         $apiMode='healthy'; $principal=$config['principal_arn']; $reads=[];
-        $api=static function ($request) use (&$apiMode,$principal,&$reads) {
+        $suppressionCalls=0; $longScan=false; $suppressionTime=time()-60;
+        $api=static function ($request) use (&$apiMode,$principal,&$reads,&$suppressionCalls,&$longScan,$suppressionTime) {
             $url=(string)$request->getUri(); $reads[]=$url;
             if (str_contains($url,'sts.')) {
                 $arn=$apiMode==='wrong-principal'?'arn:aws:iam::123456789012:user/Other':$principal;
                 $body='<GetCallerIdentityResponse xmlns="https://sts.amazonaws.com/doc/2011-06-15/"><GetCallerIdentityResult><Account>123456789012</Account><Arn>'.$arn.'</Arn></GetCallerIdentityResult></GetCallerIdentityResponse>';
-            } elseif (str_contains($url,'/suppression/')) { $body='{"SuppressedDestinationSummaries":[]}'; }
+            } elseif (str_contains($url,'/suppression/')) {
+                ++$suppressionCalls;
+                parse_str(parse_url($url,PHP_URL_QUERY)??'',$query);
+                $page=(int)($query['NextToken']??0);
+                $entries=[];
+                $start=$longScan?$page:$page*25;
+                $end=$longScan?$start+1:min(81,$start+25);
+                for ($i=$start;$i<$end;$i++) {
+                    $entries[]=['EmailAddress'=>'denied-'.$i.'@campaign-fixture.org','Reason'=>'BOUNCE','LastUpdateTime'=>$suppressionTime];
+                }
+                $payload=['SuppressedDestinationSummaries'=>$entries];
+                if ($page<($longScan?20:3)) { $payload['NextToken']=(string)($page+1); }
+                $body=json_encode($payload);
+            }
             else { $body=json_encode(['ProductionAccessEnabled'=>$apiMode!=='sandbox','SendingEnabled'=>true,'EnforcementStatus'=>'HEALTHY','SendQuota'=>['MaxSendRate'=>100,'Max24HourSend'=>50000,'SentLast24Hours'=>0]]); }
             return ['complete'=>true,'status'=>200,'body'=>$body];
         };
@@ -115,7 +129,20 @@ worker_fixture_target(static function () {
         $apiMode='wrong-principal'; prepared_reject(fn()=>$service->run($jobs['accepted']));
         $apiMode='sandbox'; prepared_reject(fn()=>$service->run($jobs['accepted'])); $apiMode='healthy';
         prepared_expect($transport->calls===0,'identity/sandbox/allowlist failures before sends');
-        $refresh=$service->refresh(); prepared_expect($refresh['state']==='refreshed' && $refresh['daily']===5000,'production imports account denies and fresh bounded quota');
+        $refresh=$service->refresh();
+        prepared_expect($refresh['state']==='refreshed' && $refresh['daily']===5000
+            && $refresh['suppression']['pages']===4 && $refresh['suppression']['entries']===81 && $suppressionCalls===4,
+            'production refresh drains an 81-entry suppression list in one invocation');
+        $longScan=true; $suppressionCalls=0;
+        $partial=$service->refresh();
+        prepared_expect($partial['state']==='sync_incomplete' && $partial['suppression']['pages']===20
+            && $suppressionCalls===20 && !isset($partial['per_second']),
+            'refresh stops at 20 pages without advertising completed quota refresh');
+        $resumed=$service->refresh();
+        prepared_expect($resumed['state']==='refreshed' && $resumed['suppression']['pages']===21
+            && $suppressionCalls===21,'next refresh resumes the cursor and stops at the terminal page');
+        $longScan=false;
+        prepared_expect($service->refresh()['state']==='refreshed','ordinary recurring scan completes again');
         $readiness=new PeraCRM_Campaign_Readiness($adapter->binding(),null,null,$adapter);
         $report=$readiness->assess();
         prepared_expect(!$report['production_ready'] && $service->run($jobs['accepted'])['state']==='blocked' && $transport->calls===0,'missing external evidence blocks before claims');
