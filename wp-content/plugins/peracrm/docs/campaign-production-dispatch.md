@@ -126,7 +126,7 @@ wp --path=/path/to/public_html --url=https://www.peraproperty.com --user=ADMIN \
 ```
 
 `accepted` is SES acceptance, not delivery. Check matched signed delivery events and the
-mailbox before expanding. Limits are 1–25 recipients per command, within a roughly
+mailbox before expanding. Limits are 1–100 recipients per command, within a roughly
 55-second worker loop. Each send can take up to 20 seconds. Conservative pacing leaves
 headroom for the integer-second budget ledger. Overall CLI time also includes bounded
 provider reads and endpoint checks before the loop.
