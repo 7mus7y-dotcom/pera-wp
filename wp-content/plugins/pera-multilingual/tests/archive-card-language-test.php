@@ -122,6 +122,33 @@ foreach(array('property','post') as $type){
     $GLOBALS['router']->set_request_language('de');
     expect('English title 2'===$GLOBALS['content']->title('English title 2',102),'unvalidated admin request remains canonical');
 }
+// Homepage discovery uses the same validated property rendering context.
+foreach (array('zh','ru','de','ar','en') as $lang) {
+    foreach (array(false,true) as $authenticated) {
+        $GLOBALS['router']=new Pera_ML_Router(new ArchiveRegistry());
+        $GLOBALS['content']=new Pera_ML_Content(null,$GLOBALS['router'],$GLOBALS['storage']);
+        $GLOBALS['hooks']=array();
+        (new Pera_ML_Ajax(new ArchiveRegistry(),$GLOBALS['router']))->hooks();
+        $GLOBALS['admin']=$GLOBALS['ajax']=true;
+        $GLOBALS['nonce_valid']=true;
+        $_POST=array('pera_ml_lang'=>$lang,'pera_ml_nonce'=>'pera_ml_property_filter');
+        $tag=($authenticated?'wp_ajax_':'wp_ajax_nopriv_').'pera_home_featured_load_more';
+        expect(isset($GLOBALS['hooks'][$tag][0]),'homepage context registered for authenticated and public requests');
+        foreach($GLOBALS['hooks'][$tag][0] as $callback) call_user_func($callback);
+        expect($lang===$GLOBALS['router']->current_language(),'homepage locale correctly applied');
+        if ('en'!==$lang) assert_card('property',1,$lang,'homepage AJAX card '.$lang);
+        else expect(false!==strpos(card('property',1),'English title 1'),'English homepage card remains canonical');
+    }
+}
+$GLOBALS['nonce_valid']=false;
+try {
+    foreach ($GLOBALS['hooks']['wp_ajax_nopriv_pera_home_featured_load_more'][0] as $callback) call_user_func($callback);
+    expect(false,'invalid homepage AJAX nonce rejected');
+} catch(RuntimeException $e) {
+    expect('HTTP 403'===$e->getMessage(),'invalid homepage nonce status');
+}
+expect(!Pera_ML_Ajax::has_archive_context(),'invalid homepage nonce cannot enable translations');
+$GLOBALS['nonce_valid']=true;
 $GLOBALS['ajax']=false;
 expect(!Pera_ML_Ajax::has_archive_context(),'ordinary admin is not public archive AJAX');
 echo "Archive card language tests passed (zh, ru, de, ar; actual property/blog templates)\n";

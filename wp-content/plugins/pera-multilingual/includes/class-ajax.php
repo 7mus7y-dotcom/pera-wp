@@ -7,6 +7,7 @@ final class Pera_ML_Ajax {
 	public function hooks() {
 		foreach ( array( 'wp_ajax_', 'wp_ajax_nopriv_' ) as $prefix ) {
 			add_action( $prefix . 'pera_filter_properties_v2', array( $this, 'context' ), 0 );
+			add_action( $prefix . 'pera_home_featured_load_more', array( $this, 'context' ), 0 );
 			add_action( $prefix . 'pera_blog_search', array( $this, 'blog_context' ), 0 );
 		}
 	}
