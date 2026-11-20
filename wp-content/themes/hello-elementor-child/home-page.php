@@ -265,7 +265,7 @@ $water_view_url = add_query_arg(
               <h3><?php echo esc_html( pera_ml_ui( 'Find your ideal property in Istanbul', 'theme.template.home_page.find_your_ideal_property_in_istanbul' ) ); ?></h3>
               <p class="text-sm"><?php echo esc_html( pera_ml_ui( 'Explore apartments, villas and investment opportunities across the city.', 'theme.template.home_page.explore_apartments_villas_and_investment_opportunities' ) ); ?></p>
               <div class="home-discovery-links">
-                <a href="<?php echo esc_url( get_term_link( 'apartments', 'property_type' ) instanceof WP_Error ? $archive_base_url : get_term_link( 'apartments', 'property_type' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Apartments', 'theme.template.home_page.apartments' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/property_type/apartments/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Apartments', 'theme.template.home_page.apartments' ) ); ?></a>
                 <a href="<?php echo esc_url( $water_view_url ); ?>"><?php echo esc_html( pera_ml_ui( 'Sea & lake views', 'theme.template.home_page.sea_and_lake_views' ) ); ?></a>
                 <a href="<?php echo esc_url( pera_ml_url( home_url( '/special/resales/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Resales', 'theme.template.home_page.resales' ) ); ?></a>
                 <a href="<?php echo esc_url( pera_ml_url( home_url( '/special/citizenship/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Citizenship', 'theme.template.home_page.citizenship' ) ); ?></a>
@@ -318,6 +318,9 @@ $water_view_url = add_query_arg(
       const fragment = document.createRange().createContextualFragment(payload.data.html);
       const cards = Array.from(fragment.children);
       grid.insertBefore(fragment, discovery);
+      if (window.PeraCurrency && typeof window.PeraCurrency.render === 'function') {
+        window.PeraCurrency.render(grid);
+      }
       button.dataset.offset = String(payload.data.next_offset);
       if (!payload.data.has_more) button.hidden = true;
       status.textContent = <?php echo wp_json_encode( pera_ml_ui( 'More properties loaded', 'theme.template.home_page.more_properties_loaded' ) ); ?>;
