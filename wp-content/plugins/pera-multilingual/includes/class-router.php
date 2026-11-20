@@ -153,7 +153,7 @@ final class Pera_ML_Router {
 	private function is_system_path( $relative ) {
 		$relative = ltrim( strtolower( (string) $relative ), '/' );
 		$first = strtok( $relative, '/' );
-		$blocked = array( 'wp-admin', 'wp-includes', 'wp-content', 'wp-json', 'wp-cron.php', 'xmlrpc.php', 'wp-login.php', 'wp-signup.php', 'wp-activate.php', 'wp-comments-post.php', 'wp-trackback.php', 'robots.txt', 'favicon.ico' );
+		$blocked = array( 'wp-admin', 'wp-includes', 'wp-content', 'wp-json', 'wp-cron.php', 'xmlrpc.php', 'wp-login.php', 'wp-signup.php', 'wp-activate.php', 'wp-comments-post.php', 'wp-trackback.php', 'manage', 'robots.txt', 'favicon.ico' );
 		if ( in_array( $first, $blocked, true ) ) return true;
 		return (bool) preg_match( '/\.(?:css|js|map|jpe?g|png|gif|webp|avif|svg|ico|woff2?|ttf|eot|xml|json|txt)$/i', $relative );
 	}
