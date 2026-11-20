@@ -185,6 +185,7 @@ final class Pera_Manage {
             array( 'Edit articles', self::url( 'content' ) ),
             array( 'New article', admin_url( 'post-new.php' ) ),
             array( 'Translation tools', self::url( 'translations' ) ),
+            array( 'Site Performance', admin_url( 'admin.php?page=pera-site-performance' ) ),
         );
         if ( self::crm_access() ) $actions[] = array( 'Open CRM', home_url( '/crm/' ) );
         foreach ( $actions as $item ) echo '<a class="card-shell pm-action" href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . ' <span aria-hidden="true">→</span></a>';
@@ -208,7 +209,7 @@ final class Pera_Manage {
 
     private static function tools(): void {
         echo '<h1>Site tools</h1><p>Links to existing administrative screens; no maintenance actions are executed here.</p><div class="pm-actions">';
-        foreach ( array( array( 'WordPress dashboard', admin_url() ), array( 'Media Library', admin_url( 'upload.php' ) ), array( 'Site Health', admin_url( 'site-health.php' ) ), array( 'Menus', admin_url( 'nav-menus.php' ) ) ) as $item ) {
+        foreach ( array( array( 'WordPress dashboard', admin_url() ), array( 'Media Library', admin_url( 'upload.php' ) ), array( 'Site Performance', admin_url( 'admin.php?page=pera-site-performance' ) ), array( 'Site Health', admin_url( 'site-health.php' ) ), array( 'Menus', admin_url( 'nav-menus.php' ) ) ) as $item ) {
             echo '<a class="card-shell pm-action" href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . ' <span aria-hidden="true">→</span></a>';
         }
         echo '</div>';
