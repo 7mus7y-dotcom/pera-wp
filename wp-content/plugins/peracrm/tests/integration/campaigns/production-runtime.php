@@ -3,12 +3,18 @@
 require_once __DIR__.'/prepared-worker-fixture.php';
 require_once WP_PLUGIN_DIR.'/peracrm/tests/deployment-fixture.php';
 require_once WP_PLUGIN_DIR.'/peracrm/inc/campaigns/production-runtime.php';
-function production_source(string $mailbox): int
+function production_source(string $mailbox,int $members=1): int
 {
     $topic='production'.bin2hex(random_bytes(8));
     prepared_expect(!is_wp_error(peracrm_campaigns_save_subscriber($mailbox,['preferred_language'=>'en','preferences'=>[$topic]])), 'production synthetic subscriber');
     prepared_expect(!is_wp_error(peracrm_campaigns_record_consent($mailbox,'subscribed',[
         'source'=>'synthetic_fixture','source_ref'=>'production','evidence_ref'=>'synthetic','policy_version'=>'v1','occurred_at'=>gmdate('Y-m-d H:i:s')])), 'production synthetic consent');
+    for ($i=1;$i<$members;$i++) {
+        $extra='batch-'.$i.'@campaign-fixture.org';
+        prepared_expect(!is_wp_error(peracrm_campaigns_save_subscriber($extra,['preferred_language'=>'en','preferences'=>[$topic]])), 'batch subscriber');
+        prepared_expect(!is_wp_error(peracrm_campaigns_record_consent($extra,'subscribed',[
+            'source'=>'synthetic_fixture','source_ref'=>'batch','evidence_ref'=>'synthetic','policy_version'=>'v1','occurred_at'=>gmdate('Y-m-d H:i:s')])), 'batch consent');
+    }
     $d=peracrm_campaign_draft_save(0,0,['internal_name'=>'Production fixture','subject'=>'Production fixture',
         'sender_id'=>'production','language'=>'en','main_text'=>'Synthetic production worker message','audience'=>['version'=>1,'topic'=>$topic]]);
     prepared_expect(!is_wp_error($d),'production draft saved');
@@ -21,7 +27,7 @@ function production_source(string $mailbox): int
     $r=peracrm_campaign_frozen_get($d['id'],1); $nonce=wp_create_nonce('peracrm_campaign_queue_'.$d['id']);
     $j=peracrm_campaign_queue_prepare($d['id'],(int)$r['id'],$nonce);
     while (!(int)$j['complete']) { $j=peracrm_campaign_queue_materialize($d['id'],(int)$j['id'],(int)$j['version'],$nonce); }
-    prepared_expect((int)$j['expected_count']===1,'production exact normal frozen queue');
+    prepared_expect((int)$j['expected_count']===$members,'production exact normal frozen queue');
     return (int)$j['id'];
 }
 worker_fixture_target(static function () {
@@ -36,6 +42,7 @@ worker_fixture_target(static function () {
     foreach (['accepted','withdrawn','reserved','paused','future','cancelled','unknown','recovery','diagnostic'] as $kind) {
         $jobs[$kind]=production_source($kind==='reserved'?'production@example.test':$kind.'@campaign-fixture.org');
     }
+    $jobs['batch']=production_source('batch-0@campaign-fixture.org',26);
     $deployment='production-fixture'; prepared_setup($deployment);
     $manifest=campaign_deployment_manifest(get_current_blog_id(),$deployment);
     $material=campaign_deployment_material(time()); unset($material['identity']);
@@ -143,6 +150,14 @@ worker_fixture_target(static function () {
         $request=$transport->requests[0];
         prepared_expect($request['Destination']===['ToAddresses'=>['accepted@campaign-fixture.org']] && count($request['EmailTags'])===4 && count($request['Content']['Simple']['Headers'])===2,'production correlation and one-click headers');
         $service->run($jobs['accepted']); prepared_expect($transport->calls===1,'accepted replay cannot resend');
+        $batchTransport=clone $transport; $batchTransport->calls=0;
+        $batchService=new PeraCRM_Campaign_Production_Runtime($adapter,$config,$api,$batchTransport,static fn()=>null);
+        prepared_reject(fn()=>$batchService->scheduled(101));
+        prepared_reject(fn()=>$batchService->run($jobs['batch'],101));
+        $batchResult=$batchService->run($jobs['batch'],100);
+        prepared_expect($batchResult['accepted']===26 && $batchTransport->calls===26, 'bounded production batch crosses old 25-recipient limit');
+        $batchService->run($jobs['batch'],100);
+        prepared_expect($batchTransport->calls===26, 'larger batch never resends accepted recipients');
         parse_str(parse_url(trim($request['Content']['Simple']['Headers'][0]['Value'],'<>'),PHP_URL_QUERY),$query);
         preg_match('~https://example\.org/email-preferences/\?[^"<>\s]+~',html_entity_decode($request['Content']['Simple']['Body']['Html']['Data'],ENT_QUOTES),$preference);
         parse_str(parse_url($preference[0]??'',PHP_URL_QUERY)??'',$profile);

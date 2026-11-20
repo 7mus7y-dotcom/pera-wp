@@ -165,3 +165,38 @@ unauthorized or configuration/provider read failure; 4 readiness/overlap/executi
 Only fixed error codes and bounded summaries are printed, never provider bodies or secrets.
 The CLI scheduler metadata distinguishes invocation, successful processing and provider
 acceptance. No delivery claim is inferred from scheduler invocation.
+
+## Raising the rate of an active job
+
+Scheduled production runs now attempt up to 100 recipients, subject to the existing
+55-second execution bound and 20-second send reserve. Explicit `dispatch-run` limits
+accept 1–100; the default for a manually requested run remains one. Claims remain
+serial and account-locked. The conservative two-second budget window and pacing,
+provider quota checks, suppression checks and ambiguous-outcome breaker remain active.
+100 is a ceiling, not a promised number per minute.
+
+After deploying, the site owner can adjust an already active, single-job policy:
+
+```sh
+python3 /home/d21882/public_html/wp-content/plugins/peracrm/tools/configure-dispatch-rate.py \
+  --path /home/d21882/public_html \
+  --url https://www.peraproperty.com --user 1 --job 4 \
+  --per-second 10 --daily 10000
+```
+
+The tool requires current readiness and the exact existing single-job allowlist. It
+pauses dispatch, waits for the account worker lock, attests the configured principal,
+checks fresh available AWS quotas, and refreshes suppression state. It changes only
+the two caps. A private review artifact retains the old configuration and original
+evidence. Rate-only review rebinds existing evidence with its original verification
+dates and expiry; IAM/account quota evidence receives a fresh provider observation.
+The tool rechecks readiness before restoring the prior enabled state. It does not
+send, clear breakers, rewrite recipient records, retry unknown deliveries, alter
+cron, or reset rolling usage. The existing cron resumes the queue.
+
+Failures after pausing restore the old caps and leave dispatch disabled. Inspect the
+printed private attempt directory (`wp-error.log` contains WP-CLI failure details)
+before restoring dispatch. Repeating an already successful request reports unchanged.
+A previously created target evidence binding is retained and requires review rather
+than being overwritten. This helper is only for a reviewed rate increase; it cannot
+activate an inactive installation, change identity/sender/scope, or expand job access.

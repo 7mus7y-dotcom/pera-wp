@@ -137,6 +137,7 @@ final class PeraCRM_Campaign_Production_Worker extends PeraCRM_Campaign_Worker
 /** Bounded administrator CLI execution. Public requests and native WP-Cron cannot send. */
 final class PeraCRM_Campaign_Production_Runtime
 {
+    public const MAX_BATCH = 100;
     private array $pins;
     private string $fingerprint;
     private bool $active=false;
@@ -223,7 +224,7 @@ final class PeraCRM_Campaign_Production_Runtime
     {
         $this->authorize();
         if (!peracrm_campaign_queue_dispatch_allowed()) { return ['state'=>'disabled','dispatch_enabled'=>false]; }
-        if ($job<1 || !in_array($job,$this->config['job_ids'],true) || $limit<1 || $limit>25) { throw new RuntimeException('production_job'); }
+        if ($job<1 || !in_array($job,$this->config['job_ids'],true) || $limit<1 || $limit>self::MAX_BATCH) { throw new RuntimeException('production_job'); }
         // Native non-send reads authenticate the principal and bound SES account before claims.
         $api=$this->api(); $account=$api->quota();
         if (($account['ProductionAccessEnabled']??null)!==true || ($account['EnforcementStatus']??null)!=='HEALTHY') { throw new RuntimeException('production_sandbox'); }
@@ -311,7 +312,7 @@ final class PeraCRM_Campaign_Production_Runtime
             throw new RuntimeException('production_sender');
         }
     }
-    public function scheduled(int $limit=25): array
+    public function scheduled(int $limit=self::MAX_BATCH): array
     {
         global $wpdb;
         $quiet=$wpdb->suppress_errors(true);
@@ -320,7 +321,7 @@ final class PeraCRM_Campaign_Production_Runtime
     }
     private function due(int $limit): array
     {
-        if ($limit<1 || $limit>25) { throw new RuntimeException('production_limit'); }
+        if ($limit<1 || $limit>self::MAX_BATCH) { throw new RuntimeException('production_limit'); }
         // Configured job IDs are an operator-reviewed allowlist, never a global queue scan.
         $this->authorize();
         if (!peracrm_campaign_queue_dispatch_allowed()) { return ['state'=>'disabled','dispatch_enabled'=>false]; }
