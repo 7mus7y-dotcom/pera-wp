@@ -8,3 +8,5 @@ if ( ! defined( 'PERA_CRM_DEBUG_AJAX' ) ) {
 require_once get_stylesheet_directory() . '/inc/bootstrap.php';
 require_once get_stylesheet_directory() . '/inc/theme-helpers.php';
 require_once get_stylesheet_directory() . '/inc/theme-modules.php';
+
+require_once get_stylesheet_directory() . '/inc/home-featured-load.php';
