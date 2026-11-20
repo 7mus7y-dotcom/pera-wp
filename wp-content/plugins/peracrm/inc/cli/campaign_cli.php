@@ -57,7 +57,7 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             } elseif ($operation==='dispatch-scheduled') { $data=$production->scheduled(); }
             else {
                 if (!is_string($assoc['job']??null) || preg_match('/\A[1-9][0-9]{0,9}\z/',$assoc['job'])!==1
-                    || !is_string($assoc['limit']??'1') || preg_match('/\A(?:[1-9]|1[0-9]|2[0-5])\z/',$assoc['limit']??'1')!==1) { throw new InvalidArgumentException(); }
+                    || !is_string($assoc['limit']??'1') || preg_match('/\A(?:[1-9]|[1-9][0-9]|100)\z/',$assoc['limit']??'1')!==1) { throw new InvalidArgumentException(); }
                 $data=$production->run((int)$assoc['job'],(int)($assoc['limit']??1),$operation==='dispatch-recover');
             }
             if (!in_array($data['state']??null,['completed','time_bound','refreshed','idle'],true)) { $exit=($data['state']??null)==='disabled'?2:4; }
