@@ -12,7 +12,11 @@ if ( ! function_exists( 'pera_latest_offers_meta_key' ) ) {
 if ( ! function_exists( 'pera_latest_offers_get_rows' ) ) {
 	if ( ! function_exists( 'pera_latest_offers_validate_video_id' ) ) {
 		function pera_latest_offers_validate_video_id( $video_id ): int {
-			$video_id = absint( $video_id );
+			if ( ! is_int( $video_id ) && ! is_string( $video_id ) ) {
+				return 0;
+			}
+
+			$video_id = filter_var( $video_id, FILTER_VALIDATE_INT, array( 'options' => array( 'min_range' => 1 ) ) );
 			if ( $video_id < 1 || 'attachment' !== get_post_type( $video_id ) || 'video/mp4' !== get_post_mime_type( $video_id ) ) {
 				return 0;
 			}
@@ -41,16 +45,17 @@ if ( ! function_exists( 'pera_latest_offers_get_rows' ) ) {
 			}
 
 			$normalized[] = array(
-				'type'          => isset( $row['type'] ) ? trim( (string) $row['type'] ) : '',
-				'floor'         => isset( $row['floor'] ) ? trim( (string) $row['floor'] ) : '',
-				'net_sqm'       => isset( $row['net_sqm'] ) ? trim( (string) $row['net_sqm'] ) : '',
-				'gross_sqm'     => isset( $row['gross_sqm'] ) ? trim( (string) $row['gross_sqm'] ) : '',
-				'list_price'    => isset( $row['list_price'] ) ? trim( (string) $row['list_price'] ) : '',
-				'cash_price'    => isset( $row['cash_price'] ) ? trim( (string) $row['cash_price'] ) : '',
-				'notes'         => isset( $row['notes'] ) ? trim( (string) $row['notes'] ) : '',
-				'floor_plan_id' => isset( $row['floor_plan_id'] ) ? (int) $row['floor_plan_id'] : 0,
-				'video_id'      => isset( $row['video_id'] ) ? pera_latest_offers_validate_video_id( $row['video_id'] ) : 0,
-				'video_text'    => isset( $row['video_text'] ) ? sanitize_text_field( (string) $row['video_text'] ) : '',
+				'type'            => isset( $row['type'] ) ? trim( (string) $row['type'] ) : '',
+				'floor'           => isset( $row['floor'] ) ? trim( (string) $row['floor'] ) : '',
+				'net_sqm'         => isset( $row['net_sqm'] ) ? trim( (string) $row['net_sqm'] ) : '',
+				'gross_sqm'       => isset( $row['gross_sqm'] ) ? trim( (string) $row['gross_sqm'] ) : '',
+				'list_price'      => isset( $row['list_price'] ) ? trim( (string) $row['list_price'] ) : '',
+				'cash_price'      => isset( $row['cash_price'] ) ? trim( (string) $row['cash_price'] ) : '',
+				'notes'           => isset( $row['notes'] ) ? trim( (string) $row['notes'] ) : '',
+				'floor_plan_id'   => isset( $row['floor_plan_id'] ) ? (int) $row['floor_plan_id'] : 0,
+				'video_id'        => isset( $row['video_id'] ) ? pera_latest_offers_validate_video_id( $row['video_id'] ) : 0,
+				'video_text'      => isset( $row['video_text'] ) ? sanitize_text_field( (string) $row['video_text'] ) : '',
+				'show_in_gallery' => in_array( $row['show_in_gallery'] ?? false, array( true, 1, '1' ), true ),
 			);
 		}
 
@@ -183,6 +188,52 @@ if ( ! function_exists( 'pera_latest_offers_video_url' ) ) {
 		$attachment_url = wp_get_attachment_url( $attachment_id );
 		return is_string( $attachment_url ) ? $attachment_url : '';
 	}
+}
+
+/**
+ * Insert the primary video and opted-in offers after the first gallery image.
+ * Promote the listing's main image when an offer video is added.
+ */
+function pera_property_gallery_media_items( array $images, array $main_image, array $primary_video, array $offer_rows ): array {
+	$videos = $primary_video ? array( $primary_video ) : array();
+	$seen = $primary_video ? array( $primary_video['id'] => true ) : array();
+	$has_offer_video = false;
+
+	foreach ( $offer_rows as $row ) {
+		$id = $row['video_id'];
+		if ( ! $row['show_in_gallery'] || ! $id || isset( $seen[ $id ] ) || 'trash' === get_post_status( $id ) ) {
+			continue;
+		}
+
+		$url = pera_latest_offers_video_url( $id );
+		if ( ! $url || ! wp_http_validate_url( $url ) ) {
+			continue;
+		}
+
+		$videos[] = array(
+			'type'  => 'video',
+			'id'    => $id,
+			'url'   => $url,
+			'mime'  => 'video/mp4',
+			'label' => '' !== $row['video_text'] ? $row['video_text'] : get_post_field( 'post_title', $id, 'raw' ),
+		);
+		$seen[ $id ] = true;
+		$has_offer_video = true;
+	}
+
+	if ( $has_offer_video && $main_image ) {
+		foreach ( $images as $index => $image ) {
+			if ( $image['id'] === $main_image['id'] ) {
+				$main_image = $image;
+				unset( $images[ $index ] );
+				break;
+			}
+		}
+		array_unshift( $images, $main_image );
+	}
+
+	array_splice( $images, empty( $images ) ? 0 : 1, 0, $videos );
+	return $images;
 }
 
 if ( ! function_exists( 'pera_latest_offers_format_notes' ) ) {

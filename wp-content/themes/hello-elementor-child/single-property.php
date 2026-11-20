@@ -1108,34 +1108,42 @@ $has_further_reading = ! empty( $post_ids );
 <section class="section property-gallery" id="property-gallery">
   <div class="container">
     <?php
-    $has_gallery = ( ! empty( $gallery_ids ) && is_array( $gallery_ids ) && (int) $photo_count > 0 );
-    $has_gallery_media = $has_gallery || $custom_video_url;
-
-    if ( $has_gallery_media ) :
-      $gallery_items = array();
-      foreach ( $gallery_ids as $img_id ) {
-        $img_id = absint( $img_id );
-        if ( ! $img_id ) { continue; }
-        if ( ! wp_get_attachment_image_url( $img_id, 'full' ) ) { continue; }
-
-        $alt_meta = trim( (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true ) );
-        $gallery_items[] = array(
-          'id'  => $img_id,
-          'alt' => $alt_meta !== '' ? $alt_meta : $title,
-        );
+    $gallery_items = array();
+    foreach ( $gallery_ids as $img_id ) {
+      $img_id = absint( $img_id );
+      if ( ! $img_id || ! wp_get_attachment_image_url( $img_id, 'full' ) ) {
+        continue;
       }
 
-      $gallery_media_items = $gallery_items;
-      if ( $custom_video_url ) {
-        array_splice(
-          $gallery_media_items,
-          empty( $gallery_items ) ? 0 : 1,
-          0,
-          array( array( 'type' => 'video' ) )
-        );
-      }
+      $alt_meta = trim( (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true ) );
+      $gallery_items[] = array(
+        'id'  => $img_id,
+        'alt' => $alt_meta !== '' ? $alt_meta : $title,
+      );
+    }
 
-      if ( ! empty( $gallery_media_items ) ) :
+    $gallery_poster_url = $custom_video_poster_url ?: $hero_img_url;
+    $gallery_main_image = $gallery_poster_url ? array(
+      'id'  => $custom_video_poster_url && $hero_img_id ? $hero_img_id : 0,
+      'url' => $gallery_poster_url,
+      'alt' => $hero_img_alt,
+    ) : array();
+    $gallery_primary_video = $custom_video_url ? array(
+      'type'  => 'video',
+      'id'    => $custom_video_attachment_id,
+      'url'   => $custom_video_url,
+      'mime'  => $custom_video_mime_type,
+      'label' => $custom_video_label,
+    ) : array();
+    $gallery_media_items = pera_property_gallery_media_items(
+      $gallery_items,
+      $gallery_main_image,
+      $gallery_primary_video,
+      pera_latest_offers_get_rows( $property_id )
+    );
+    $has_gallery_video = in_array( 'video', array_column( $gallery_media_items, 'type' ), true );
+
+    if ( ! empty( $gallery_media_items ) ) :
     ?>
       <div class="property-gallery__strip-shell">
         <button class="property-gallery__strip-nav property-gallery__strip-nav--prev" type="button" aria-label="<?php echo esc_attr( pera_ml_ui( 'Previous gallery item', 'theme.template.single_property.aria_label.previous_gallery_item' ) ); ?>" aria-controls="property-gallery-strip" hidden>
@@ -1145,16 +1153,19 @@ $has_further_reading = ! empty( $post_ids );
         </button>
         <div class="property-gallery__strip" id="property-gallery-strip" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property photos', 'theme.template.single_property.aria_label.property_photos' ) ); ?>" role="list">
         <?php foreach ( $gallery_media_items as $gallery_item ) : ?>
-          <?php if ( isset( $gallery_item['type'] ) && 'video' === $gallery_item['type'] ) : ?>
-            <div class="property-gallery__item property-gallery__item--video<?php echo $custom_video_poster_url ? '' : ' property-gallery__item--video-fallback'; ?>" role="listitem">
-              <button class="property-gallery__trigger property-gallery__video-trigger" type="button" data-gallery-type="video" aria-label="<?php echo esc_attr( $custom_video_label ); ?>">
-                <?php if ( $custom_video_poster_url ) : ?>
-                  <img src="<?php echo esc_url( $custom_video_poster_url ); ?>" alt="" loading="lazy" decoding="async">
+          <?php if ( isset( $gallery_item['type'] ) && 'video' === $gallery_item['type'] ) :
+            $is_primary_video = $custom_video_url && $gallery_item['id'] === $custom_video_attachment_id;
+            $poster_url = $is_primary_video ? $custom_video_poster_url : $gallery_poster_url;
+          ?>
+            <div class="property-gallery__item property-gallery__item--video<?php echo $poster_url ? '' : ' property-gallery__item--video-fallback'; ?>" role="listitem">
+              <button class="property-gallery__trigger property-gallery__video-trigger" type="button" data-gallery-type="video" data-gallery-src="<?php echo esc_url( $gallery_item['url'] ); ?>" data-gallery-mime="<?php echo esc_attr( $gallery_item['mime'] ); ?>" data-gallery-poster="<?php echo esc_url( $poster_url ); ?>"<?php if ( $is_primary_video ) : ?> data-gallery-primary-video<?php endif; ?> aria-label="<?php echo esc_attr( $gallery_item['label'] ); ?>">
+                <?php if ( $poster_url ) : ?>
+                  <img src="<?php echo esc_url( $poster_url ); ?>" alt="" loading="lazy" decoding="async">
                 <?php endif; ?>
                 <span class="property-gallery__play" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z"></path></svg>
                 </span>
-                <span class="property-gallery__video-label"><?php echo esc_html( $custom_video_label ); ?></span>
+                <span class="property-gallery__video-label"><?php echo esc_html( $gallery_item['label'] ); ?></span>
               </button>
             </div>
           <?php else :
@@ -1186,10 +1197,13 @@ $has_further_reading = ! empty( $post_ids );
               'alt'      => $alt_label,
             )
           );
+          if ( ! $image_html && ! empty( $gallery_item['url'] ) ) {
+            $image_html = sprintf( '<img src="%s" alt="%s" loading="lazy" decoding="async">', esc_url( $gallery_item['url'] ), esc_attr( $alt_label ) );
+          }
           if ( ! $image_html ) { continue; }
         ?>
           <div class="property-gallery__item property-gallery__item--image" role="listitem" style="<?php echo esc_attr( '--image-ratio: ' . $image_ratio . ';' ); ?>">
-            <button class="property-gallery__trigger" type="button" data-gallery-type="image" data-gallery-src="<?php echo esc_url( wp_get_attachment_image_url( $img_id, 'full' ) ); ?>" data-gallery-label="<?php echo esc_attr( $alt_label ); ?>" aria-label="<?php echo esc_attr( $alt_label ); ?>">
+            <button class="property-gallery__trigger" type="button" data-gallery-type="image" data-gallery-src="<?php echo esc_url( $gallery_item['url'] ?? wp_get_attachment_image_url( $img_id, 'full' ) ); ?>" data-gallery-label="<?php echo esc_attr( $alt_label ); ?>" aria-label="<?php echo esc_attr( $alt_label ); ?>">
               <?php echo $image_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </button>
           </div>
@@ -1205,15 +1219,11 @@ $has_further_reading = ! empty( $post_ids );
     <?php else :
       echo '<p class="text-soft" style="margin:0;">' . esc_html( pera_ml_ui( 'No gallery images available.', 'theme.template.single_property.no_gallery_images_available' ) ) . '</p>';
     endif;
-
-    else :
-      echo '<p class="text-soft" style="margin:0;">' . esc_html( pera_ml_ui( 'No gallery images available.', 'theme.template.single_property.no_gallery_images_available' ) ) . '</p>';
-    endif;
     ?>
   </div><!-- /.container -->
 </section>
 
-<?php if ( $has_gallery_media ) : ?>
+<?php if ( $gallery_media_items ) : ?>
   <div class="lightbox" id="property-lightbox" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property gallery', 'theme.template.single_property.aria_label.property_photos' ) ); ?>" aria-hidden="true">
     <div class="lightbox__backdrop" data-gallery-close></div>
     <div class="lightbox__content">
@@ -1221,9 +1231,9 @@ $has_further_reading = ! empty( $post_ids );
         <button class="lightbox__close" type="button" data-gallery-close aria-label="<?php echo esc_attr( pera_ml_ui( 'Close gallery', 'theme.template.single_property.aria_label.close_gallery' ) ); ?>"><span aria-hidden="true">&times;</span></button>
         <button class="lightbox__nav lightbox__nav--prev" type="button" data-gallery-prev aria-label="<?php echo esc_attr( pera_ml_ui( 'Previous image', 'theme.template.single_property.aria_label.previous_image' ) ); ?>"><span aria-hidden="true">&#8249;</span></button>
         <img class="lightbox__img" src="" alt="" hidden>
-        <?php if ( $custom_video_url ) : ?>
+        <?php if ( $has_gallery_video ) : ?>
           <video class="lightbox__video" controls playsinline preload="metadata"<?php echo $custom_video_poster_url ? ' poster="' . esc_url( $custom_video_poster_url ) . '"' : ''; ?> hidden aria-label="<?php echo esc_attr( $custom_video_label ); ?>">
-            <source src="<?php echo esc_url( $custom_video_url ); ?>" type="<?php echo esc_attr( $custom_video_mime_type ); ?>">
+            <source<?php if ( $custom_video_url ) : ?> src="<?php echo esc_url( $custom_video_url ); ?>" type="<?php echo esc_attr( $custom_video_mime_type ); ?>"<?php endif; ?>>
           </video>
           <button class="lightbox__video-pause" type="button" aria-label="<?php echo esc_attr( pera_ml_ui( 'Pause apartment tour', 'theme.template.single_property.aria_label.pause_apartment_tour' ) ); ?>" hidden></button>
           <button class="lightbox__video-play" type="button" aria-label="<?php echo esc_attr( pera_ml_ui( 'Play apartment tour', 'theme.template.single_property.aria_label.play_apartment_tour' ) ); ?>" hidden>
