@@ -122,7 +122,7 @@ const fs = require('fs');
  await require('./readiness-browser.cjs')({page,target,context,employeeContext,browser});
  const anon=await browser.newContext(); const publicPage=await anon.newPage();
  const url=target+'/?peracrm_email_preferences=1&token='+fixture.token;
- let response=await publicPage.goto(url);
+ const response=await publicPage.goto(url);
  if (!response.headers()['cache-control'].includes('no-store') || response.headers()['referrer-policy']!=='no-referrer') throw Error('Public privacy headers');
  await publicPage.getByRole('button',{name:'Unsubscribe from all marketing email'}).waitFor();
  if(!(await publicPage.locator('main').evaluate(el=>getComputedStyle(el).fontFamily.includes('system-ui')))) throw Error('Public plugin stylesheet was not applied');
@@ -144,8 +144,18 @@ const fs = require('fs');
  await publicPage.getByRole('status').filter({hasText:'withdrawn'}).waitFor();
  await publicPage.goto(target+'/?peracrm_email_preferences=1&token='+'0'.repeat(64));
  if (await publicPage.getByRole('button',{name:'Unsubscribe from all marketing email'}).count()) throw Error('Invalid token revealed form');
- response=await publicPage.goto(staff);
- if (response.status()!==403) throw Error('Anonymous staff read accepted');
+ for (const route of [
+  '/crm/', '/crm/clients/', '/crm/campaigns/', '/crm/campaigns/new/',
+  '/crm/campaigns/configuration/', '/crm/campaigns/queue/', '/crm/subscribers/',
+  '/?pera_crm=1&pera_crm_view=campaigns', '/?pera_crm=1&pera_crm_view=subscribers',
+ ]) {
+  const requested = target+route;
+  const redirect = await publicPage.request.get(requested,{maxRedirects:0});
+  const login = new URL(redirect.headers().location || requested,requested);
+  if (redirect.status()!==302 || login.origin+login.pathname!==target+'/wp-login.php' || login.searchParams.get('redirect_to')!==requested) {
+   throw Error('Expected login redirect back to '+route);
+  }
+ }
  await page.goto(staff+'&search=phase2-real');
  if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='unsubscribed') throw Error('Public POST failed to withdraw');
  await page.screenshot({path:'/evidence/subscribers-after-public-post.png',fullPage:true});
@@ -156,7 +166,7 @@ const fs = require('fs');
  if(employeeCampaignPost.status()!==403) throw Error('Employee campaign write accepted');
  const campaignNonce=await context.request.post(target+'/crm/campaigns/new/',{form:{operation:'save',revision:'0','document[subject]':'No nonce'}});
  if(campaignNonce.status()!==403) throw Error('Campaign save without nonce accepted');
- await require('./draft-browser.cjs')({browser,page,target});
+ await require('./draft-browser.cjs')({page,target});
  await require('./preview-browser.cjs')({page,target,employeeContext,context});
  await require('./change-tracking-browser.cjs')({page,target});
  await require('./freeze-browser.cjs')({page,target,context,employeeContext,browser});
@@ -175,5 +185,5 @@ const fs = require('fs');
   console.log('RENDER_REVIEW '+name+' '+(await review.screenshot({type:'jpeg',quality:30,fullPage:true})).toString('base64'));
   await review.close();
  }
- await browser.close(); console.log('PASS browser: desktop/mobile subscribers, import, suppression; default theme; public GET/privacy, repeated POST, invalid token and anonymous route denial');
+ await browser.close(); console.log('PASS browser: desktop/mobile subscribers, import, suppression; default theme; public GET/privacy, repeated POST, invalid token and CRM login redirects');
 })().catch(error=>{console.error(error);process.exit(1)});
