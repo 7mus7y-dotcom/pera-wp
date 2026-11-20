@@ -33,6 +33,10 @@
    2. ROOT VARIABLES + GLOBAL RESET
    ======================================================= */
 :root {
+  /* Change the public theme font stacks here. */
+  --font-body: 'Montserrat', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-heading: var(--font-body);
+
   --text: #222222;
   --text-soft: #555555;
   --inverse: #ffffff;
@@ -338,7 +342,7 @@ html {
 body {
   margin: 0;
   background: var(--bg);
-  font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-body);
   font-weight: 400;
   font-size: 1rem;
   line-height: 1.6;
@@ -389,7 +393,7 @@ a:focus {
    5. TYPOGRAPHY
    ======================================================= */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Montserrat', Arial, sans-serif;
+  font-family: var(--font-heading);
   line-height: 1.2;
   margin: 0 0 0.5em;
 }
