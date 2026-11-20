@@ -303,7 +303,9 @@ $water_view_url = add_query_arg(
     try {
       const body = new URLSearchParams({
         action: 'pera_home_featured_load_more',
-        offset: button.dataset.offset
+        offset: button.dataset.offset,
+        pera_ml_lang: <?php echo wp_json_encode( function_exists( 'pera_ml_current_language' ) ? pera_ml_current_language() : 'en' ); ?>,
+        pera_ml_nonce: <?php echo wp_json_encode( wp_create_nonce( 'pera_ml_property_filter' ) ); ?>
       });
       const response = await fetch(button.dataset.endpoint, {
         method: 'POST',
