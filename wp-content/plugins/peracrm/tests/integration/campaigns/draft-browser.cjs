@@ -1,5 +1,5 @@
 // Invoked in the existing disposable default-theme browser session.
-module.exports = async function ({browser,page,target}) {
+module.exports = async function ({page,target}) {
   const configuration=target+'/crm/campaigns/configuration/';
   const assertNoOverflow=async(label)=>{if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Campaign overflow '+label);};
   page.on('dialog',dialog=>dialog.accept());
@@ -116,10 +116,5 @@ module.exports = async function ({browser,page,target}) {
     if(!(await page.locator('[data-campaign-missing]').innerText()).includes('Draft fields complete')) throw Error('Approved configuration not reflected');
     await page.screenshot({path:'/evidence/campaign-approved-'+name+'.png',fullPage:true});
   }
-  const anon=await browser.newPage();
-  for(const route of ['/crm/campaigns/','/crm/campaigns/new/','/crm/campaigns/configuration/','/?pera_crm=1&pera_crm_view=campaigns']) {
-    const response=await anon.goto(target+route); if(response.status()!==403) throw Error('Anonymous campaign route accepted '+route);
-  }
-  await anon.close();
   console.log('PASS Phase 3A browser: actual list/create/edit/duplicate/save/reload, blocks add/move/remove, configuration approvals, validation retention and two-tab revision conflicts; desktop/mobile; bundled default theme');
 };

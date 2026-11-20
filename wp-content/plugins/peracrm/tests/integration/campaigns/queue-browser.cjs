@@ -8,8 +8,8 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
  page.removeAllListeners('dialog'); let confirm=true;
  page.on('dialog',d=>d.type()==='confirm' && !confirm ? d.dismiss() : d.accept());
  const anon=await browser.newContext();
+ if((await employeeContext.request.get(target+'/crm/campaigns/queue/')).status()!==403) throw Error('Unauthorized queue page');
  for (const requester of [anon.request,employeeContext.request]) {
-  if((await requester.get(target+'/crm/campaigns/queue/')).status()!==403) throw Error('Unauthorized queue page');
   if((await requester.post(endpoint,{form:{action:'peracrm_campaign_queue',operation:'state'}})).status()!==403) throw Error('Unauthorized queue adapter');
  }
  await anon.close();

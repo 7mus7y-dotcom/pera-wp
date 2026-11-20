@@ -396,6 +396,13 @@ if (!function_exists('pera_crm_gate_or_redirect')) {
     }
 }
 
+// Sign in before CRM screens run their own permission checks at priority 1.
+add_action('template_redirect', static function (): void {
+    if (pera_is_crm_route() && !is_user_logged_in()) {
+        pera_crm_gate_or_redirect();
+    }
+}, 0);
+
 if (!function_exists('peracrm_frontend_resolve_crm_template')) {
     function peracrm_frontend_resolve_crm_template(string $action, string $view): string
     {
