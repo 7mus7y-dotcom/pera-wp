@@ -494,6 +494,15 @@
     });
   });
 
+  // Rehydrate favourite hearts on homepage property cards inserted by AJAX.
+  // The authoritative Set also receives the asynchronous server sync for logged-in users.
+  document.addEventListener('pera:properties-appended', (event) => {
+    if (!event.target || !event.target.closest || !event.target.closest('#home-featured-grid')) {
+      return;
+    }
+    updateAllButtons();
+  });
+
   updateAllButtons();
   fetchServerFavourites();
   updateFavouritesIdsInput();
