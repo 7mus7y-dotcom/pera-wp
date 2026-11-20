@@ -140,6 +140,10 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             peracrm_frontend_enqueue_style_asset('peracrm-campaigns-css', 'assets/frontend/campaigns.css', ['peracrm-frontend-css']);
         }
 
+        if ($is_crm_request && (string) get_query_var('pera_crm_view') === 'subscribers') {
+            peracrm_frontend_enqueue_style_asset('peracrm-delivery-review-css', 'assets/frontend/delivery-review.css', ['peracrm-frontend-css']);
+        }
+
         if (!$is_crm_request) {
             return;
         }

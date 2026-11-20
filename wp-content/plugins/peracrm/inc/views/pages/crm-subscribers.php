@@ -8,7 +8,8 @@ $path = (string) wp_parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 $is_import = substr(rtrim($path, '/'), -7) === '/import';
 $is_suppression = substr(rtrim($path, '/'), -12) === '/suppression';
 $batch_id = isset($_GET['batch']) && is_string($_GET['batch']) ? wp_unslash($_GET['batch']) : '';
-$title = $is_import ? 'Subscriber import' : ($is_suppression ? 'Suppression intake' : ($id ? 'Subscriber profile' : 'Subscribers'));
+$is_delivery_review = isset($_GET['subscriber_view']) && $_GET['subscriber_view'] === 'delivery-review';
+$title = $is_delivery_review ? 'Delivery review and cleanup' : ($is_import ? 'Subscriber import' : ($is_suppression ? 'Suppression intake' : ($id ? 'Subscriber profile' : 'Subscribers')));
 function peracrm_subscribers_form_start($operation, $batch = '') {
     echo '<form method="post" action="' . esc_url(peracrm_with_target_blog(static function () { return admin_url('admin-post.php'); })) . '" class="peracrm-subscriber-form"' . ($operation === 'preview' ? ' enctype="multipart/form-data"' : '') . '>';
     wp_nonce_field('peracrm_subscribers');
@@ -20,10 +21,11 @@ peracrm_frontend_render_shell_header();
 <main id="primary" class="site-main crm-page crm-page--subscribers">
 <?php peracrm_frontend_render_partial('crm-header', ['title' => $title, 'active_view' => 'subscribers']); ?>
 <section class="content-panel content-panel--overlap-hero"><div class="content-panel-box border-dm crm-layout"><div class="crm-layout__main peracrm-subscribers">
-<nav class="peracrm-subscriber-links" aria-label="Subscriber tools"><a href="<?php echo esc_url(peracrm_subscribers_url()); ?>">Subscribers</a><a href="<?php echo esc_url(peracrm_subscribers_url('import/')); ?>">CSV preview and import</a><a href="<?php echo esc_url(peracrm_subscribers_url('suppression/')); ?>">Suppression intake</a></nav>
+<nav class="peracrm-subscriber-links" aria-label="Subscriber tools"><a href="<?php echo esc_url(peracrm_subscribers_url()); ?>">Subscribers</a><a href="<?php echo esc_url(peracrm_subscribers_url('import/')); ?>">CSV preview and import</a><a href="<?php echo esc_url(peracrm_subscribers_url('suppression/')); ?>">Suppression intake</a><a href="<?php echo esc_url(peracrm_delivery_review_url()); ?>">Bounces and cleanup</a></nav>
 <?php if (isset($_GET['subscriber_notice'])) : ?><p role="status" class="crm-notice"><?php echo esc_html($_GET['subscriber_notice'] === 'saved' ? 'Request saved. Review the result below.' : 'Request was not accepted. Check permissions, readiness, mapping and evidence.'); ?></p><?php endif; ?>
 <?php if (!$can_write) : ?><p class="crm-notice">Read only while impersonating. Return to your own identity to make changes.</p><?php endif; ?>
-<?php if ($is_import) :
+<?php if ($is_delivery_review) : include __DIR__.'/crm-delivery-review.php';
+elseif ($is_import) :
 $gate = peracrm_subscribers_readiness(); ?>
 <h2>Safe subscriber intake</h2><p>Real intake is <?php echo empty($gate['enabled']) ? 'disabled' : 'enabled'; ?>. Preview does not create subscribers or change consent. No emails are sent. CSV: 1 MiB, 1000 data rows, 64 columns; first row must contain headings.</p>
 <p>Import historical unsubscribe, complaint and hard-bounce sources first. Missing evidence remains unknown. Existing identities and suppressions are preserved; client matches remain unlinked.</p>

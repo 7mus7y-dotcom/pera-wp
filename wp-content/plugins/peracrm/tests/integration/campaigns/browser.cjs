@@ -41,6 +41,32 @@ const fs = require('fs');
   await page.getByRole('heading',{name:'Record a historical suppression'}).waitFor();
   await page.screenshot({path:'/evidence/suppression-'+name+'.png',fullPage:true});
  }
+ // Delivery review uses real staff routes, private headers and explicit profile-only cleanup.
+ for (const [name,width,height] of [['desktop',1440,1000],['mobile',390,844]]) {
+  await page.setViewportSize({width,height});
+  await page.goto(staff+'&subscriber_view=delivery-review&review_search=review-ui');
+  await page.getByRole('heading',{name:'Bounced addresses and list cleanup',exact:true}).waitFor();
+  const response=await context.request.get(staff+'&subscriber_view=delivery-review&review_search=review-ui');
+  if(!response.headers()['cache-control'].includes('no-store')) throw Error('Review page must remain private');
+  await page.getByText('Remove subscriber profile',{exact:true}).click();
+  await page.getByRole('button',{name:'Remove reviewed profile',exact:true}).waitFor();
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Delivery review horizontal overflow '+name);
+  await page.screenshot({path:'/evidence/delivery-review-'+name+'.png',fullPage:true});
+ }
+ const cleanupForm=page.locator('input[name="operation"][value="delivery_cleanup"]').locator('..');
+ const forged=await page.evaluate(()=>{
+  const form=document.querySelector('input[name="operation"][value="delivery_cleanup"]').form;
+  const data=Object.fromEntries(new FormData(form)); delete data._wpnonce; data.confirmed='1'; return data;
+ });
+ const rejected=await context.request.post(target+'/wp-admin/admin-post.php',{form:forged});
+ if(rejected.status()!==403) throw Error('Cleanup without CSRF nonce was accepted');
+ await cleanupForm.locator('input[name="confirmed"]').check();
+ await cleanupForm.getByRole('button',{name:'Remove reviewed profile',exact:true}).click();
+ await page.getByText('Blocked; no current subscriber profile',{exact:true}).waitFor();
+ if(await page.getByRole('button',{name:'Remove reviewed profile',exact:true}).count()) throw Error('Removed profile still has removal control');
+ await page.goto(staff+'&subscriber_view=delivery-review&review_kind=temporary&review_search=review-temporary');
+ await page.getByText('Review only; no removal action',{exact:true}).waitFor();
+ if(await page.getByRole('button',{name:'Remove reviewed profile',exact:true}).count()) throw Error('Temporary failure offers removal');
  // Real staff forms: unrelated edits and crafted requests preserve masked links.
  const scopedContext=await browser.newContext();
  const scoped=await scopedContext.newPage();

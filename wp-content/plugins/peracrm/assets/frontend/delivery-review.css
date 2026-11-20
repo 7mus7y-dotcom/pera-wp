@@ -1,0 +1,11 @@
+/* Delivery review reuses subscriber tables and forms, including dark-mode surfaces. */
+.peracrm-delivery-review .peracrm-subscriber-table td { vertical-align: middle; }
+.peracrm-delivery-review .peracrm-subscriber-links [aria-current="page"] { font-weight: 700; text-decoration: underline; text-underline-offset: .25em; }
+.peracrm-delivery-review .peracrm-subscriber-form { margin-block: 1rem; }
+.peracrm-delivery-review .peracrm-review-confirm { display: flex; align-items: flex-start; gap: .65rem; font-weight: 400; }
+.peracrm-delivery-review .peracrm-review-confirm input { flex: 0 0 auto; margin-top: .15rem; }
+.peracrm-delivery-review .peracrm-unsent-review { margin-top: 2.5rem; }
+.peracrm-delivery-review .peracrm-subscriber-table { border-color: var(--border-muted, #d7dfe5); }
+.peracrm-delivery-review .peracrm-subscriber-table th { background: var(--surface-soft, #edf2f5); color: var(--text, #182b37); }
+.peracrm-delivery-review .peracrm-subscriber-table td { border-color: var(--border-muted, #d7dfe5); }
+.peracrm-delivery-review .peracrm-subscriber-form input:not([type="checkbox"]) { background: var(--surface, #fff); color: var(--text, #182b37); border-color: var(--border-muted, #bcc5cc); }

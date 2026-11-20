@@ -510,3 +510,6 @@ appointment_b=$!
 wait "$appointment_a"
 wait "$appointment_b"
 wp eval-file /tests/appointments-race.php verify-edit
+
+# Leave review browser fixtures after suites that intentionally select global source rows.
+wp eval-file /tests/delivery-review.php
