@@ -1293,6 +1293,21 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		$advisor         = absint( $_GET['advisor'] ?? 0 );
 
 		$stages = pera_crm_get_pipeline_stages();
+		$neutral_stage_labels = array(
+			'new_enquiry'      => __( 'New enquiry', 'hello-elementor-child' ),
+			'contacted'        => __( 'Contacted', 'hello-elementor-child' ),
+			'qualified'        => __( 'Assessment', 'hello-elementor-child' ),
+			'viewing_arranged' => __( 'Visit arranged', 'hello-elementor-child' ),
+			'offer_made'       => __( 'Terms agreed', 'hello-elementor-child' ),
+			'deal_closed'      => __( 'Completed', 'hello-elementor-child' ),
+			'deal_lost'        => __( 'Not proceeding', 'hello-elementor-child' ),
+		);
+		foreach ( $neutral_stage_labels as $neutral_stage_key => $neutral_stage_label ) {
+			if ( isset( $stages[ $neutral_stage_key ] ) ) {
+				$stages[ $neutral_stage_key ] = $neutral_stage_label;
+			}
+		}
+
 		if ( empty( $stages ) ) {
 			$stages = array(
 				'new'       => 'New',
@@ -1453,6 +1468,14 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 			$party      = isset( $party_map[ $client_id ] ) && is_array( $party_map[ $client_id ] ) ? $party_map[ $client_id ] : array();
 			$stage_key  = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
 			$profile    = function_exists( 'peracrm_client_get_profile' ) ? (array) peracrm_client_get_profile( $client_id ) : array();
+			$client_type = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+			$client_type_options = function_exists( 'peracrm_client_type_options' ) ? (array) peracrm_client_type_options() : array();
+			$client_type_label = isset( $client_type_options[ $client_type ] )
+				? (string) $client_type_options[ $client_type ]
+				: ( '' !== $client_type ? ucwords( str_replace( '_', ' ', $client_type ) ) : __( 'Lead', 'hello-elementor-child' ) );
+			$client_stage_options = function_exists( 'peracrm_party_stage_options' )
+				? (array) peracrm_party_stage_options( $client_type )
+				: $stages;
 			$assigned   = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $client_id ) : 0;
 			$health     = function_exists( 'peracrm_client_health_get' ) ? (array) peracrm_client_health_get( $client_id ) : array();
 			$last_ts    = isset( $health['last_activity_ts'] ) ? (int) $health['last_activity_ts'] : 0;
@@ -1498,10 +1521,17 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 				break;
 			}
 
+			$client_stage_label = isset( $client_stage_options[ $stage_key ] )
+				? (string) $client_stage_options[ $stage_key ]
+				: (string) ( $stages[ $stage_key ] ?? '' );
+
 			$board[ $stage_key ]['items'][] = array(
-				'id'            => $client_id,
-				'title'         => get_the_title( $client_id ),
-				'client_url'    => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' ),
+				'id'                 => $client_id,
+				'title'              => get_the_title( $client_id ),
+				'client_type'        => $client_type,
+				'client_type_label'  => $client_type_label,
+				'stage_label'        => $client_stage_label,
+				'client_url'         => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' ),
 				'advisor_label' => $advisor_label,
 				'last_activity' => $last_label,
 				'lead_source'   => $lead_source,
