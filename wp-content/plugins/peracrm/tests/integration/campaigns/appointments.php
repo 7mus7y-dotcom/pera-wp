@@ -32,7 +32,7 @@ peracrm_with_target_blog(static function () {
     ap_expect(!peracrm_party_upsert_status($client,['lead_pipeline_stage'=>'viewing_arranged']),'raw stage transition requires booking');
     $bad=array_replace($data,['pipeline'=>true,'expected_stage'=>'qualified','request_key'=>wp_generate_uuid4(),'end_local'=>'invalid']);
     $failed=peracrm_appointment_save($bad);ap_expect(is_wp_error($failed) && peracrm_party_get($client)['lead_pipeline_stage']==='qualified','failed booking preserves stage');
-    $pipeline=array_replace($data,['pipeline'=>true,'expected_stage'=>'qualified','request_key'=>wp_generate_uuid4(),'start_local'=>gmdate('Y-m-d',time()+14*DAY_IN_SECONDS).'T10:00','end_local'=>gmdate('Y-m-d',time()+14*DAY_IN_SECONDS).'T11:00','engagement_state'=>'engaged','disposition'=>'none']);
+    $pipeline=array_replace($data,['pipeline'=>true,'expected_stage'=>'qualified','request_key'=>wp_generate_uuid4(),'start_local'=>gmdate('Y-m-d',time()+14*DAY_IN_SECONDS).'T10:00','end_local'=>gmdate('Y-m-d',time()+14*DAY_IN_SECONDS).'T11:00','engagement_state'=>'active','disposition'=>'none']);
     $booked=peracrm_appointment_save($pipeline);ap_expect(!is_wp_error($booked) && peracrm_party_get($client)['lead_pipeline_stage']==='viewing_arranged','atomic pipeline booking');
     $bookedAgain=peracrm_appointment_save($pipeline);ap_expect(!is_wp_error($bookedAgain) && $bookedAgain['id']===$booked['id'],'pipeline repeated submit deduplicated');
     $secret=array_replace($data,['client_id'=>$restricted,'advisor_id'=>$other,'participant_ids'=>[],'title'=>'SECRET TITLE','internal_notes'=>'SECRET NOTES','start_local'=>'2026-11-11T10:00','end_local'=>'2026-11-11T11:00','request_key'=>wp_generate_uuid4()]);
