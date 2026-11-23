@@ -55,7 +55,8 @@ function peracrm_party_stage_options($client_type = '')
 function peracrm_party_engagement_options()
 {
     return [
-        'engaged' => 'Engaged',
+        'enquiry' => 'Enquiry',
+        'active' => 'Active',
         'dormant' => 'Dormant',
         'closed' => 'Closed',
     ];
@@ -101,13 +102,12 @@ function peracrm_party_sanitize_stage($value)
 function peracrm_party_sanitize_engagement($value)
 {
     $value = sanitize_key((string) $value);
+    if ($value === 'engaged') {
+        $value = 'active';
+    }
     $allowed = peracrm_party_engagement_options();
 
-    if ($value === 'closed') {
-        return 'closed';
-    }
-
-    return isset($allowed[$value]) ? $value : 'engaged';
+    return isset($allowed[$value]) ? $value : 'enquiry';
 }
 
 function peracrm_party_sanitize_disposition($value)
@@ -127,7 +127,7 @@ function peracrm_party_default_status()
     return [
         'party_id' => 0,
         'lead_pipeline_stage' => 'new_enquiry',
-        'engagement_state' => 'engaged',
+        'engagement_state' => 'enquiry',
         'disposition' => 'none',
         'lead_stage_updated_at' => '',
         'updated_at' => '',
@@ -189,7 +189,8 @@ function peracrm_party_upsert_status($party_id, array $data)
         && ($GLOBALS['peracrm_appointment_stage_client'] ?? 0) !== $party_id) {
         return false;
     }
-    $engagement = peracrm_party_sanitize_engagement($data['engagement_state'] ?? 'engaged');
+    $current_party_status = peracrm_party_get($party_id);
+    $engagement = peracrm_party_sanitize_engagement($data['engagement_state'] ?? ($current_party_status['engagement_state'] ?? 'enquiry'));
     $disposition = peracrm_party_sanitize_disposition($data['disposition'] ?? 'none');
 
     $updated_at = peracrm_now_mysql();
@@ -225,17 +226,9 @@ function peracrm_party_upsert_status($party_id, array $data)
     }
 
     if (array_key_exists('engagement_state', $data)) {
-        $sync_legacy_status = static function () use ($party_id, $engagement, $stage): void {
-            $legacy_status = sanitize_key((string) get_post_meta($party_id, '_peracrm_status', true));
-
-            if (in_array($engagement, ['dormant', 'closed'], true)) {
-                update_post_meta($party_id, '_peracrm_status', $engagement);
-                return;
-            }
-
-            if ($engagement === 'engaged' && in_array($legacy_status, ['dormant', 'closed'], true)) {
-                update_post_meta($party_id, '_peracrm_status', $stage === 'new_enquiry' ? 'enquiry' : 'active');
-            }
+        $sync_legacy_status = static function () use ($party_id, $engagement): void {
+            // Keep the legacy profile meta as a compatibility mirror; the party record is canonical.
+            update_post_meta($party_id, '_peracrm_status', $engagement);
         };
 
         if (function_exists('peracrm_with_target_blog')) {
