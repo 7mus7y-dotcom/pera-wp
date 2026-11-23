@@ -98,6 +98,8 @@ peracrm_frontend_render_shell_header();
                     <?php
                     $title        = (string) ( $item['title'] ?? '' );
                     $url          = (string) ( $item['client_url'] ?? '' );
+                    $client_type_label = (string) ( $item['client_type_label'] ?? '' );
+                    $client_stage_label = (string) ( $item['stage_label'] ?? '' );
                     $advisor      = (string) ( $item['advisor_label'] ?? '' );
                     $last         = (string) ( $item['last_activity'] ?? '' );
                     $lead_source  = (string) ( $item['lead_source'] ?? '' );
@@ -152,6 +154,13 @@ peracrm_frontend_render_shell_header();
                           <?php foreach ( array_slice( $key_context, 0, 2 ) as $context_line ) : ?>
                             <p class="crm-pipeline-item__context-line"><?php echo esc_html( $context_line ); ?></p>
                           <?php endforeach; ?>
+                        </div>
+                      <?php endif; ?>
+
+                      <?php if ( '' !== $client_type_label || '' !== $client_stage_label ) : ?>
+                        <div class="crm-pipeline-item__stage-context" aria-label="<?php echo esc_attr__( 'Client type and pipeline stage', 'peracrm' ); ?>">
+                          <?php if ( '' !== $client_type_label ) : ?><span class="crm-chip crm-chip--neutral"><?php echo esc_html( $client_type_label ); ?></span><?php endif; ?>
+                          <?php if ( '' !== $client_stage_label ) : ?><span class="crm-chip crm-chip--status"><?php echo esc_html( $client_stage_label ); ?></span><?php endif; ?>
                         </div>
                       <?php endif; ?>
 
