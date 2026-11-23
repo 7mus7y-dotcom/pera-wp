@@ -18,6 +18,16 @@ $pipeline = function_exists( 'pera_crm_get_pipeline_view_data' )
 $columns      = is_array( $pipeline['columns'] ?? null ) ? $pipeline['columns'] : array();
 $pipeline_filters = is_array( $pipeline['filters'] ?? null ) ? $pipeline['filters'] : array();
 $include_inactive = ! empty( $pipeline_filters['include_inactive'] );
+$client_group = sanitize_key( (string) ( $pipeline_filters['client_group'] ?? 'buyers' ) );
+$client_group_options = is_array( $pipeline_filters['client_group_options'] ?? null ) ? $pipeline_filters['client_group_options'] : array(
+	'buyers'   => __( 'Buyers', 'peracrm' ),
+	'seller'   => __( 'Seller', 'peracrm' ),
+	'landlord' => __( 'Landlord', 'peracrm' ),
+	'agent'    => __( 'Agent', 'peracrm' ),
+);
+if ( ! isset( $client_group_options[ $client_group ] ) ) {
+	$client_group = 'buyers';
+}
 $total_items  = 0;
 
 foreach ( $columns as $column_data ) {
@@ -58,8 +68,13 @@ peracrm_frontend_render_shell_header();
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm crm-layout">
       <div class="crm-layout__main">
+      <nav class="crm-type-toggle crm-pipeline-client-type-toggle" aria-label="<?php esc_attr_e( 'Pipeline client type', 'peracrm' ); ?>">
+        <?php foreach ( $client_group_options as $group_key => $group_label ) : ?>
+          <a class="btn <?php echo esc_attr( $client_group === $group_key ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'client_group', $group_key ) ); ?>" <?php echo $client_group === $group_key ? 'aria-current="page"' : ''; ?>><?php echo esc_html( (string) $group_label ); ?></a>
+        <?php endforeach; ?>
+      </nav>
       <form method="get" class="crm-pipeline-visibility-filter" aria-label="<?php esc_attr_e( 'Pipeline visibility', 'peracrm' ); ?>">
-        <?php foreach ( array( 'q', 'stage', 'advisor' ) as $filter_key ) :
+        <?php foreach ( array( 'q', 'stage', 'advisor', 'client_group' ) as $filter_key ) :
           $filter_value = isset( $pipeline_filters[ $filter_key ] ) && is_scalar( $pipeline_filters[ $filter_key ] ) ? (string) $pipeline_filters[ $filter_key ] : '';
           if ( '' === $filter_value ) { continue; }
         ?>
