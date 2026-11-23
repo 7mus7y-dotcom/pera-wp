@@ -1854,6 +1854,22 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		$stage           = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 		$advisor         = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
 		$include_inactive = isset( $_GET['include_inactive'] ) && '1' === (string) wp_unslash( $_GET['include_inactive'] );
+		$client_group     = isset( $_GET['client_group'] ) ? sanitize_key( wp_unslash( (string) $_GET['client_group'] ) ) : 'buyers';
+		$client_group_options = array(
+			'buyers'   => __( 'Buyers', 'peracrm' ),
+			'seller'   => __( 'Seller', 'peracrm' ),
+			'landlord' => __( 'Landlord', 'peracrm' ),
+			'agent'    => __( 'Agent', 'peracrm' ),
+		);
+		if ( ! isset( $client_group_options[ $client_group ] ) ) {
+			$client_group = 'buyers';
+		}
+		$client_group_types = array(
+			'buyers'   => array( '', 'buyer', 'buyers', 'citizenship', 'investor', 'lifestyle' ),
+			'seller'   => array( 'seller' ),
+			'landlord' => array( 'landlord' ),
+			'agent'    => array( 'agent' ),
+		);
 		$active_filter   = pera_crm_get_request_filter( array( 'unassigned', 'stale', 'new72', 'open_scope' ) );
 
 		$stages = pera_crm_get_pipeline_stages();
@@ -2021,6 +2037,13 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 				continue;
 			}
 			$profile    = function_exists( 'peracrm_client_get_profile' ) ? (array) peracrm_client_get_profile( $client_id ) : array();
+			$client_type = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+			if ( '' === $client_type ) {
+				$client_type = sanitize_key( (string) get_post_meta( $client_id, 'peracrm_client_type', true ) );
+			}
+			if ( ! in_array( $client_type, $client_group_types[ $client_group ], true ) ) {
+				continue;
+			}
 			$assigned   = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $client_id ) : 0;
 			$health     = function_exists( 'peracrm_client_health_get' ) ? (array) peracrm_client_health_get( $client_id ) : array();
 			$last_ts    = isset( $health['last_activity_ts'] ) ? (int) $health['last_activity_ts'] : 0;
@@ -2086,6 +2109,8 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 				'stage'           => $stage,
 				'advisor'         => $advisor,
 				'include_inactive' => $include_inactive,
+				'client_group'    => $client_group,
+				'client_group_options' => $client_group_options,
 				'advisor_options' => $advisor_options,
 				'stage_options'   => $stages,
 			),
