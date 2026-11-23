@@ -9,7 +9,14 @@ peracrm_with_target_blog(static function(){
  update_option('peracrm_schema_version',41);
  if(!peracrm_maybe_upgrade_schema() || (int)get_option('peracrm_schema_version')!==PERACRM_SCHEMA_VERSION){WP_CLI::error('Appointment upgrade did not publish the current schema version.');}
  if(!peracrm_maybe_upgrade_schema()){WP_CLI::error('Repeated upgrade failed.');}
- foreach($before as $name=>$rows){if($rows!==$wpdb->get_results('SELECT * FROM '.peracrm_table($name),ARRAY_A)){WP_CLI::error('Upgrade changed existing '.$name);}}
+ foreach($before as $name=>$rows){
+  $after=$wpdb->get_results('SELECT * FROM '.peracrm_table($name),ARRAY_A);
+  if($name==='peracrm_party'){
+   $projection=static function($party_rows){$out=[];foreach($party_rows as $party_row){unset($party_row['engagement_state']);$out[(int)$party_row['party_id']]=$party_row;}ksort($out);return $out;};
+   if($projection($rows)!==$projection($after)){WP_CLI::error('Lifecycle migration changed party pipeline or audit fields.');}
+   foreach($after as $party_row){if(!in_array($party_row['engagement_state'],['enquiry','active','dormant','closed'],true)){WP_CLI::error('Lifecycle migration left a legacy party status.');}}
+  }elseif($rows!==$after){WP_CLI::error('Upgrade changed existing '.$name);}
+ }
  $meta_without_lifecycle_mirror=static function($rows){return array_values(array_filter($rows,static function($row){return ($row['meta_key']??'')!=='_peracrm_status';}));};
  $after_meta=$wpdb->get_results("SELECT * FROM {$wpdb->postmeta}",ARRAY_A);
  if($posts!==$wpdb->get_results("SELECT * FROM {$wpdb->posts}",ARRAY_A) || $meta_without_lifecycle_mirror($meta)!==$meta_without_lifecycle_mirror($after_meta)){WP_CLI::error('Upgrade changed existing posts or non-lifecycle metadata.');}
