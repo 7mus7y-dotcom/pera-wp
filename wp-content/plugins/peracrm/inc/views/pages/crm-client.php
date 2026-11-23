@@ -527,7 +527,7 @@ peracrm_frontend_render_shell_header();
                     <div class="crm-profile-grid crm-form-grid crm-form-grid--profile">
                       <?php $profile_status_key = sanitize_key( (string) ( $profile['status'] ?? '' ) ); ?>
                       <?php if ( in_array( $profile_status_key, array( 'dormant', 'closed' ), true ) ) : ?>
-                        <input type="hidden" name="peracrm_status" value="<?php echo esc_attr( $profile_status_key ); ?>" />
+
                       <?php else : ?>
                       <div class="crm-field crm-field--half">
                         <label><?php esc_html_e( 'Lead status', 'peracrm' ); ?></label>
