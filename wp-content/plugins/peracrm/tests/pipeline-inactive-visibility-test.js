@@ -22,7 +22,7 @@ assert.match(pipeline, /'engagement_state'\s*=>\s*\$engagement/, 'engagement kep
 assert.match(pipeline, /'post__in'\s*\]/, 'existing permission scope retained');
 assert.match(view, /name="include_inactive"\s+value="1"/, 'toggle uses GET');
 assert.match(view, /checked\(\s*\$include_inactive\s*\)/, 'toggle retains state');
-assert.match(view, /array\(\s*'q',\s*'stage',\s*'advisor'\s*\)/, 'other filters preserved');
+assert.match(view, /array\(\s*'q',\s*'stage',\s*'advisor',\s*'client_group'\s*\)/, 'other filters and selected category preserved');
 assert.match(view, /onchange="this\.form\.submit\(\)"/, 'toggle applies without JS assets');
 assert.match(css, /\.crm-page--pipeline \.crm-pipeline-visibility-filter/, 'scoped styling');
 const party = fs.readFileSync(path.join(root,'inc/repositories/party.php'),'utf8');
