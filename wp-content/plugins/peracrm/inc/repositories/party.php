@@ -4,10 +4,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-function peracrm_party_stage_options()
+function peracrm_party_stage_options($client_type = '')
 {
-    return function_exists('peracrm_lead_stage_options')
-        ? peracrm_lead_stage_options()
+    $stages = function_exists('peracrm_lead_stage_options')
+        ? (array) peracrm_lead_stage_options()
         : [
             'new_enquiry' => 'New enquiry',
             'contacted' => 'Contacted',
@@ -17,6 +17,20 @@ function peracrm_party_stage_options()
             'deal_closed' => 'Deal closed',
             'deal_lost' => 'Deal lost',
         ];
+
+    if (sanitize_key((string) $client_type) === 'landlord') {
+        $stages = array_replace($stages, [
+            'new_enquiry' => 'New landlord enquiry',
+            'contacted' => 'Contacted',
+            'qualified' => 'Property assessed',
+            'viewing_arranged' => 'Valuation visit arranged',
+            'offer_made' => 'Terms agreed',
+            'deal_closed' => 'Instruction signed',
+            'deal_lost' => 'Not proceeding',
+        ]);
+    }
+
+    return $stages;
 }
 
 function peracrm_party_engagement_options()
@@ -187,7 +201,32 @@ function peracrm_party_upsert_status($party_id, array $data)
         return $wpdb->query($query);
     });
 
-    return false !== $result;
+    if (false === $result) {
+        return false;
+    }
+
+    if (array_key_exists('engagement_state', $data)) {
+        $sync_legacy_status = static function () use ($party_id, $engagement, $stage): void {
+            $legacy_status = sanitize_key((string) get_post_meta($party_id, '_peracrm_status', true));
+
+            if (in_array($engagement, ['dormant', 'closed'], true)) {
+                update_post_meta($party_id, '_peracrm_status', $engagement);
+                return;
+            }
+
+            if ($engagement === 'engaged' && in_array($legacy_status, ['dormant', 'closed'], true)) {
+                update_post_meta($party_id, '_peracrm_status', $stage === 'new_enquiry' ? 'enquiry' : 'active');
+            }
+        };
+
+        if (function_exists('peracrm_with_target_blog')) {
+            peracrm_with_target_blog($sync_legacy_status);
+        } else {
+            $sync_legacy_status();
+        }
+    }
+
+    return true;
 }
 
 function peracrm_party_batch_get_closed_won_client_ids(array $party_ids)
