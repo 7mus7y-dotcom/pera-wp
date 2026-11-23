@@ -458,8 +458,8 @@ function peracrm_migrate_party_engagement_to_lifecycle_status()
             $last_id = $party_id;
 
             $party_status = sanitize_key((string) ($row['engagement_state'] ?? ''));
-            $legacy_status = sanitize_key((string) get_post_meta($party_id, '_peracrm_status', true));
-            $legacy_mirror_status = $legacy_status;
+            $legacy_mirror_status = (string) get_post_meta($party_id, '_peracrm_status', true);
+            $legacy_status = sanitize_key($legacy_mirror_status);
             if ('' === $legacy_status) {
                 $legacy_status = sanitize_key((string) get_post_meta($party_id, 'crm_status', true));
             }
@@ -492,7 +492,10 @@ function peracrm_migrate_party_engagement_to_lifecycle_status()
 
                 // Backfill is not a user edit; keep its audit timestamp unchanged.
                 if (isset($row['updated_at'])) {
-                    $wpdb->update($table, ['updated_at' => $row['updated_at']], ['party_id' => $party_id], ['%s'], ['%d']);
+                    $restored = $wpdb->update($table, ['updated_at' => $row['updated_at']], ['party_id' => $party_id], ['%s'], ['%d']);
+                    if (false === $restored) {
+                        throw new RuntimeException('Could not preserve the update timestamp for client ' . $party_id . '.');
+                    }
                 }
             }
 
