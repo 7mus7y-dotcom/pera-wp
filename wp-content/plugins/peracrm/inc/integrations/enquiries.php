@@ -364,7 +364,7 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
 
             $party_updated = peracrm_party_upsert_status($client_id, [
                 'lead_pipeline_stage' => $stage_to_set,
-                'engagement_state' => 'engaged',
+                'engagement_state' => ($stage_to_set === 'new_enquiry' ? 'enquiry' : 'active'),
                 'disposition' => 'none',
             ]);
 
