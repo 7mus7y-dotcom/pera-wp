@@ -467,6 +467,8 @@ function peracrm_migrate_party_engagement_to_lifecycle_status()
                 $status = $party_status;
             } elseif (in_array($legacy_status, ['enquiry', 'active', 'dormant', 'closed'], true)) {
                 $status = $legacy_status;
+            } elseif (in_array($party_status, ['enquiry', 'active'], true)) {
+                $status = $party_status;
             } elseif ('engaged' === $party_status) {
                 $status = ('new_enquiry' === sanitize_key((string) ($row['lead_pipeline_stage'] ?? '')))
                     ? 'enquiry'
