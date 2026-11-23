@@ -477,15 +477,27 @@ function peracrm_migrate_party_engagement_to_lifecycle_status()
                 $status = 'enquiry';
             }
 
-            $saved = peracrm_party_upsert_status($party_id, [
-                'lead_pipeline_stage' => $row['lead_pipeline_stage'] ?? 'new_enquiry',
-                'engagement_state' => $status,
-                'disposition' => $row['disposition'] ?? 'none',
-                'lead_stage_updated_at' => $row['lead_stage_updated_at'] ?? '',
-            ]);
+            if ($party_status !== $status) {
+                $saved = peracrm_party_upsert_status($party_id, [
+                    'lead_pipeline_stage' => $row['lead_pipeline_stage'] ?? 'new_enquiry',
+                    'engagement_state' => $status,
+                    'disposition' => $row['disposition'] ?? 'none',
+                    'lead_stage_updated_at' => $row['lead_stage_updated_at'] ?? '',
+                ]);
 
-            if (!$saved) {
-                throw new RuntimeException('Could not migrate lifecycle status for client ' . $party_id . '.');
+                if (!$saved) {
+                    throw new RuntimeException('Could not migrate lifecycle status for client ' . $party_id . '.');
+                }
+
+                // Backfill is not a user edit; keep its audit timestamp unchanged.
+                if (isset($row['updated_at'])) {
+                    $wpdb->update($table, ['updated_at' => $row['updated_at']], ['party_id' => $party_id], ['%s'], ['%d']);
+                }
+            }
+
+            // Maintain the legacy filter mirror without touching canonical rows unnecessarily.
+            if ($legacy_status !== $status) {
+                update_post_meta($party_id, '_peracrm_status', $status);
             }
         }
     } while (count($rows) === $batch_size);
