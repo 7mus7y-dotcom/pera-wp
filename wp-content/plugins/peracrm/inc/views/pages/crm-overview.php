@@ -708,8 +708,10 @@ peracrm_frontend_render_shell_header();
 			$filter_stage  = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 			$filter_advisor = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
 			$status_labels = array(
-				'closed'  => __( 'Closed', 'peracrm' ),
+				'enquiry' => __( 'Enquiry', 'peracrm' ),
+				'active'  => __( 'Active', 'peracrm' ),
 				'dormant' => __( 'Dormant', 'peracrm' ),
+				'closed'  => __( 'Closed', 'peracrm' ),
 			);
 			$scope_label = $is_inactive ? __( 'Inactive records', 'peracrm' ) : ( $is_agent ? __( 'Agents', 'peracrm' ) : ( 'clients' === $clients_type_view ? __( 'Clients', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) );
 			$active_filter_bits = array();
