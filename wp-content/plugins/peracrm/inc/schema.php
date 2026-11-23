@@ -459,6 +459,7 @@ function peracrm_migrate_party_engagement_to_lifecycle_status()
 
             $party_status = sanitize_key((string) ($row['engagement_state'] ?? ''));
             $legacy_status = sanitize_key((string) get_post_meta($party_id, '_peracrm_status', true));
+            $legacy_mirror_status = $legacy_status;
             if ('' === $legacy_status) {
                 $legacy_status = sanitize_key((string) get_post_meta($party_id, 'crm_status', true));
             }
@@ -496,7 +497,7 @@ function peracrm_migrate_party_engagement_to_lifecycle_status()
             }
 
             // Maintain the legacy filter mirror without touching canonical rows unnecessarily.
-            if ($legacy_status !== $status) {
+            if ($legacy_mirror_status !== $status) {
                 update_post_meta($party_id, '_peracrm_status', $status);
             }
         }
