@@ -9,8 +9,20 @@ peracrm_with_target_blog(static function(){
  update_option('peracrm_schema_version',41);
  if(!peracrm_maybe_upgrade_schema() || (int)get_option('peracrm_schema_version')!==PERACRM_SCHEMA_VERSION){WP_CLI::error('Appointment upgrade did not publish the current schema version.');}
  if(!peracrm_maybe_upgrade_schema()){WP_CLI::error('Repeated upgrade failed.');}
- foreach($before as $name=>$rows){if($rows!==$wpdb->get_results('SELECT * FROM '.peracrm_table($name),ARRAY_A)){WP_CLI::error('Upgrade changed existing '.$name);}}
- if($posts!==$wpdb->get_results("SELECT * FROM {$wpdb->posts}",ARRAY_A) || $meta!==$wpdb->get_results("SELECT * FROM {$wpdb->postmeta}",ARRAY_A)){WP_CLI::error('Upgrade changed existing clients/properties or metadata.');}
+ foreach($before as $name=>$rows){
+  $after=$wpdb->get_results('SELECT * FROM '.peracrm_table($name),ARRAY_A);
+  if($name==='peracrm_party'){
+   $projection=static function($party_rows){$out=[];foreach($party_rows as $party_row){unset($party_row['engagement_state']);$out[(int)$party_row['party_id']]=$party_row;}ksort($out);return $out;};
+   if($projection($rows)!==$projection($after)){WP_CLI::error('Lifecycle migration changed party pipeline or audit fields.');}
+   foreach($after as $party_row){if(!in_array($party_row['engagement_state'],['enquiry','active','dormant','closed'],true)){WP_CLI::error('Lifecycle migration left a legacy party status.');}}
+  }elseif($rows!==$after){WP_CLI::error('Upgrade changed existing '.$name);}
+ }
+ $meta_without_lifecycle_mirror=static function($rows){return array_values(array_filter($rows,static function($row){return ($row['meta_key']??'')!=='_peracrm_status';}));};
+ $after_meta=$wpdb->get_results("SELECT * FROM {$wpdb->postmeta}",ARRAY_A);
+ if($posts!==$wpdb->get_results("SELECT * FROM {$wpdb->posts}",ARRAY_A) || $meta_without_lifecycle_mirror($meta)!==$meta_without_lifecycle_mirror($after_meta)){WP_CLI::error('Upgrade changed existing posts or non-lifecycle metadata.');}
+ foreach($wpdb->get_results('SELECT party_id, engagement_state FROM '.peracrm_table('peracrm_party'),ARRAY_A) as $party){
+  if(get_post_meta((int)$party['party_id'],'_peracrm_status',true)!==$party['engagement_state']){WP_CLI::error('Lifecycle compatibility mirror does not match canonical party status.');}
+ }
  peracrm_appointments_assert_indexes();
  if(!empty($GLOBALS['peracrm_schema_migrating'])){WP_CLI::error('Migration context leaked.');}
  WP_CLI::success('Version 41 → 42 upgrade and repeated init preserve exact appointments, clients, property posts, metadata, party, notes and deals.');

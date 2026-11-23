@@ -1071,7 +1071,7 @@ function peracrm_render_crm_status_metabox($post)
     }
     echo '</select>';
 
-    echo '<p><label for="peracrm-engagement-state">Engagement State</label></p>';
+    echo '<p><label for="peracrm-engagement-state">Lead Status</label></p>';
     echo '<select name="engagement_state" id="peracrm-engagement-state" class="widefat">';
     foreach (peracrm_party_engagement_options() as $value => $label) {
         echo '<option value="' . esc_attr($value) . '"' . selected($party['engagement_state'], $value, false) . '>' . esc_html($label) . '</option>';

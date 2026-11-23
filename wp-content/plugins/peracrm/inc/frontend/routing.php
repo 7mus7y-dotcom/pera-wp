@@ -355,7 +355,7 @@ if (!function_exists('pera_crm_handle_new_lead')) {
         if (function_exists('peracrm_party_upsert_status')) {
             peracrm_party_upsert_status($post_id, [
                 'lead_pipeline_stage' => 'new_enquiry',
-                'engagement_state' => 'engaged',
+                'engagement_state' => 'enquiry',
                 'disposition' => 'none',
                 'lead_stage_updated_at' => function_exists('peracrm_now_mysql') ? peracrm_now_mysql() : current_time('mysql'),
             ]);

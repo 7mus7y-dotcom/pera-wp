@@ -646,7 +646,7 @@ function peracrm_import_apply_row(array $validated_row, $record_type, $mode)
     if (function_exists('peracrm_party_upsert_status')) {
         peracrm_party_upsert_status($post_id, [
             'lead_pipeline_stage' => $safe_stage ?: 'new_enquiry',
-            'engagement_state' => 'engaged',
+            'engagement_state' => (($safe_stage ?: 'new_enquiry') === 'new_enquiry' ? 'enquiry' : 'active'),
             'disposition' => 'none',
             'lead_stage_updated_at' => peracrm_now_mysql(),
         ]);

@@ -431,7 +431,7 @@ function peracrm_whatsapp_create_client_from_inbound($phone_e164, $contact_name 
     $party_saved = function_exists('peracrm_party_upsert_status')
         && peracrm_party_upsert_status($post_id, [
             'lead_pipeline_stage' => 'new_enquiry',
-            'engagement_state' => 'engaged',
+            'engagement_state' => 'enquiry',
             'disposition' => 'none',
             'lead_stage_updated_at' => peracrm_now_mysql(),
         ]);

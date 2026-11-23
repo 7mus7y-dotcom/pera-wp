@@ -169,7 +169,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         $sql_party = "CREATE TABLE {$party_table} (
             party_id BIGINT UNSIGNED NOT NULL,
             lead_pipeline_stage VARCHAR(32) NOT NULL DEFAULT 'new_enquiry',
-            engagement_state VARCHAR(16) NOT NULL DEFAULT 'engaged',
+            engagement_state VARCHAR(16) NOT NULL DEFAULT 'enquiry',
             disposition VARCHAR(32) NOT NULL DEFAULT 'none',
             lead_stage_updated_at DATETIME NULL,
             updated_at DATETIME NOT NULL,
@@ -276,6 +276,10 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
 
         if ($installed_version < 43 && $target_version >= 43) {
             peracrm_migrate_inactive_profile_status_to_party_engagement();
+        }
+
+        if ($installed_version < 44 && $target_version >= 44) {
+            peracrm_migrate_party_engagement_to_lifecycle_status();
         }
 
         $v4_done = (int) get_option('peracrm_migration_v4_done', 0);
@@ -423,13 +427,93 @@ function peracrm_migrate_inactive_profile_status_to_party_engagement()
     } while (count($client_ids) === $batch_size);
 }
 
+function peracrm_migrate_party_engagement_to_lifecycle_status()
+{
+    global $wpdb;
+
+    $table = peracrm_table('peracrm_party');
+    $last_id = 0;
+    $batch_size = 200;
+
+    do {
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT party_id, lead_pipeline_stage, engagement_state, disposition, lead_stage_updated_at, updated_at
+             FROM {$table}
+             WHERE party_id > %d
+             ORDER BY party_id ASC
+             LIMIT %d",
+            $last_id,
+            $batch_size
+        ), ARRAY_A);
+
+        if (!is_array($rows)) {
+            throw new RuntimeException('Could not query CRM records for lifecycle status migration.');
+        }
+
+        foreach ($rows as $row) {
+            $party_id = (int) ($row['party_id'] ?? 0);
+            if ($party_id <= 0) {
+                continue;
+            }
+            $last_id = $party_id;
+
+            $party_status = sanitize_key((string) ($row['engagement_state'] ?? ''));
+            $legacy_mirror_status = (string) get_post_meta($party_id, '_peracrm_status', true);
+            $legacy_status = sanitize_key($legacy_mirror_status);
+            if ('' === $legacy_status) {
+                $legacy_status = sanitize_key((string) get_post_meta($party_id, 'crm_status', true));
+            }
+
+            if (in_array($party_status, ['dormant', 'closed'], true)) {
+                $status = $party_status;
+            } elseif (in_array($legacy_status, ['enquiry', 'active', 'dormant', 'closed'], true)) {
+                $status = $legacy_status;
+            } elseif (in_array($party_status, ['enquiry', 'active'], true)) {
+                $status = $party_status;
+            } elseif ('engaged' === $party_status) {
+                $status = ('new_enquiry' === sanitize_key((string) ($row['lead_pipeline_stage'] ?? '')))
+                    ? 'enquiry'
+                    : 'active';
+            } else {
+                $status = 'enquiry';
+            }
+
+            if ($party_status !== $status) {
+                $saved = peracrm_party_upsert_status($party_id, [
+                    'lead_pipeline_stage' => $row['lead_pipeline_stage'] ?? 'new_enquiry',
+                    'engagement_state' => $status,
+                    'disposition' => $row['disposition'] ?? 'none',
+                    'lead_stage_updated_at' => $row['lead_stage_updated_at'] ?? '',
+                ]);
+
+                if (!$saved) {
+                    throw new RuntimeException('Could not migrate lifecycle status for client ' . $party_id . '.');
+                }
+
+                // Backfill is not a user edit; keep its audit timestamp unchanged.
+                if (isset($row['updated_at'])) {
+                    $restored = $wpdb->update($table, ['updated_at' => $row['updated_at']], ['party_id' => $party_id], ['%s'], ['%d']);
+                    if (false === $restored) {
+                        throw new RuntimeException('Could not preserve the update timestamp for client ' . $party_id . '.');
+                    }
+                }
+            }
+
+            // Maintain the legacy filter mirror without touching canonical rows unnecessarily.
+            if ($legacy_mirror_status !== $status) {
+                update_post_meta($party_id, '_peracrm_status', $status);
+            }
+        }
+    } while (count($rows) === $batch_size);
+}
+
 function peracrm_map_legacy_status_to_party_fields($legacy_status)
 {
     $status = strtolower(trim((string) $legacy_status));
 
     $base = [
         'lead_pipeline_stage' => 'new_enquiry',
-        'engagement_state' => 'engaged',
+        'engagement_state' => 'enquiry',
         'disposition' => 'none',
         'lead_stage_updated_at' => peracrm_now_mysql(),
     ];
@@ -438,6 +522,10 @@ function peracrm_map_legacy_status_to_party_fields($legacy_status)
         $base['lead_pipeline_stage'] = function_exists('peracrm_map_legacy_lead_stage')
             ? peracrm_map_legacy_lead_stage($status)
             : 'new_enquiry';
+    }
+
+    if ($status === 'active') {
+        $base['engagement_state'] = 'active';
     }
 
     if ($status === 'dormant') {
