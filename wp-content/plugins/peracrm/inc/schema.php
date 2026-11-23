@@ -274,6 +274,10 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             peracrm_migrate_legacy_status_to_party_table();
         }
 
+        if ($installed_version < 43 && $target_version >= 43) {
+            peracrm_migrate_inactive_profile_status_to_party_engagement();
+        }
+
         $v4_done = (int) get_option('peracrm_migration_v4_done', 0);
         if ($target_version >= 4 && ($installed_version < 4 || $v4_done !== 1)) {
             peracrm_migrate_stage_taxonomy_v4();
@@ -347,6 +351,76 @@ function peracrm_migrate_legacy_status_to_party_table()
         $mapped = peracrm_map_legacy_status_to_party_fields($legacy_status);
         peracrm_party_upsert_status($client_id, $mapped);
     }
+}
+
+function peracrm_migrate_inactive_profile_status_to_party_engagement()
+{
+    global $wpdb;
+
+    if (!function_exists('peracrm_party_get') || !function_exists('peracrm_party_upsert_status')) {
+        throw new RuntimeException('CRM party status services are unavailable for inactive status reconciliation.');
+    }
+
+    $last_id = 0;
+    $batch_size = 200;
+
+    do {
+        $client_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT DISTINCT p.ID
+             FROM {$wpdb->posts} AS p
+             INNER JOIN {$wpdb->postmeta} AS pm ON pm.post_id = p.ID
+             WHERE p.post_type = %s
+               AND p.ID > %d
+               AND pm.meta_key IN (%s, %s)
+               AND pm.meta_value IN (%s, %s)
+             ORDER BY p.ID ASC
+             LIMIT %d",
+            'crm_client',
+            $last_id,
+            '_peracrm_status',
+            'crm_status',
+            'dormant',
+            'closed',
+            $batch_size
+        ));
+
+        if (!is_array($client_ids)) {
+            throw new RuntimeException('Could not query CRM records for inactive status reconciliation.');
+        }
+
+        foreach ($client_ids as $client_id) {
+            $client_id = (int) $client_id;
+            if ($client_id <= 0) {
+                continue;
+            }
+            $last_id = $client_id;
+
+            $legacy_status = sanitize_key((string) get_post_meta($client_id, '_peracrm_status', true));
+            if ('' === $legacy_status) {
+                $legacy_status = sanitize_key((string) get_post_meta($client_id, 'crm_status', true));
+            }
+            if (!in_array($legacy_status, ['dormant', 'closed'], true)) {
+                continue;
+            }
+
+            $party = peracrm_party_get($client_id);
+            $engagement = sanitize_key((string) ($party['engagement_state'] ?? 'engaged'));
+            if ($engagement !== 'engaged') {
+                continue;
+            }
+
+            $saved = peracrm_party_upsert_status($client_id, [
+                'lead_pipeline_stage' => $party['lead_pipeline_stage'] ?? 'new_enquiry',
+                'engagement_state' => $legacy_status,
+                'disposition' => $party['disposition'] ?? 'none',
+                'lead_stage_updated_at' => $party['lead_stage_updated_at'] ?? '',
+            ]);
+
+            if (!$saved) {
+                throw new RuntimeException('Could not reconcile inactive CRM status for client ' . $client_id . '.');
+            }
+        }
+    } while (count($client_ids) === $batch_size);
 }
 
 function peracrm_map_legacy_status_to_party_fields($legacy_status)
