@@ -1291,6 +1291,22 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		$q               = sanitize_text_field( $_GET['q'] ?? '' );
 		$stage           = sanitize_key( $_GET['stage'] ?? '' );
 		$advisor         = absint( $_GET['advisor'] ?? 0 );
+		$client_group    = isset( $_GET['client_group'] ) ? sanitize_key( wp_unslash( (string) $_GET['client_group'] ) ) : 'buyers';
+		$client_group_options = array(
+			'buyers'   => __( 'Buyers', 'hello-elementor-child' ),
+			'seller'   => __( 'Seller', 'hello-elementor-child' ),
+			'landlord' => __( 'Landlord', 'hello-elementor-child' ),
+			'agent'    => __( 'Agent', 'hello-elementor-child' ),
+		);
+		if ( ! isset( $client_group_options[ $client_group ] ) ) {
+			$client_group = 'buyers';
+		}
+		$client_group_types = array(
+			'buyers'   => array( '', 'buyer', 'buyers', 'citizenship', 'investor', 'lifestyle' ),
+			'seller'   => array( 'seller' ),
+			'landlord' => array( 'landlord' ),
+			'agent'    => array( 'agent' ),
+		);
 
 		$stages = pera_crm_get_pipeline_stages();
 		$neutral_stage_labels = array(
@@ -1469,6 +1485,12 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 			$stage_key  = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
 			$profile    = function_exists( 'peracrm_client_get_profile' ) ? (array) peracrm_client_get_profile( $client_id ) : array();
 			$client_type = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+			if ( '' === $client_type ) {
+				$client_type = sanitize_key( (string) get_post_meta( $client_id, 'peracrm_client_type', true ) );
+			}
+			if ( ! in_array( $client_type, $client_group_types[ $client_group ], true ) ) {
+				continue;
+			}
 			$client_type_options = function_exists( 'peracrm_client_type_options' ) ? (array) peracrm_client_type_options() : array();
 			$client_type_label = isset( $client_type_options[ $client_type ] )
 				? (string) $client_type_options[ $client_type ]
@@ -1563,6 +1585,8 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 				'q'               => $q,
 				'stage'           => $stage,
 				'advisor'         => $advisor,
+				'client_group'    => $client_group,
+				'client_group_options' => $client_group_options,
 				'advisor_options' => $advisor_options,
 				'stage_options'   => $stages,
 			),
