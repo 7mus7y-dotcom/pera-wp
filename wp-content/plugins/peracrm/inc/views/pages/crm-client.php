@@ -511,7 +511,7 @@ peracrm_frontend_render_shell_header();
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
                   <h3 class="crm-section__title"><?php esc_html_e( 'Profile and key facts', 'peracrm' ); ?></h3>
-                  <p class="crm-section__description"><?php esc_html_e( 'Keep contact details, budget, and lead details in one stable section. Engagement status is managed separately.', 'peracrm' ); ?></p>
+                  <p class="crm-section__description"><?php esc_html_e( 'Keep contact details, budget, and lead details in one stable section. Lead status is managed in the CRM status panel.', 'peracrm' ); ?></p>
                 </div>
               </header>
               <div class="crm-section__body crm-client-profile-stack">
