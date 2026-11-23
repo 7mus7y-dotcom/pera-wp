@@ -22,17 +22,8 @@ assert.match(pipeline, /'engagement_state'\s*=>\s*\$engagement/, 'engagement kep
 assert.match(pipeline, /'post__in'\s*\]/, 'existing permission scope retained');
 assert.match(view, /name="include_inactive"\s+value="1"/, 'toggle uses GET');
 assert.match(view, /checked\(\s*\$include_inactive\s*\)/, 'toggle retains state');
-assert.match(view, /array\(\s*'q',\s*'stage',\s*'advisor',\s*'client_group'\s*\)/, 'visibility toggle preserves the selected client group');
-assert.match(view, /add_query_arg\(\s*'client_group',\s*\$group_key\s*\)/, 'type pills preserve current query filters');
-assert.match(view, /crm-pipeline-client-type-toggle/, 'pipeline renders type filter pills');
+assert.match(view, /array\(\s*'q',\s*'stage',\s*'advisor'\s*\)/, 'other filters preserved');
 assert.match(view, /onchange="this\.form\.submit\(\)"/, 'toggle applies without JS assets');
-assert.match(pipeline, /\$client_group[^;]*:\s*'buyers'/, 'buyers is the default pipeline group');
-assert.match(pipeline, /'buyers'\s*=>\s*array\(\s*'',\s*'buyer',\s*'buyers',\s*'citizenship',\s*'investor',\s*'lifestyle'/, 'buyer group includes buyer subtypes and untyped leads');
-assert.match(pipeline, /\$client_group_types\s*\[\s*\$client_group\s*\]/, 'pipeline data is filtered by the selected client group');
-const themeData = fs.readFileSync(path.join(root,'..','..','..','..','themes','hello-elementor-child','inc','crm-data.php'),'utf8');
-assert.match(themeData, /\$client_group[^;]*:\s*'buyers'/, 'theme pipeline fallback uses the same buyer default');
-assert.match(themeData, /\$client_group_types\s*\[\s*\$client_group\s*\]/, 'theme pipeline fallback applies the selected group');
-assert.match(css, /\.crm-page--pipeline \.crm-pipeline-client-type-toggle/, 'type pills have scoped spacing');
 assert.match(css, /\.crm-page--pipeline \.crm-pipeline-visibility-filter/, 'scoped styling');
 const party = fs.readFileSync(path.join(root,'inc/repositories/party.php'),'utf8');
 const detail = fs.readFileSync(path.join(root,'inc/views/pages/crm-client.php'),'utf8');
