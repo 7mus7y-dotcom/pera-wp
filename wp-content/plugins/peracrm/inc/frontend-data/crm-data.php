@@ -1457,13 +1457,20 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 	 *
 	 * @return array<string,mixed>
 	 */
-	function pera_crm_get_leads_view_data( int $page = 1, int $per_page = 20, string $derived_type = 'lead', string $list_view = 'leads' ): array {
+	function pera_crm_get_leads_view_data( int $page = 1, int $per_page = 20, string $derived_type = 'lead', string $list_view = 'leads', string $client_group = 'buyers' ): array {
 		$current_user_id = get_current_user_id();
 		$page            = max( 1, absint( $page ) );
 		$per_page        = max( 1, absint( $per_page ) );
 		$allowed_ids     = pera_crm_get_allowed_client_ids_for_user( $current_user_id );
 		$derived_type    = in_array( $derived_type, array( 'lead', 'client', 'agent' ), true ) ? $derived_type : 'lead';
 		$list_view       = in_array( $list_view, array( 'leads', 'clients', 'inactive', 'agent' ), true ) ? $list_view : 'leads';
+		$client_group_types = array(
+			'buyers'   => array( '', 'buyer', 'buyers', 'citizenship', 'investor', 'lifestyle' ),
+			'seller'   => array( 'seller' ),
+			'landlord' => array( 'landlord' ),
+			'agent'    => array( 'agent' ),
+		);
+		$client_group    = isset( $client_group_types[ $client_group ] ) ? $client_group : ( 'agent' === $list_view ? 'agent' : 'buyers' );
 		$q               = pera_crm_get_client_search_term();
 		$is_header_search = isset( $_GET['crm_client_search'] ) && '' !== trim( $q );
 		$is_short_search  = $is_header_search && strlen( trim( $q ) ) < 2;
@@ -1648,6 +1655,24 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 					$stored_type = sanitize_key( (string) get_post_meta( $lead_id, 'peracrm_client_type', true ) );
 				}
 				return $stored_type === $client_type_filter;
+			} ) );
+		}
+
+		if ( ! $is_header_search ) {
+			$allowed_group_types = $client_group_types[ $client_group ];
+			$filtered_ids = array_values( array_filter( $filtered_ids, static function ( int $lead_id ) use ( $allowed_group_types ): bool {
+				$client_type = '';
+				if ( function_exists( 'peracrm_client_get_profile' ) ) {
+					$profile = (array) peracrm_client_get_profile( $lead_id );
+					$client_type = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+				}
+				if ( '' === $client_type ) {
+					$client_type = sanitize_key( (string) get_post_meta( $lead_id, '_peracrm_client_type', true ) );
+				}
+				if ( '' === $client_type ) {
+					$client_type = sanitize_key( (string) get_post_meta( $lead_id, 'peracrm_client_type', true ) );
+				}
+				return in_array( $client_type, $allowed_group_types, true );
 			} ) );
 		}
 
