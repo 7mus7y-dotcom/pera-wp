@@ -437,7 +437,7 @@ function peracrm_migrate_party_engagement_to_lifecycle_status()
 
     do {
         $rows = $wpdb->get_results($wpdb->prepare(
-            "SELECT party_id, lead_pipeline_stage, engagement_state, disposition, lead_stage_updated_at
+            "SELECT party_id, lead_pipeline_stage, engagement_state, disposition, lead_stage_updated_at, updated_at
              FROM {$table}
              WHERE party_id > %d
              ORDER BY party_id ASC
