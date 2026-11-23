@@ -25,4 +25,17 @@ assert.match(view, /checked\(\s*\$include_inactive\s*\)/, 'toggle retains state'
 assert.match(view, /array\(\s*'q',\s*'stage',\s*'advisor'\s*\)/, 'other filters preserved');
 assert.match(view, /onchange="this\.form\.submit\(\)"/, 'toggle applies without JS assets');
 assert.match(css, /\.crm-page--pipeline \.crm-pipeline-visibility-filter/, 'scoped styling');
-console.log('PASS Pipeline excludes closed/dormant by default, includes on opt-in, preserves existing filters and counts.');
+const party = fs.readFileSync(path.join(root,'inc/repositories/party.php'),'utf8');
+const detail = fs.readFileSync(path.join(root,'inc/views/pages/crm-client.php'),'utf8');
+const schema = fs.readFileSync(path.join(root,'inc/schema.php'),'utf8');
+const plugin = fs.readFileSync(path.join(root,'peracrm.php'),'utf8');
+assert.match(party, /'enquiry'\s*=>\s*'Enquiry'/, 'enquiry is a lifecycle status');
+assert.match(party, /'active'\s*=>\s*'Active'/, 'active is a lifecycle status');
+assert.match(party, /'dormant'\s*=>\s*'Dormant'/, 'dormant is a lifecycle status');
+assert.match(party, /'closed'\s*=>\s*'Closed'/, 'closed is a lifecycle status');
+assert.match(party, /if\s*\(\s*\$value\s*===\s*'engaged'\s*\)\s*\{\s*\$value\s*=\s*'active'/, 'legacy engaged records map to active');
+assert.doesNotMatch(detail, /<select name="peracrm_status"/, 'profile form no longer has a second status control');
+assert.match(detail, /Lead status[\s\S]*?<select name="engagement_state"/, 'status panel exposes the single lifecycle status control');
+assert.match(schema, /peracrm_migrate_party_engagement_to_lifecycle_status/, 'schema upgrade migrates existing status values');
+assert.match(plugin, /PERACRM_SCHEMA_VERSION',\s*44/, 'schema version advances for the migration');
+console.log('PASS Pipeline visibility and unified lifecycle status regressions.');
