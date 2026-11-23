@@ -920,7 +920,7 @@ peracrm_frontend_render_shell_header();
                         </a>
                         <?php endif; ?>
                       </span>
-                      <span class="crm-table__subtext"><?php echo esc_html( (string) $lead['engagement_state'] ); ?></span>
+                      <span class="crm-table__subtext"><?php echo esc_html( (string) $status_label ); ?></span>
                     </div>
                   </td>
                   <td><?php if ( $is_header_search && '' !== (string) ( $lead['client_type_label'] ?? '' ) ) : ?><span class="crm-chip"><?php echo esc_html( (string) $lead['client_type_label'] ); ?></span><?php endif; ?>
@@ -994,7 +994,7 @@ peracrm_frontend_render_shell_header();
                         <span><strong><?php esc_html_e( 'Advisor:', 'peracrm' ); ?></strong> <?php echo esc_html( '' !== (string) ( $lead['assigned_to'] ?? '' ) ? (string) $lead['assigned_to'] : '—' ); ?></span>
                         <span><strong><?php echo esc_html( $is_new72 ? __( 'Received:', 'peracrm' ) : __( 'Last activity:', 'peracrm' ) ); ?></strong> <?php echo esc_html( $is_new72 ? (string) ( $lead['created'] ?? '—' ) : ( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ) ); ?></span>
                       </div>
-                      <p class="crm-row-list__summary"><strong><?php esc_html_e( 'Engagement:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $lead['engagement_state'] ); ?><?php echo '' !== (string) ( $lead['disposition'] ?? '' ) ? esc_html( ' • ' . (string) $lead['disposition'] ) : ''; ?></p>
+                      <p class="crm-row-list__summary"><strong><?php esc_html_e( 'Lead status:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $status_label ); ?><?php echo '' !== (string) ( $lead['disposition'] ?? '' ) ? esc_html( ' • ' . (string) $lead['disposition'] ) : ''; ?></p>
                     </div>
                     <div class="crm-row-list__aside">
                       <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( $view_label ); ?></a>
