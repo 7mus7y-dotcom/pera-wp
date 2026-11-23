@@ -381,6 +381,20 @@ function peracrm_client_update_profile($client_id, $data)
         }
     }
 
+    if (array_key_exists('status', $data) && in_array($status, $allowed_status, true)
+        && function_exists('peracrm_party_get') && function_exists('peracrm_party_upsert_status')) {
+        $party = peracrm_party_get($client_id);
+        $saved = peracrm_party_upsert_status($client_id, [
+            'lead_pipeline_stage' => $party['lead_pipeline_stage'] ?? 'new_enquiry',
+            'engagement_state' => $status,
+            'disposition' => $party['disposition'] ?? 'none',
+            'lead_stage_updated_at' => $party['lead_stage_updated_at'] ?? '',
+        ]);
+        if (!$saved) {
+            return false;
+        }
+    }
+
     if (array_key_exists('budget_min_usd', $data)) {
         if (null !== $min) {
             update_post_meta($client_id, '_peracrm_budget_min_usd', (int) $min);
