@@ -1882,7 +1882,9 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 		if ( 'profile' === $type ) {
 			check_admin_referer( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' );
 			$data = array();
-			$data['status'] = isset( $_POST['peracrm_status'] ) ? sanitize_key( wp_unslash( (string) $_POST['peracrm_status'] ) ) : '';
+			if ( isset( $_POST['peracrm_status'] ) ) {
+                $data['status'] = sanitize_key( wp_unslash( (string) $_POST['peracrm_status'] ) );
+            }
 			$data['preferred_contact'] = isset( $_POST['peracrm_preferred_contact'] )
 				? wp_unslash( $_POST['peracrm_preferred_contact'] )
 				: array();
