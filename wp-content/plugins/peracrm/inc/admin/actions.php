@@ -2124,7 +2124,7 @@ function peracrm_admin_add_client_columns($columns)
 {
     $columns['peracrm_type'] = 'Type';
     $columns['peracrm_pipeline_stage'] = 'Pipeline Stage';
-    $columns['peracrm_engagement_state'] = 'Engagement';
+    $columns['peracrm_engagement_state'] = 'Lead status';
     $columns['peracrm_disposition'] = 'Disposition';
     $columns['peracrm_account'] = 'Account';
     $columns['peracrm_health'] = 'Health';
@@ -2153,8 +2153,8 @@ function peracrm_admin_client_filters()
     }
     echo '</select>';
 
-    echo '<label for="peracrm-party-engagement" class="screen-reader-text">Engagement</label>';
-    echo '<select name="engagement_state" id="peracrm-party-engagement"><option value="">All engagement</option>';
+    echo '<label for="peracrm-party-engagement" class="screen-reader-text">Lead status</label>';
+    echo '<select name="engagement_state" id="peracrm-party-engagement"><option value="">All lead statuses</option>';
     $selected_engagement = peracrm_admin_get_party_engagement_filter();
     foreach (peracrm_party_engagement_options() as $value => $label) {
         echo '<option value="' . esc_attr($value) . '"' . selected($selected_engagement, $value, false) . '>' . esc_html($label) . '</option>';
