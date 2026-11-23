@@ -1355,6 +1355,11 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   }
 }
 
+.crm-page--pipeline .crm-pipeline-client-type-toggle {
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
 .crm-pipeline-filters {
   margin-bottom: 16px;
 }
