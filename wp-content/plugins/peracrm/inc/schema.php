@@ -278,14 +278,14 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             peracrm_migrate_inactive_profile_status_to_party_engagement();
         }
 
-        if ($installed_version < 44 && $target_version >= 44) {
-            peracrm_migrate_party_engagement_to_lifecycle_status();
-        }
-
         $v4_done = (int) get_option('peracrm_migration_v4_done', 0);
         if ($target_version >= 4 && ($installed_version < 4 || $v4_done !== 1)) {
             peracrm_migrate_stage_taxonomy_v4();
             update_option('peracrm_migration_v4_done', 1);
+        }
+
+        if ($installed_version < 44 && $target_version >= 44) {
+            peracrm_migrate_party_engagement_to_lifecycle_status();
         }
 
         if ($target_version >= 22) {
