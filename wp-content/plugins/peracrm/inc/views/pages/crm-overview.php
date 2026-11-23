@@ -15,6 +15,19 @@ $header_search_term = isset( $_GET['crm_client_search'] ) ? trim( sanitize_text_
 $is_header_search   = $is_leads && '' !== $header_search_term;
 $clients_type_view = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( (string) $_GET['type'] ) ) : 'leads'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $clients_type_view = in_array( $clients_type_view, array( 'leads', 'clients', 'inactive', 'agent' ), true ) ? $clients_type_view : 'leads';
+$client_group = isset( $_GET['client_group'] ) ? sanitize_key( wp_unslash( (string) $_GET['client_group'] ) ) : 'buyers'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$client_group_options = array(
+	'buyers'   => __( 'Buyers', 'peracrm' ),
+	'seller'   => __( 'Seller', 'peracrm' ),
+	'landlord' => __( 'Landlord', 'peracrm' ),
+	'agent'    => __( 'Agent', 'peracrm' ),
+);
+if ( ! isset( $client_group_options[ $client_group ] ) ) {
+	$client_group = 'buyers';
+}
+if ( 'agent' === $clients_type_view && ! isset( $_GET['client_group'] ) ) {
+	$client_group = 'agent';
+}
 $is_new72 = $is_leads && ! $is_header_search && 'leads' === $clients_type_view && isset( $_GET['filter'] ) && 'new72' === sanitize_key( wp_unslash( (string) $_GET['filter'] ) );
 $derived_type_filter = 'clients' === $clients_type_view
 	? 'client'
@@ -40,7 +53,7 @@ $crm_dashboard = function_exists( 'pera_crm_get_dashboard_data' )
 	);
 
 $leads_data = $is_leads && function_exists( 'pera_crm_get_leads_view_data' )
-	? pera_crm_get_leads_view_data( $current_page, 20, $derived_type_filter, $clients_type_view )
+	? pera_crm_get_leads_view_data( $current_page, 20, $derived_type_filter, $clients_type_view, $client_group )
 	: array();
 
 $tasks_data = $is_tasks && function_exists( 'pera_crm_get_tasks_view_data' )
@@ -848,7 +861,7 @@ peracrm_frontend_render_shell_header();
             <?php if ( '' !== $clients_active_filter_label ) : ?>
               <div class="crm-list-workspace-toolbar__active-filter" aria-live="polite">
                 <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( __( 'Showing: %s', 'peracrm' ), $clients_active_filter_label ) ); ?></span>
-                <a class="btn btn--ghost btn--blue crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/clients/?type=' . $clients_type_view ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
+                <a class="btn btn--ghost btn--blue crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( add_query_arg( array( 'type' => $clients_type_view, 'client_group' => $client_group ), home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
               </div>
             <?php endif; ?>
             <div class="crm-meta-line crm-list-workspace-toolbar__meta">
@@ -861,11 +874,16 @@ peracrm_frontend_render_shell_header();
           </div>
           <div class="crm-toolbar-actions crm-list-workspace-toolbar__actions">
             <div class="crm-type-toggle crm-action-group crm-action-group--toolbar" data-crm-clients-type-toggle role="group" aria-label="<?php echo esc_attr__( 'Lead or client listing', 'peracrm' ); ?>">
-              <a class="btn <?php echo esc_attr( 'leads' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'leads', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Leads', 'peracrm' ); ?></a>
-              <a class="btn <?php echo esc_attr( 'clients' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'clients', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Clients', 'peracrm' ); ?></a>
-              <a class="btn <?php echo esc_attr( $is_inactive ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'inactive', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Inactive', 'peracrm' ); ?></a>
-              <a class="btn <?php echo esc_attr( $is_agent ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'agent', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Agent', 'peracrm' ); ?></a>
+              <a class="btn <?php echo esc_attr( 'leads' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( array_filter( array( 'type' => 'leads', 'client_group' => $client_group, 'q' => $filter_q, 'stage' => $filter_stage, 'advisor' => $filter_advisor, 'filter' => $clients_active_filter, 'clients_view' => $requested_clients_view ), static function ( $value ) { return '' !== $value && 0 !== $value; } ), home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Leads', 'peracrm' ); ?></a>
+              <a class="btn <?php echo esc_attr( 'clients' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( array_filter( array( 'type' => 'clients', 'client_group' => $client_group, 'q' => $filter_q, 'stage' => $filter_stage, 'advisor' => $filter_advisor, 'filter' => $clients_active_filter, 'clients_view' => $requested_clients_view ), static function ( $value ) { return '' !== $value && 0 !== $value; } ), home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Clients', 'peracrm' ); ?></a>
+              <a class="btn <?php echo esc_attr( $is_inactive ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( array_filter( array( 'type' => 'inactive', 'client_group' => $client_group, 'q' => $filter_q, 'stage' => $filter_stage, 'advisor' => $filter_advisor, 'filter' => $clients_active_filter, 'clients_view' => $requested_clients_view ), static function ( $value ) { return '' !== $value && 0 !== $value; } ), home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Inactive', 'peracrm' ); ?></a>
             </div>
+            <nav class="crm-type-toggle crm-client-category-toggle" aria-label="<?php esc_attr_e( 'Client category', 'peracrm' ); ?>">
+              <?php foreach ( $client_group_options as $group_key => $group_label ) : ?>
+                <?php $category_args = array_filter( array( 'type' => $is_agent ? 'leads' : $clients_type_view, 'client_group' => $group_key, 'q' => $filter_q, 'stage' => $filter_stage, 'advisor' => $filter_advisor, 'filter' => $clients_active_filter, 'clients_view' => $requested_clients_view ), static function ( $value ) { return '' !== $value && 0 !== $value; } ); ?>
+                <a class="btn <?php echo esc_attr( $client_group === $group_key ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( $category_args, home_url( '/crm/clients/' ) ) ); ?>" <?php echo $client_group === $group_key ? 'aria-current="page"' : ''; ?>><?php echo esc_html( (string) $group_label ); ?></a>
+              <?php endforeach; ?>
+            </nav>
             <div class="crm-view-toggle crm-view-toggle--secondary" data-crm-view-toggle data-storage-key="peracrm_clients_view" data-default-desktop="table" data-default-mobile="cards">
               <button type="button" class="btn <?php echo esc_attr( $clients_is_cards_view ? 'btn--solid btn--blue' : 'btn--ghost' ); ?>" data-view="cards" aria-pressed="<?php echo esc_attr( $clients_is_cards_view ? 'true' : 'false' ); ?>"><?php echo esc_html__( 'List view', 'peracrm' ); ?></button>
               <button type="button" class="btn <?php echo esc_attr( $clients_is_cards_view ? 'btn--ghost' : 'btn--solid btn--blue' ); ?>" data-view="table" aria-pressed="<?php echo esc_attr( $clients_is_cards_view ? 'false' : 'true' ); ?>"><?php echo esc_html__( 'Table view', 'peracrm' ); ?></button>
@@ -1022,7 +1040,7 @@ peracrm_frontend_render_shell_header();
 					'type'      => 'list',
 					'prev_text' => __( 'Previous', 'peracrm' ),
 					'next_text' => __( 'Next', 'peracrm' ),
-					'add_args'  => $is_header_search ? array( 'crm_client_search' => $header_search_term ) : array_filter( array( 'type' => $clients_type_view, 'q' => $filter_q, 'stage' => $filter_stage, 'advisor' => $filter_advisor, 'client_type' => $filter_client_type, 'filter' => $clients_active_filter ), static function ( $value ) { return '' !== $value && 0 !== $value; } ),
+					'add_args'  => $is_header_search ? array( 'crm_client_search' => $header_search_term ) : array_filter( array( 'type' => $clients_type_view, 'client_group' => $client_group, 'q' => $filter_q, 'stage' => $filter_stage, 'advisor' => $filter_advisor, 'client_type' => $filter_client_type, 'filter' => $clients_active_filter ), static function ( $value ) { return '' !== $value && 0 !== $value; } ),
 				)
 			);
 			if ( is_string( $pagination ) ) {
