@@ -19,7 +19,7 @@ function peracrm_party_stage_options($client_type = '')
         ];
 
     if (sanitize_key((string) $client_type) === 'landlord') {
-        $stages = array_replace($stages, [
+        $landlord_labels = [
             'new_enquiry' => 'New landlord enquiry',
             'contacted' => 'Contacted',
             'qualified' => 'Property assessed',
@@ -27,7 +27,13 @@ function peracrm_party_stage_options($client_type = '')
             'offer_made' => 'Terms agreed',
             'deal_closed' => 'Instruction signed',
             'deal_lost' => 'Not proceeding',
-        ]);
+        ];
+
+        foreach ($landlord_labels as $stage => $label) {
+            if (array_key_exists($stage, $stages)) {
+                $stages[$stage] = $label;
+            }
+        }
     }
 
     return $stages;
