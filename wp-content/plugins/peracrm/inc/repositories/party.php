@@ -18,8 +18,11 @@ function peracrm_party_stage_options($client_type = '')
             'deal_lost' => 'Deal lost',
         ];
 
-    if (sanitize_key((string) $client_type) === 'landlord') {
-        $landlord_labels = [
+    $client_type = sanitize_key((string) $client_type);
+    $instruction_labels = [];
+
+    if ($client_type === 'landlord') {
+        $instruction_labels = [
             'new_enquiry' => 'New landlord enquiry',
             'contacted' => 'Contacted',
             'qualified' => 'Property assessed',
@@ -28,11 +31,21 @@ function peracrm_party_stage_options($client_type = '')
             'deal_closed' => 'Instruction signed',
             'deal_lost' => 'Not proceeding',
         ];
+    } elseif ($client_type === 'seller') {
+        $instruction_labels = [
+            'new_enquiry' => 'New seller enquiry',
+            'contacted' => 'Contacted',
+            'qualified' => 'Property valued',
+            'viewing_arranged' => 'Valuation visit arranged',
+            'offer_made' => 'Terms agreed',
+            'deal_closed' => 'Instruction signed',
+            'deal_lost' => 'Not proceeding',
+        ];
+    }
 
-        foreach ($landlord_labels as $stage => $label) {
-            if (array_key_exists($stage, $stages)) {
-                $stages[$stage] = $label;
-            }
+    foreach ($instruction_labels as $stage => $label) {
+        if (array_key_exists($stage, $stages)) {
+            $stages[$stage] = $label;
         }
     }
 
