@@ -247,15 +247,6 @@ function peracrm_render_client_profile_metabox($post)
             'email' => '',
         ];
 
-    $status_options = function_exists('peracrm_status_options')
-        ? (array) peracrm_status_options()
-        : [
-            'enquiry' => 'Enquiry',
-            'active' => 'Active',
-            'dormant' => 'Dormant',
-            'closed' => 'Closed',
-        ];
-
     $type_options = function_exists('peracrm_client_type_options')
         ? (array) peracrm_client_type_options()
         : [
@@ -287,18 +278,6 @@ function peracrm_render_client_profile_metabox($post)
     echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-form">';
     echo '<input type="hidden" name="peracrm_save_client_profile_nonce" value="' . esc_attr(wp_create_nonce('peracrm_save_client_profile')) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
-
-    echo '<p><label for="peracrm-status">Status</label></p>';
-    echo '<p><select name="peracrm_status" id="peracrm-status" class="widefat">';
-    foreach ($status_options as $value => $label) {
-        printf(
-            '<option value="%1$s"%2$s>%3$s</option>',
-            esc_attr($value),
-            selected($profile['status'] ?? '', $value, false),
-            esc_html($label)
-        );
-    }
-    echo '</select></p>';
 
     echo '<p><label for="peracrm-client-type">Client type</label></p>';
     echo '<p><select name="peracrm_client_type" id="peracrm-client-type" class="widefat">';
@@ -1075,6 +1054,10 @@ function peracrm_render_crm_status_metabox($post)
     }
 
     $party = function_exists('peracrm_party_get') ? peracrm_party_get($post->ID) : peracrm_party_default_status();
+    $profile = function_exists('peracrm_client_get_profile') ? peracrm_client_get_profile($post->ID) : [];
+    $stage_options = function_exists('peracrm_party_stage_options')
+        ? peracrm_party_stage_options($profile['client_type'] ?? '')
+        : [];
     $is_client = function_exists('peracrm_party_is_client') ? peracrm_party_is_client($post->ID) : false;
 
     echo '<p><strong>Derived type:</strong> ' . ($is_client ? '<span class="dashicons-before dashicons-yes-alt">Client</span>' : 'Lead') . '</p>';
@@ -1083,7 +1066,7 @@ function peracrm_render_crm_status_metabox($post)
 
     echo '<p><label for="peracrm-lead-stage">Lead Pipeline Stage</label></p>';
     echo '<select name="lead_pipeline_stage" id="peracrm-lead-stage" class="widefat">';
-    foreach (peracrm_party_stage_options() as $value => $label) {
+    foreach ($stage_options as $value => $label) {
         echo '<option value="' . esc_attr($value) . '"' . selected($party['lead_pipeline_stage'], $value, false) . '>' . esc_html($label) . '</option>';
     }
     echo '</select>';

@@ -102,11 +102,16 @@ $deals_count       = count( $deals );
 $last_activity     = (string) ( $data['last_activity'] ?? '—' );
 
 $health_label = isset( $health['label'] ) ? (string) $health['label'] : __( 'None', 'peracrm' );
-$status_label = isset( $profile['status'] ) && '' !== (string) $profile['status'] ? ucfirst( str_replace( '_', ' ', (string) $profile['status'] ) ) : __( '—', 'peracrm' );
+$engagement_options = function_exists( 'peracrm_party_engagement_options' ) ? (array) peracrm_party_engagement_options() : array();
+$engagement_key     = sanitize_key( (string) ( $party['engagement_state'] ?? '' ) );
+$status_label       = isset( $engagement_options[ $engagement_key ] )
+    ? (string) $engagement_options[ $engagement_key ]
+    : ( isset( $profile['status'] ) && '' !== (string) $profile['status'] ? ucfirst( str_replace( '_', ' ', (string) $profile['status'] ) ) : __( '—', 'peracrm' ) );
 $advisor_label = $assigned_user instanceof WP_User ? (string) $assigned_user->display_name : __( 'Unassigned', 'peracrm' );
 $link_label    = $linked_user instanceof WP_User ? sprintf( __( 'Linked (%s)', 'peracrm' ), (string) $linked_user->user_login ) : __( 'Not linked', 'peracrm' );
 
-$party_stages       = function_exists( 'peracrm_party_stage_options' ) ? (array) peracrm_party_stage_options() : array();
+$client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+$party_stages       = function_exists( 'peracrm_party_stage_options' ) ? (array) peracrm_party_stage_options( $client_type_value ) : array();
 $lead_pipeline_stage_key   = isset( $party['lead_pipeline_stage'] ) ? sanitize_key( (string) $party['lead_pipeline_stage'] ) : '';
 $lead_pipeline_stage_label = isset( $party_stages[ $lead_pipeline_stage_key ] ) ? (string) $party_stages[ $lead_pipeline_stage_key ] : '';
 if ( '' === $lead_pipeline_stage_label && '' !== $lead_pipeline_stage_key ) {
@@ -115,7 +120,6 @@ if ( '' === $lead_pipeline_stage_label && '' !== $lead_pipeline_stage_key ) {
 if ( '' === $lead_pipeline_stage_label ) {
 	$lead_pipeline_stage_label = __( '—', 'peracrm' );
 }
-$engagement_options = function_exists( 'peracrm_party_engagement_options' ) ? (array) peracrm_party_engagement_options() : array();
 $disposition_opts   = function_exists( 'peracrm_party_disposition_options' ) ? (array) peracrm_party_disposition_options() : array();
 $deal_stage_options = function_exists( 'peracrm_deal_stage_options' ) ? (array) peracrm_deal_stage_options() : array();
 $source_pills       = function_exists( 'pera_crm_client_view_source_pills' ) ? (array) pera_crm_client_view_source_pills( $client_id, $data['activity'] ?? array() ) : array();
@@ -161,8 +165,8 @@ $derived_type      = in_array( $derived_type, array( 'lead', 'client' ), true ) 
 $derived_type_label = 'client' === $derived_type ? __( 'Client', 'peracrm' ) : __( 'Lead', 'peracrm' );
 $delete_redirect_url = 'lead' === $derived_type ? $leads_url : $clients_url;
 $client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'citizenship' => 'Citizenship', 'investor' => 'Investor', 'lifestyle' => 'Lifestyle', 'seller' => 'Seller', 'landlord' => 'Landlord', 'agent' => 'Agent' );
-$status_options      = function_exists( 'peracrm_status_options' ) ? (array) peracrm_status_options() : array( 'enquiry' => 'Enquiry', 'active' => 'Active', 'dormant' => 'Dormant', 'closed' => 'Closed' );
-$client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+$status_options      = function_exists( 'peracrm_status_options' ) ? (array) peracrm_status_options() : array( 'enquiry' => 'Enquiry', 'active' => 'Active' );
+$status_options      = array_intersect_key( $status_options, array( 'enquiry' => true, 'active' => true ) );
 $source_value = sanitize_key( (string) get_post_meta( $client_id, 'crm_source', true ) );
 $source_options = function_exists( 'peracrm_source_options' ) ? (array) peracrm_source_options() : array(
 	'meta_ads'     => __( 'Meta Ads', 'peracrm' ),
@@ -509,7 +513,7 @@ peracrm_frontend_render_shell_header();
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
                   <h3 class="crm-section__title"><?php esc_html_e( 'Profile and key facts', 'peracrm' ); ?></h3>
-                  <p class="crm-section__description"><?php esc_html_e( 'Keep contact details, budget, profile fields, and CRM status in one stable section.', 'peracrm' ); ?></p>
+                  <p class="crm-section__description"><?php esc_html_e( 'Keep contact details, budget, and lead details in one stable section. Engagement status is managed separately.', 'peracrm' ); ?></p>
                 </div>
               </header>
               <div class="crm-section__body crm-client-profile-stack">
@@ -521,14 +525,19 @@ peracrm_frontend_render_shell_header();
                     <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                     <input type="hidden" name="form_context" value="profile" />
                     <div class="crm-profile-grid crm-form-grid crm-form-grid--profile">
+                      <?php $profile_status_key = sanitize_key( (string) ( $profile['status'] ?? '' ) ); ?>
+                      <?php if ( in_array( $profile_status_key, array( 'dormant', 'closed' ), true ) ) : ?>
+                        <input type="hidden" name="peracrm_status" value="<?php echo esc_attr( $profile_status_key ); ?>" />
+                      <?php else : ?>
                       <div class="crm-field crm-field--half">
-                        <label><?php esc_html_e( 'Status', 'peracrm' ); ?></label>
+                        <label><?php esc_html_e( 'Lead status', 'peracrm' ); ?></label>
                         <select name="peracrm_status" id="peracrm-status" class="widefat">
                           <?php foreach ( $status_options as $status_key => $status_text ) : ?>
                             <option value="<?php echo esc_attr( (string) $status_key ); ?>" <?php selected( (string) ( $profile['status'] ?? '' ), (string) $status_key ); ?>><?php echo esc_html( (string) $status_text ); ?></option>
                           <?php endforeach; ?>
                         </select>
                       </div>
+                      <?php endif; ?>
                       <div class="crm-field crm-field--half">
                         <label><?php esc_html_e( 'Source', 'peracrm' ); ?></label>
                         <select name="peracrm_source" id="peracrm-source" class="widefat">
@@ -623,7 +632,7 @@ peracrm_frontend_render_shell_header();
                   <input type="hidden" name="form_context" value="status" />
                   <div class="crm-status-grid crm-form-grid">
                     <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Lead pipeline stage', 'peracrm' ); ?></label><select name="lead_pipeline_stage"><?php foreach ( $party_stages as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['lead_pipeline_stage'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></div>
-                    <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Engagement', 'peracrm' ); ?></label><select name="engagement_state"><?php foreach ( $engagement_options as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></div>
+                    <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Engagement status', 'peracrm' ); ?></label><select name="engagement_state"><?php foreach ( $engagement_options as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></div>
                     <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Client type', 'peracrm' ); ?></label><select name="peracrm_client_type"><option value=""><?php esc_html_e( 'Select type', 'peracrm' ); ?></option><?php foreach ( $client_type_options as $type_key => $type_label ) : ?><option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option><?php endforeach; ?></select></div>
                     <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Disposition', 'peracrm' ); ?></label><select name="disposition"><?php foreach ( $disposition_opts as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['disposition'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></div>
                   </div>
@@ -1292,7 +1301,20 @@ peracrm_frontend_render_shell_header();
               <button type="button" class="btn btn--ghost <?php echo $can_delete_client ? 'btn--red' : 'btn--blue'; ?> crm-danger-zone__trigger" data-crm-danger-open="crm-client-danger-dialog"><?php echo esc_html( $danger_trigger_label ); ?></button>
             </section>
           </div>
-          <dialog class="crm-danger-dialog" id="crm-client-danger-dialog" aria-labelledby="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>"><h4 id="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>"><?php echo esc_html( $danger_dialog_title ); ?></h4><p><?php echo esc_html( $danger_dialog_copy ); ?></p><div class="crm-danger-dialog__actions"><?php if ( $can_delete_client ) : ?><form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>"><?php wp_nonce_field( 'peracrm_delete_client', 'peracrm_delete_client_nonce' ); ?><input type="hidden" name="action" value="peracrm_delete_client" /><input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" /><input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $delete_redirect_url ); ?>" /><button type="submit" class="btn btn--solid btn--red"><?php esc_html_e( 'Yes (Delete)', 'peracrm' ); ?></button></form><?php endif; ?><?php if ( $can_set_dormant ) : ?><form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>"><?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?><input type="hidden" name="action" value="peracrm_save_client_profile" /><input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" /><input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" /><input type="hidden" name="form_context" value="profile" /><input type="hidden" name="peracrm_status" value="dormant" /><input type="hidden" name="peracrm_client_type" value="<?php echo esc_attr( (string) ( $profile['client_type'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_preferred_contact" value="<?php echo esc_attr( function_exists( 'peracrm_normalize_preferred_contact' ) ? peracrm_normalize_preferred_contact( $profile['preferred_contact'] ?? '' ) : (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_phone_country" value="<?php echo esc_attr( (string) $crm_phone_country_value ); ?>" /><input type="hidden" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $crm_phone_national_value ); ?>" /><input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" /><input type="hidden" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_bedrooms" value="<?php echo esc_attr( (string) ( $profile['bedrooms'] ?? '' ) ); ?>" /><button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Make it dormant', 'peracrm' ); ?></button></form><?php endif; ?><button type="button" class="btn btn--ghost btn--blue" data-crm-danger-close="crm-client-danger-dialog"><?php esc_html_e( 'No (Close)', 'peracrm' ); ?></button></div></dialog>
+          <dialog class="crm-danger-dialog" id="crm-client-danger-dialog" aria-labelledby="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>"><h4 id="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>"><?php echo esc_html( $danger_dialog_title ); ?></h4><p><?php echo esc_html( $danger_dialog_copy ); ?></p><div class="crm-danger-dialog__actions"><?php if ( $can_delete_client ) : ?><form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>"><?php wp_nonce_field( 'peracrm_delete_client', 'peracrm_delete_client_nonce' ); ?><input type="hidden" name="action" value="peracrm_delete_client" /><input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" /><input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $delete_redirect_url ); ?>" /><button type="submit" class="btn btn--solid btn--red"><?php esc_html_e( 'Yes (Delete)', 'peracrm' ); ?></button></form><?php endif; ?><?php if ( $can_set_dormant ) : ?>
+            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+              <?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
+              <input type="hidden" name="action" value="peracrm_save_party_status" />
+              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+              <input type="hidden" name="form_context" value="status" />
+              <input type="hidden" name="lead_pipeline_stage" value="<?php echo esc_attr( $lead_pipeline_stage_key ); ?>" />
+              <input type="hidden" name="engagement_state" value="dormant" />
+              <input type="hidden" name="disposition" value="<?php echo esc_attr( (string) ( $party['disposition'] ?? 'none' ) ); ?>" />
+              <input type="hidden" name="peracrm_client_type" value="<?php echo esc_attr( (string) ( $profile['client_type'] ?? '' ) ); ?>" />
+              <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Make it dormant', 'peracrm' ); ?></button>
+            </form>
+          <?php endif; ?><button type="button" class="btn btn--ghost btn--blue" data-crm-danger-close="crm-client-danger-dialog"><?php esc_html_e( 'No (Close)', 'peracrm' ); ?></button></div></dialog>
         </article>
         <?php endif; ?>
         </div><!-- /.crm-client-bottom-panels -->
