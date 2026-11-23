@@ -7,7 +7,7 @@ peracrm_with_target_blog(static function(){
  foreach(['peracrm_appointments','peracrm_appointment_participants','peracrm_appointment_properties','peracrm_party','peracrm_deals','crm_notes'] as $name){$before[$name]=$wpdb->get_results('SELECT * FROM '.peracrm_table($name),ARRAY_A);}
  $posts=$wpdb->get_results("SELECT * FROM {$wpdb->posts}",ARRAY_A);$meta=$wpdb->get_results("SELECT * FROM {$wpdb->postmeta}",ARRAY_A);
  update_option('peracrm_schema_version',41);
- if(!peracrm_maybe_upgrade_schema() || (int)get_option('peracrm_schema_version')!==42){WP_CLI::error('Appointment upgrade did not publish version 42.');}
+ if(!peracrm_maybe_upgrade_schema() || (int)get_option('peracrm_schema_version')!==PERACRM_SCHEMA_VERSION){WP_CLI::error('Appointment upgrade did not publish the current schema version.');}
  if(!peracrm_maybe_upgrade_schema()){WP_CLI::error('Repeated upgrade failed.');}
  foreach($before as $name=>$rows){if($rows!==$wpdb->get_results('SELECT * FROM '.peracrm_table($name),ARRAY_A)){WP_CLI::error('Upgrade changed existing '.$name);}}
  if($posts!==$wpdb->get_results("SELECT * FROM {$wpdb->posts}",ARRAY_A) || $meta!==$wpdb->get_results("SELECT * FROM {$wpdb->postmeta}",ARRAY_A)){WP_CLI::error('Upgrade changed existing clients/properties or metadata.');}
