@@ -99,6 +99,37 @@ final class Pera_Manage {
         return add_query_arg( $args, home_url( '/manage/' ) );
     }
 
+    /** Allowlisted server-side ordering for paginated property and editorial inventories. */
+    private static function sort_state(): array {
+        $sort = isset( $_GET['sort'] ) && is_string( $_GET['sort'] )
+            ? sanitize_key( wp_unslash( $_GET['sort'] ) ) : 'updated';
+        if ( ! in_array( $sort, array( 'title', 'published', 'updated' ), true ) ) $sort = 'updated';
+        $default_direction = 'title' === $sort ? 'asc' : 'desc';
+        $direction = isset( $_GET['direction'] ) && is_string( $_GET['direction'] )
+            ? strtolower( sanitize_key( wp_unslash( $_GET['direction'] ) ) ) : $default_direction;
+        if ( ! in_array( $direction, array( 'asc', 'desc' ), true ) ) $direction = $default_direction;
+        return array( $sort, $direction );
+    }
+
+    private static function sort_query_args( string $sort, string $direction ): array {
+        $orderby = array( 'title' => 'title', 'published' => 'date', 'updated' => 'modified' );
+        return array( 'orderby' => $orderby[ $sort ], 'order' => strtoupper( $direction ) );
+    }
+
+    private static function sort_header( string $label, string $sort_key, string $view, array $filters, string $active_sort, string $direction ): void {
+        $active = $active_sort === $sort_key;
+        $next_direction = $active
+            ? ( 'asc' === $direction ? 'desc' : 'asc' )
+            : ( 'title' === $sort_key ? 'asc' : 'desc' );
+        $params = array_merge( $filters, array( 'sort' => $sort_key, 'direction' => $next_direction ) );
+        // Do not keep pagination when changing the sort: page 1 establishes the new order.
+        unset( $params['pg'] );
+        echo '<th scope="col" aria-sort="' . esc_attr( $active ? ( 'asc' === $direction ? 'ascending' : 'descending' ) : 'none' ) . '">';
+        echo '<a class="pm-sort-link" href="' . esc_url( self::url( $view, $params ) ) . '">';
+        echo esc_html( $label ) . '<span class="pm-sort-arrow" aria-hidden="true">' . ( $active ? ( 'asc' === $direction ? '↑' : '↓' ) : '↕' ) . '</span>';
+        echo '</a></th>';
+    }
+
     private static function count( string $type, string $status ): int {
         $counts = wp_count_posts( $type, 'readable' );
         return $counts && isset( $counts->$status ) ? (int) $counts->$status : 0;
@@ -112,15 +143,15 @@ final class Pera_Manage {
         $kind = isset( $_GET['kind'] ) && is_string( $_GET['kind'] ) ? sanitize_key( wp_unslash( $_GET['kind'] ) ) : 'all';
         if ( ! in_array( $kind, array( 'all', 'project', 'resales' ), true ) ) $kind = 'all';
         $page = isset( $_GET['pg'] ) ? max( 1, absint( $_GET['pg'] ) ) : 1;
+        list( $sort, $direction ) = self::sort_state();
         $args = array(
             'post_type' => 'property',
             'post_status' => ! self::can_edit_in_admin() ? 'publish' : ( 'all' === $status ? array( 'publish', 'draft', 'pending', 'future', 'private' ) : $status ),
             'posts_per_page' => 20,
             'paged' => $page,
             's' => $search,
-            'orderby' => 'modified',
-            'order' => 'DESC',
         );
+        $args = array_merge( $args, self::sort_query_args( $sort, $direction ) );
         if ( 'all' !== $kind && taxonomy_exists( 'special' ) ) {
             $args['tax_query'] = array( array( 'taxonomy' => 'special', 'field' => 'slug', 'terms' => $kind ) );
         }
@@ -129,7 +160,7 @@ final class Pera_Manage {
         echo '<div class="pm-title-row"><div><h1>Properties</h1><p>Find listings and open their existing WordPress editor.</p></div>';
         if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=property' ), 'Add property' );
         echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '">';
-        echo '<input type="hidden" name="view" value="properties"><label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Name or keyword"></label>';
+        echo '<input type="hidden" name="view" value="properties"><input type="hidden" name="sort" value="' . esc_attr( $sort ) . '"><input type="hidden" name="direction" value="' . esc_attr( $direction ) . '"><label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Name or keyword"></label>';
         echo '<label>Status <select name="status">';
         foreach ( self::can_edit_in_admin() ? array( 'all' => 'All', 'publish' => 'Published', 'draft' => 'Draft', 'pending' => 'Pending', 'future' => 'Scheduled' ) : array( 'publish' => 'Published' ) as $key => $label ) {
             echo '<option value="' . esc_attr( $key ) . '"' . selected( $status, $key, false ) . '>' . esc_html( $label ) . '</option>';
@@ -139,8 +170,9 @@ final class Pera_Manage {
             echo '<option value="' . esc_attr( $key ) . '"' . selected( $kind, $key, false ) . '>' . esc_html( $label ) . '</option>';
         }
         echo '</select></label><button class="btn btn--solid btn--blue" type="submit">Filter</button></form>';
-        self::table( $query );
-        self::pagination( $query, 'properties', array( 's' => $search, 'status' => $status, 'kind' => $kind ) );
+        $filters = array( 's' => $search, 'status' => $status, 'kind' => $kind );
+        self::table( $query, 'properties', $filters, $sort, $direction );
+        self::pagination( $query, 'properties', array_merge( $filters, array( 'sort' => $sort, 'direction' => $direction ) ) );
         wp_reset_postdata();
     }
 
@@ -151,18 +183,20 @@ final class Pera_Manage {
         if ( ! in_array( $status, array( 'all', 'publish', 'draft', 'pending', 'future' ), true ) ) $status = 'all';
         if ( ! self::can_edit_in_admin() ) $status = 'publish';
         $page = isset( $_GET['pg'] ) ? max( 1, absint( $_GET['pg'] ) ) : 1;
-        $query = new WP_Query( array( 'post_type' => $type, 'post_status' => 'all' === $status ? array( 'publish', 'draft', 'pending', 'future', 'private' ) : $status, 'posts_per_page' => 20, 'paged' => $page, 's' => $search, 'orderby' => 'modified', 'order' => 'DESC' ) );
+        list( $sort, $direction ) = self::sort_state();
+        $query = new WP_Query( array_merge( array( 'post_type' => $type, 'post_status' => 'all' === $status ? array( 'publish', 'draft', 'pending', 'future', 'private' ) : $status, 'posts_per_page' => 20, 'paged' => $page, 's' => $search ), self::sort_query_args( $sort, $direction ) ) );
         echo '<div class="pm-title-row"><div><h1>Content</h1><p>Articles and pages use the existing WordPress editor.</p></div>';
         if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=' . $type ), 'Add ' . ( 'post' === $type ? 'article' : 'page' ) );
-        echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '"><input type="hidden" name="view" value="content">';
+        echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '"><input type="hidden" name="view" value="content"><input type="hidden" name="sort" value="' . esc_attr( $sort ) . '"><input type="hidden" name="direction" value="' . esc_attr( $direction ) . '">';
         echo '<label>Content type <select name="type"><option value="post"' . selected( $type, 'post', false ) . '>Articles</option><option value="page"' . selected( $type, 'page', false ) . '>Pages</option></select></label>';
         echo '<label>Status <select name="status">';
         foreach ( self::can_edit_in_admin() ? array( 'all' => 'All', 'publish' => 'Published', 'draft' => 'Draft', 'pending' => 'Pending', 'future' => 'Scheduled' ) : array( 'publish' => 'Published' ) as $key => $label ) {
             echo '<option value="' . esc_attr( $key ) . '"' . selected( $status, $key, false ) . '>' . esc_html( $label ) . '</option>';
         }
         echo '</select></label><label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Title or keyword"></label><button class="btn btn--solid btn--blue" type="submit">Filter</button></form>';
-        self::table( $query );
-        self::pagination( $query, 'content', array( 'type' => $type, 'status' => $status, 's' => $search ) );
+        $filters = array( 'type' => $type, 'status' => $status, 's' => $search );
+        self::table( $query, 'content', $filters, $sort, $direction );
+        self::pagination( $query, 'content', array_merge( $filters, array( 'sort' => $sort, 'direction' => $direction ) ) );
         wp_reset_postdata();
     }
 
@@ -186,9 +220,14 @@ final class Pera_Manage {
         return '<span class="pm-thumb pm-thumb--empty" aria-hidden="true">No image</span>';
     }
 
-    private static function table( WP_Query $query ): void {
-        echo '<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th scope="col">Title</th><th scope="col">Status</th><th scope="col">Updated</th><th scope="col">Actions</th></tr></thead><tbody>';
-        if ( ! $query->have_posts() ) echo '<tr><td colspan="4">No matching items.</td></tr>';
+    private static function table( WP_Query $query, string $view = 'properties', array $filters = array(), string $sort = 'updated', string $direction = 'desc' ): void {
+        echo '<div class="pm-table-wrap"><table class="pm-table"><thead><tr>';
+        self::sort_header( 'Title', 'title', $view, $filters, $sort, $direction );
+        echo '<th scope="col">Status</th>';
+        self::sort_header( 'Published', 'published', $view, $filters, $sort, $direction );
+        self::sort_header( 'Updated', 'updated', $view, $filters, $sort, $direction );
+        echo '<th scope="col">Actions</th></tr></thead><tbody>';
+        if ( ! $query->have_posts() ) echo '<tr><td colspan="5">No matching items.</td></tr>';
         foreach ( $query->posts as $post ) {
             if ( ! self::can_edit_in_admin() && 'publish' !== $post->post_status ) continue;
             $edit = get_edit_post_link( $post->ID, 'raw' );
@@ -199,6 +238,7 @@ final class Pera_Manage {
                     : '' );
             echo '<tr><td><div class="pm-entry">' . self::image_html( $post ) . '<div class="pm-entry-copy"><strong>' . esc_html( get_the_title( $post ) ?: '(Untitled)' ) . '</strong><span class="pm-sub">#' . (int) $post->ID . '</span></div></div></td>';
             echo '<td><span class="pill">' . esc_html( ucfirst( $post->post_status ) ) . '</span></td>';
+            echo '<td>' . ( 'publish' === $post->post_status ? esc_html( get_the_date( 'j M Y', $post ) ) : '<span class="pm-date-empty" aria-label="Not published">—</span>' ) . '</td>';
             echo '<td>' . esc_html( get_the_modified_date( 'j M Y', $post ) ) . '</td><td class="pm-row-actions">';
             if ( self::can_edit_in_admin() && current_user_can( 'edit_post', $post->ID ) && $edit ) echo '<a href="' . esc_url( $edit ) . '">Edit</a> ';
             if ( $view ) echo '<a href="' . esc_url( $view ) . '" target="_blank" rel="noopener noreferrer">View</a>';
