@@ -47,10 +47,17 @@ if ( function_exists('peracrm_campaigns_staff_can') && peracrm_campaigns_staff_c
 if ( function_exists('peracrm_campaigns_staff_can') && peracrm_campaigns_staff_can('peracrm_manage_subscribers') ) {
     $items['subscribers'] = array('label' => __('Subscribers', 'peracrm'), 'url' => peracrm_subscribers_url());
 }
+// Advanced contains operational logs and website-management utilities.
+// Keep current capability checks: grouping must never expose restricted routes.
+$advanced_items = array();
 if ( $can_view_logs ) {
-	$items['whatsapp_logs'] = array( 'label' => __( 'WhatsApp logs', 'peracrm' ), 'url' => home_url( '/crm/whatsapp-logs/' ) );
-	$items['email_logs']    = array( 'label' => __( 'Email logs', 'peracrm' ), 'url' => home_url( '/crm/email-logs/' ) );
+	$advanced_items['whatsapp_logs'] = array( 'label' => __( 'WhatsApp logs', 'peracrm' ), 'url' => home_url( '/crm/whatsapp-logs/' ) );
+	$advanced_items['email_logs']    = array( 'label' => __( 'Email logs', 'peracrm' ), 'url' => home_url( '/crm/email-logs/' ) );
 }
+if ( current_user_can( 'edit_posts' ) ) {
+	$advanced_items['website_management'] = array( 'label' => __( 'Website management', 'peracrm' ), 'url' => home_url( '/manage/' ) );
+}
+$advanced_active = isset( $advanced_items[ $active_view ] );
 ?>
 <div class="crm-nav-shell" data-crm-nav>
   <div class="crm-side-nav__overlay" data-crm-nav-overlay hidden></div>
@@ -66,6 +73,22 @@ if ( $can_view_logs ) {
           </a>
         </li>
       <?php endforeach; ?>
+      <?php if ( $advanced_items ) : ?>
+      <li class="crm-side-nav__advanced">
+        <details class="crm-side-nav__advanced-details"<?php echo $advanced_active ? ' open' : ''; ?>>
+          <summary class="crm-side-nav__advanced-summary">
+            <svg class="crm-side-nav__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.07-7.07-1.41 1.41M6.34 17.66l-1.41 1.41m14.14 0-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
+            <span class="crm-side-nav__label"><?php esc_html_e( 'Advanced', 'peracrm' ); ?></span>
+            <span class="crm-side-nav__advanced-chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <ul class="crm-side-nav__list crm-side-nav__advanced-list">
+            <?php foreach ( $advanced_items as $key => $item ) : ?>
+            <li><a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a></li>
+            <?php endforeach; ?>
+          </ul>
+        </details>
+      </li>
+      <?php endif; ?>
     </ul>
   </aside>
 
@@ -102,6 +125,22 @@ if ( $can_view_logs ) {
                 </a>
               </li>
             <?php endforeach; ?>
+            <?php if ( $advanced_items ) : ?>
+            <li class="crm-side-nav__advanced">
+              <details class="crm-side-nav__advanced-details"<?php echo $advanced_active ? ' open' : ''; ?>>
+                <summary class="crm-side-nav__advanced-summary">
+                  <svg class="crm-side-nav__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m17.07-7.07-1.41 1.41M6.34 17.66l-1.41 1.41m14.14 0-1.41-1.41M6.34 6.34 4.93 4.93"/></svg>
+                  <span class="crm-side-nav__label"><?php esc_html_e( 'Advanced', 'peracrm' ); ?></span>
+                  <span class="crm-side-nav__advanced-chevron" aria-hidden="true">⌄</span>
+                </summary>
+                <ul class="crm-side-nav__list crm-side-nav__advanced-list">
+                  <?php foreach ( $advanced_items as $key => $item ) : ?>
+                  <li><a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a></li>
+                  <?php endforeach; ?>
+                </ul>
+              </details>
+            </li>
+            <?php endif; ?>
           </ul>
         </div>
 
