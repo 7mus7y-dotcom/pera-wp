@@ -25,6 +25,14 @@ assert.match(view, /checked\(\s*\$include_inactive\s*\)/, 'toggle retains state'
 assert.match(view, /array\(\s*'q',\s*'stage',\s*'advisor',\s*'client_group'\s*\)/, 'other filters and selected category preserved');
 assert.match(view, /onchange="this\.form\.submit\(\)"/, 'toggle applies without JS assets');
 assert.match(css, /\.crm-page--pipeline \.crm-pipeline-visibility-filter/, 'scoped styling');
+assert.match(view, /class="crm-pipeline-inactive-toggle"/, 'switch uses scoped markup');
+assert.match(view, /class="crm-pipeline-inactive-toggle__track" aria-hidden="true"/, 'decorative track present');
+assert.match(view, /class="crm-pipeline-inactive-toggle__input" type="checkbox"/, 'accessible native checkbox retained');
+assert.match(css, /\.crm-page--pipeline \.crm-pipeline-inactive-toggle\s*\{[\s\S]*?font-size:\s*13px;/, 'smaller label font');
+assert.match(css, /\.crm-page--pipeline \.crm-pipeline-inactive-toggle__track\s*\{[\s\S]*?width:\s*44px;[\s\S]*?height:\s*24px;/, 'same track dimensions as Hide sold');
+assert.match(css, /\.crm-pipeline-inactive-toggle__input:checked \+ \.crm-pipeline-inactive-toggle__track\s*\{/, 'checked visual state');
+assert.match(css, /\.crm-pipeline-inactive-toggle__input:focus-visible \+ \.crm-pipeline-inactive-toggle__track\s*\{/, 'visible keyboard focus');
+
 const party = fs.readFileSync(path.join(root,'inc/repositories/party.php'),'utf8');
 const detail = fs.readFileSync(path.join(root,'inc/views/pages/crm-client.php'),'utf8');
 const schema = fs.readFileSync(path.join(root,'inc/schema.php'),'utf8');
