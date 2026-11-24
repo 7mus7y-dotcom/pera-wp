@@ -786,6 +786,7 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 						'has_note'      => false,
 						'note_preview'  => '',
 						'status'        => sanitize_key( (string) ( $row['status'] ?? $open_status ) ),
+						'task_type'     => peracrm_reminder_normalize_type( $row['task_type'] ?? '' ),
 					);
 					$note_client_ids[] = $lead_id;
 				}
@@ -828,9 +829,9 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 		$today_end     = wp_date( 'Y-m-d H:i:s', $today_end_ts, $timezone );
 
 		if ( $overdue ) {
-			$sql = $wpdb->prepare( "SELECT id, client_id, due_at, note FROM {$table} WHERE status = %s AND due_at < %s ORDER BY due_at ASC LIMIT 200", $open_status, $now_mysql ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$sql = $wpdb->prepare( "SELECT id, client_id, due_at, task_type, note FROM {$table} WHERE status = %s AND due_at < %s ORDER BY due_at ASC LIMIT 200", $open_status, $now_mysql ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		} else {
-			$sql = $wpdb->prepare( "SELECT id, client_id, due_at, note FROM {$table} WHERE status = %s AND due_at BETWEEN %s AND %s ORDER BY due_at ASC LIMIT 200", $open_status, $today_start, $today_end ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$sql = $wpdb->prepare( "SELECT id, client_id, due_at, task_type, note FROM {$table} WHERE status = %s AND due_at BETWEEN %s AND %s ORDER BY due_at ASC LIMIT 200", $open_status, $today_start, $today_end ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		}
 		$raw   = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$rows  = array();
@@ -847,6 +848,7 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 				'has_note'      => false,
 				'note_preview'  => '',
 				'status'        => $open_status,
+				'task_type'     => peracrm_reminder_normalize_type( $row['task_type'] ?? '' ),
 			);
 			$note_client_ids[] = $lead_id;
 		}
@@ -934,7 +936,7 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 				}
 
 				if ( '' !== $table ) {
-					$sql      = $wpdb->prepare( "SELECT id, client_id, advisor_user_id, due_at, status, note FROM {$table} WHERE status = %s ORDER BY due_at ASC, id ASC LIMIT 200", $open_status ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$sql      = $wpdb->prepare( "SELECT id, client_id, advisor_user_id, due_at, status, task_type, note FROM {$table} WHERE status = %s ORDER BY due_at ASC, id ASC LIMIT 200", $open_status ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					$raw_rows = (array) $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				}
 			}
@@ -999,6 +1001,7 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 				'due_ts'        => $due_ts,
 				'due_display'   => pera_crm_format_datetime_dmy_hm( $due_ts, $timezone ),
 				'note'          => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
+				'task_type'     => peracrm_reminder_normalize_type( $row['task_type'] ?? '' ),
 				'assigned_to'   => $advisor_id > 0 ? ( $advisor_map[ $advisor_id ] ?? sprintf( __( 'User #%d', 'peracrm' ), $advisor_id ) ) : '',
 				'is_overdue'    => $is_overdue,
 				'status_label'  => $is_overdue ? __( 'Overdue', 'peracrm' ) : __( 'Open', 'peracrm' ),

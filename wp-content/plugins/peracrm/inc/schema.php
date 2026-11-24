@@ -125,6 +125,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             advisor_user_id BIGINT UNSIGNED NOT NULL,
             due_at DATETIME NOT NULL,
             status VARCHAR(20) NOT NULL DEFAULT 'pending',
+            task_type VARCHAR(32) NOT NULL DEFAULT 'general_follow_up',
             note TEXT NULL,
             push_due_sent_at DATETIME NULL,
             created_at DATETIME NOT NULL,

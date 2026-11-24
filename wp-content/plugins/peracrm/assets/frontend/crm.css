@@ -9763,3 +9763,26 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
     transition: none;
   }
 }
+
+/* Priority Work: compact task-type filters across overdue and due-today queues. */
+.crm-page--overview .crm-overview-work-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 0 var(--crm-section-padding, 16px) 12px;
+}
+.crm-page--overview .crm-overview-work-filters .btn {
+  padding: 5px 10px;
+  min-height: 28px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.crm-page--overview .crm-overview-work-type {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-right: 7px;
+  font-size: 11px;
+  white-space: nowrap;
+}

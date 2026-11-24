@@ -20,7 +20,24 @@ function peracrm_reminders_table_exists()
     return $exists;
 }
 
-function peracrm_reminder_add($client_id, $advisor_user_id, $due_at, $note)
+/** Categories classify the work, independently from reminder status. */
+function peracrm_reminder_type_options(): array
+{
+    return [
+        'general_follow_up' => __('General follow-up', 'peracrm'),
+        'prepare_portfolio' => __('Prepare portfolio', 'peracrm'),
+        'call' => __('Call', 'peracrm'),
+        'email' => __('Email', 'peracrm'),
+        'whatsapp' => __('WhatsApp', 'peracrm'),
+    ];
+}
+function peracrm_reminder_normalize_type($type): string
+{
+    $type = sanitize_key((string) $type);
+    return isset(peracrm_reminder_type_options()[$type]) ? $type : 'general_follow_up';
+}
+
+function peracrm_reminder_add($client_id, $advisor_user_id, $due_at, $note, $task_type = 'general_follow_up')
 {
     // due_at is expected in site timezone (per admin datetime parsing for UX consistency).
     $client_id = (int) $client_id;
@@ -37,10 +54,10 @@ function peracrm_reminder_add($client_id, $advisor_user_id, $due_at, $note)
     $note = peracrm_reminders_sanitize_note($note, 5000);
 
     if (peracrm_reminders_table_exists()) {
-        return peracrm_reminders_insert_table($client_id, $advisor_user_id, $due_at, $note);
+        return peracrm_reminders_insert_table($client_id, $advisor_user_id, $due_at, $note, peracrm_reminder_normalize_type($task_type));
     }
 
-    return peracrm_reminders_insert_fallback($client_id, $advisor_user_id, $due_at, $note);
+    return peracrm_reminders_insert_fallback($client_id, $advisor_user_id, $due_at, $note, peracrm_reminder_normalize_type($task_type));
 }
 
 function peracrm_debug_reminders_tz_log($raw_input, $detected_format, $parsed_datetime, $stored_datetime)
@@ -510,7 +527,7 @@ function peracrm_reminders_sanitize_note($note, $max_length)
     return $note;
 }
 
-function peracrm_reminders_insert_table($client_id, $advisor_user_id, $due_at, $note)
+function peracrm_reminders_insert_table($client_id, $advisor_user_id, $due_at, $note, $task_type)
 {
     global $wpdb;
 
@@ -518,12 +535,13 @@ function peracrm_reminders_insert_table($client_id, $advisor_user_id, $due_at, $
     $created_at = peracrm_now_mysql();
 
     $query = $wpdb->prepare(
-        "INSERT INTO {$table} (client_id, advisor_user_id, due_at, status, note, created_at, updated_at)
-         VALUES (%d, %d, %s, %s, %s, %s, %s)",
+        "INSERT INTO {$table} (client_id, advisor_user_id, due_at, status, task_type, note, created_at, updated_at)
+         VALUES (%d, %d, %s, %s, %s, %s, %s, %s)",
         $client_id,
         $advisor_user_id,
         $due_at,
         'pending',
+        $task_type,
         $note !== '' ? $note : null,
         $created_at,
         null
@@ -589,7 +607,7 @@ function peracrm_reminders_list_for_client_table($client_id, $limit, $offset, $s
 
     $where = implode(' AND ', $conditions);
     $query = $wpdb->prepare(
-        "SELECT id, client_id, advisor_user_id, due_at, status, note, created_at, updated_at
+        "SELECT id, client_id, advisor_user_id, due_at, status, task_type, note, created_at, updated_at
          FROM {$table}
          WHERE {$where}
          ORDER BY due_at ASC, created_at DESC
@@ -665,7 +683,7 @@ function peracrm_reminders_list_for_advisor_table($advisor_user_id, $limit, $off
     }
 
     $query = $wpdb->prepare(
-        "SELECT id, client_id, advisor_user_id, due_at, status, note, created_at, updated_at
+        "SELECT id, client_id, advisor_user_id, due_at, status, task_type, note, created_at, updated_at
          FROM {$table}
          WHERE {$where}
          ORDER BY {$order_by}
@@ -712,7 +730,7 @@ function peracrm_reminders_get_table($reminder_id)
 
     $table = peracrm_table('crm_reminders');
     $query = $wpdb->prepare(
-        "SELECT id, client_id, advisor_user_id, due_at, status, note, created_at, updated_at
+        "SELECT id, client_id, advisor_user_id, due_at, status, task_type, note, created_at, updated_at
          FROM {$table} WHERE id = %d",
         $reminder_id
     );
@@ -758,7 +776,7 @@ function peracrm_reminders_range_clause($range, &$params)
     return '';
 }
 
-function peracrm_reminders_insert_fallback($client_id, $advisor_user_id, $due_at, $note)
+function peracrm_reminders_insert_fallback($client_id, $advisor_user_id, $due_at, $note, $task_type)
 {
     $note = peracrm_reminders_sanitize_note($note, 2000);
 
@@ -771,6 +789,7 @@ function peracrm_reminders_insert_fallback($client_id, $advisor_user_id, $due_at
         'advisor_user_id' => $advisor_user_id,
         'due_at' => $due_at,
         'status' => 'pending',
+        'task_type' => $task_type,
         'note' => $note,
         'created_at' => peracrm_now_mysql(),
         'updated_at' => null,
@@ -1013,6 +1032,7 @@ function peracrm_reminders_fallback_get($client_id)
             'advisor_user_id' => isset($reminder['advisor_user_id']) ? (int) $reminder['advisor_user_id'] : 0,
             'due_at' => sanitize_text_field($reminder['due_at']),
             'status' => $status,
+            'task_type' => peracrm_reminder_normalize_type($reminder['task_type'] ?? ''),
             'note' => isset($reminder['note']) ? peracrm_reminders_sanitize_note($reminder['note'], 2000) : '',
             'created_at' => isset($reminder['created_at']) ? sanitize_text_field($reminder['created_at']) : '',
             'updated_at' => isset($reminder['updated_at']) ? sanitize_text_field($reminder['updated_at']) : null,
@@ -1047,9 +1067,9 @@ function peracrm_reminders_fallback_trim($reminders)
     return array_values($reminders);
 }
 
-function peracrm_reminders_create($client_id, $advisor_user_id, $due_at_mysql, $note = '')
+function peracrm_reminders_create($client_id, $advisor_user_id, $due_at_mysql, $note = '', $task_type = 'general_follow_up')
 {
-    return peracrm_reminder_add($client_id, $advisor_user_id, $due_at_mysql, $note);
+    return peracrm_reminder_add($client_id, $advisor_user_id, $due_at_mysql, $note, $task_type);
 }
 
 function peracrm_reminders_due_for_advisor($advisor_user_id, $until_mysql, $limit = 100)
@@ -1065,7 +1085,7 @@ function peracrm_reminders_due_for_advisor($advisor_user_id, $until_mysql, $limi
         global $wpdb;
         $table = peracrm_table('crm_reminders');
         $query = $wpdb->prepare(
-            "SELECT id, client_id, advisor_user_id, due_at, status, note, created_at, updated_at
+            "SELECT id, client_id, advisor_user_id, due_at, status, task_type, note, created_at, updated_at
              FROM {$table}
              WHERE advisor_user_id = %d AND status = %s AND due_at <= %s
              ORDER BY due_at ASC

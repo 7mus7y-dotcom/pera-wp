@@ -2002,7 +2002,7 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 			} elseif ( $assigned_advisor <= 0 ) {
 				$assigned_advisor = $actor_user_id;
 			}
-			$reminder_id = '' !== $due && function_exists( 'peracrm_reminder_add' ) ? (int) peracrm_reminder_add( $client_id, $assigned_advisor, $due, substr( (string) $note, 0, 5000 ) ) : 0;
+			$reminder_id = '' !== $due && function_exists( 'peracrm_reminder_add' ) ? (int) peracrm_reminder_add( $client_id, $assigned_advisor, $due, substr( (string) $note, 0, 5000 ), sanitize_key( (string) wp_unslash( $_POST['peracrm_task_type'] ?? 'general_follow_up' ) ) ) : 0;
 			if ( $reminder_id > 0 && function_exists( 'peracrm_log_event' ) ) {
 				peracrm_log_event( $client_id, 'reminder_added', array(
 					'reminder_id'    => $reminder_id,

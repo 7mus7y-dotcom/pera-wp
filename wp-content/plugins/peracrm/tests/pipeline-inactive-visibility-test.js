@@ -45,5 +45,5 @@ assert.match(party, /if\s*\(\s*\$value\s*===\s*'engaged'\s*\)\s*\{\s*\$value\s*=
 assert.doesNotMatch(detail, /<select name="peracrm_status"/, 'profile form no longer has a second status control');
 assert.match(detail, /Lead status[\s\S]*?<select name="engagement_state"/, 'status panel exposes the single lifecycle status control');
 assert.match(schema, /peracrm_migrate_party_engagement_to_lifecycle_status/, 'schema upgrade migrates existing status values');
-assert.match(plugin, /PERACRM_SCHEMA_VERSION',\s*44/, 'schema version advances for the migration');
+assert.match(plugin, /PERACRM_SCHEMA_VERSION',\s*45/, 'schema version advances for the migration');
 console.log('PASS Pipeline visibility and unified lifecycle status regressions.');

@@ -681,7 +681,11 @@ peracrm_frontend_render_shell_header();
                         $assignee_label    = $assignee_user instanceof WP_User ? (string) $assignee_user->display_name : __( 'Unassigned', 'peracrm' );
                         ?>
                         <li class="<?php echo esc_attr( 0 === (int) $reminder_index ? 'crm-reminder-item crm-reminder-item--next' : 'crm-reminder-item' ); ?>" data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) $reminder_id ); ?>">
-                          <p><strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
+                          <p><span class="crm-chip crm-chip--neutral crm-overview-work-type"><?php
+                            $reminder_type = peracrm_reminder_normalize_type( $reminder_row['task_type'] ?? '' );
+                            $reminder_types = peracrm_reminder_type_options();
+                            echo esc_html( $reminder_types[ $reminder_type ] ?? __( 'General follow-up', 'peracrm' ) );
+                          ?></span> <strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
                           <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Assigned: %s', 'peracrm' ), $assignee_label ) ); ?></small>
@@ -723,7 +727,11 @@ peracrm_frontend_render_shell_header();
                         $assignee_label    = $assignee_user instanceof WP_User ? (string) $assignee_user->display_name : __( 'Unassigned', 'peracrm' );
                         ?>
                         <li class="<?php echo esc_attr( ( 0 === (int) $reminder_index && empty( $overdue_task_rows ) ) ? 'crm-reminder-item crm-reminder-item--next' : 'crm-reminder-item' ); ?>" data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) $reminder_id ); ?>">
-                          <p><strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
+                          <p><span class="crm-chip crm-chip--neutral crm-overview-work-type"><?php
+                            $reminder_type = peracrm_reminder_normalize_type( $reminder_row['task_type'] ?? '' );
+                            $reminder_types = peracrm_reminder_type_options();
+                            echo esc_html( $reminder_types[ $reminder_type ] ?? __( 'General follow-up', 'peracrm' ) );
+                          ?></span> <strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
                           <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Assigned: %s', 'peracrm' ), $assignee_label ) ); ?></small>
@@ -755,6 +763,13 @@ peracrm_frontend_render_shell_header();
                   <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                   <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                   <div class="crm-form-row-2">
+                    <label><?php esc_html_e( 'Task type', 'peracrm' ); ?>
+                      <select name="peracrm_task_type">
+                        <?php foreach ( peracrm_reminder_type_options() as $task_type_value => $task_type_label ) : ?>
+                          <option value="<?php echo esc_attr( $task_type_value ); ?>"><?php echo esc_html( $task_type_label ); ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </label>
                     <label><?php esc_html_e( 'Due date & time', 'peracrm' ); ?><input type="datetime-local" name="peracrm_due_at" required /></label>
                     <label><?php esc_html_e( 'Reminder note', 'peracrm' ); ?><textarea name="peracrm_reminder_note" rows="2" maxlength="5000" placeholder="<?php echo esc_attr__( 'Add a reminder note…', 'peracrm' ); ?>"></textarea></label>
                   </div>
