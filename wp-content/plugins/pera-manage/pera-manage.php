@@ -160,7 +160,7 @@ final class Pera_Manage {
         echo '<div class="pm-title-row"><div><h1>Properties</h1><p>Find listings and open their existing WordPress editor.</p></div>';
         if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=property' ), 'Add property' );
         echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '">';
-        echo '<input type="hidden" name="view" value="properties"><label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Name or keyword"></label>';
+        echo '<input type="hidden" name="view" value="properties"><input type="hidden" name="sort" value="' . esc_attr( $sort ) . '"><input type="hidden" name="direction" value="' . esc_attr( $direction ) . '"><label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Name or keyword"></label>';
         echo '<label>Status <select name="status">';
         foreach ( self::can_edit_in_admin() ? array( 'all' => 'All', 'publish' => 'Published', 'draft' => 'Draft', 'pending' => 'Pending', 'future' => 'Scheduled' ) : array( 'publish' => 'Published' ) as $key => $label ) {
             echo '<option value="' . esc_attr( $key ) . '"' . selected( $status, $key, false ) . '>' . esc_html( $label ) . '</option>';
@@ -187,7 +187,7 @@ final class Pera_Manage {
         $query = new WP_Query( array_merge( array( 'post_type' => $type, 'post_status' => 'all' === $status ? array( 'publish', 'draft', 'pending', 'future', 'private' ) : $status, 'posts_per_page' => 20, 'paged' => $page, 's' => $search ), self::sort_query_args( $sort, $direction ) ) );
         echo '<div class="pm-title-row"><div><h1>Content</h1><p>Articles and pages use the existing WordPress editor.</p></div>';
         if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=' . $type ), 'Add ' . ( 'post' === $type ? 'article' : 'page' ) );
-        echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '"><input type="hidden" name="view" value="content">';
+        echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '"><input type="hidden" name="view" value="content"><input type="hidden" name="sort" value="' . esc_attr( $sort ) . '"><input type="hidden" name="direction" value="' . esc_attr( $direction ) . '">';
         echo '<label>Content type <select name="type"><option value="post"' . selected( $type, 'post', false ) . '>Articles</option><option value="page"' . selected( $type, 'page', false ) . '>Pages</option></select></label>';
         echo '<label>Status <select name="status">';
         foreach ( self::can_edit_in_admin() ? array( 'all' => 'All', 'publish' => 'Published', 'draft' => 'Draft', 'pending' => 'Pending', 'future' => 'Scheduled' ) : array( 'publish' => 'Published' ) as $key => $label ) {
