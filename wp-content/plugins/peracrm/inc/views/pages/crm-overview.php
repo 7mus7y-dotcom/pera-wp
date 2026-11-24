@@ -593,7 +593,14 @@ peracrm_frontend_render_shell_header();
                       <h4 class="crm-row-list__title"><a href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html( (string) $task['client_name'] ); ?></a></h4>
                       <span class="crm-chip <?php echo esc_attr( $task_is_overdue ? 'crm-chip--urgent' : 'crm-chip--status' ); ?>"><?php echo esc_html( (string) $task['due_display'] ); ?></span>
                     </div>
-                    <p class="crm-row-list__summary"><?php echo esc_html( '' !== (string) ( $task['note'] ?? '' ) ? (string) $task['note'] : __( 'No task note yet.', 'peracrm' ) ); ?></p>
+                    <p class="crm-row-list__summary">
+                      <?php
+                        $task_category = peracrm_reminder_normalize_type( $task['task_type'] ?? '' );
+                        $task_categories = peracrm_reminder_type_options();
+                      ?>
+                      <span class="crm-chip crm-chip--neutral crm-overview-work-type"><?php echo esc_html( $task_categories[ $task_category ] ?? __( 'General follow-up', 'peracrm' ) ); ?></span>
+                      <?php echo esc_html( '' !== (string) ( $task['note'] ?? '' ) ? (string) $task['note'] : __( 'No task note yet.', 'peracrm' ) ); ?>
+                    </p>
                     <div class="crm-meta-line">
                       <span><strong><?php esc_html_e( 'Status:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task['status_label'] ); ?></span>
                       <?php if ( $show_assigned ) : ?>
