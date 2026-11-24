@@ -2,12 +2,12 @@
 /**
  * Plugin Name: Pera Manage
  * Description: Private, read-only website administration hub linking to existing WordPress editors.
- * Version: 0.2.0
+ * Version: 0.3.0
  */
 defined( 'ABSPATH' ) || exit;
 
 final class Pera_Manage {
-    private const VERSION = '0.2.0';
+    private const VERSION = '0.3.0';
     private const ACCESS_CAP = 'pera_access_manage_dashboard';
 
     public static function grant_access(): void {
@@ -138,7 +138,7 @@ final class Pera_Manage {
         foreach ( array( 'all' => 'All types', 'project' => 'Projects', 'resales' => 'Resales' ) as $key => $label ) {
             echo '<option value="' . esc_attr( $key ) . '"' . selected( $kind, $key, false ) . '>' . esc_html( $label ) . '</option>';
         }
-        echo '</select></label><button class="btn" type="submit">Filter</button></form>';
+        echo '</select></label><button class="btn btn--solid btn--blue" type="submit">Filter</button></form>';
         self::table( $query );
         self::pagination( $query, 'properties', array( 's' => $search, 'status' => $status, 'kind' => $kind ) );
         wp_reset_postdata();
@@ -153,10 +153,30 @@ final class Pera_Manage {
         if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=' . $type ), 'Add ' . ( 'post' === $type ? 'article' : 'page' ) );
         echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '"><input type="hidden" name="view" value="content">';
         echo '<label>Content type <select name="type"><option value="post"' . selected( $type, 'post', false ) . '>Articles</option><option value="page"' . selected( $type, 'page', false ) . '>Pages</option></select></label>';
-        echo '<label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Title or keyword"></label><button class="btn" type="submit">Filter</button></form>';
+        echo '<label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Title or keyword"></label><button class="btn btn--solid btn--blue" type="submit">Filter</button></form>';
         self::table( $query );
         self::pagination( $query, 'content', array( 'type' => $type, 's' => $search ) );
         wp_reset_postdata();
+    }
+
+    /** Properties use canonical ACF main_image; articles/pages use featured images. */
+    private static function image_html( WP_Post $post ): string {
+        $id = 0;
+        if ( 'property' === $post->post_type ) {
+            $raw = get_post_meta( $post->ID, 'main_image', true );
+            if ( is_numeric( $raw ) ) $id = absint( $raw );
+            if ( ! $id && function_exists( 'get_field' ) ) {
+                $image = get_field( 'main_image', $post->ID );
+                if ( is_numeric( $image ) ) $id = absint( $image );
+                elseif ( is_array( $image ) ) $id = absint( $image['ID'] ?? $image['id'] ?? 0 );
+            }
+        }
+        if ( ! $id ) $id = (int) get_post_thumbnail_id( $post->ID );
+        if ( $id ) {
+            $img = wp_get_attachment_image( $id, 'thumbnail', false, array( 'loading' => 'lazy', 'alt' => '' ) );
+            if ( $img ) return '<span class="pm-thumb" aria-hidden="true">' . $img . '</span>';
+        }
+        return '<span class="pm-thumb pm-thumb--empty" aria-hidden="true">No image</span>';
     }
 
     private static function table( WP_Query $query ): void {
@@ -166,7 +186,7 @@ final class Pera_Manage {
             if ( ! self::can_edit_in_admin() && 'publish' !== $post->post_status ) continue;
             $edit = get_edit_post_link( $post->ID, 'raw' );
             $view = get_permalink( $post );
-            echo '<tr><td><strong>' . esc_html( get_the_title( $post ) ?: '(Untitled)' ) . '</strong><span class="pm-sub">#' . (int) $post->ID . '</span></td>';
+            echo '<tr><td><div class="pm-entry">' . self::image_html( $post ) . '<div class="pm-entry-copy"><strong>' . esc_html( get_the_title( $post ) ?: '(Untitled)' ) . '</strong><span class="pm-sub">#' . (int) $post->ID . '</span></div></div></td>';
             echo '<td><span class="pill">' . esc_html( ucfirst( $post->post_status ) ) . '</span></td>';
             echo '<td>' . esc_html( get_the_modified_date( 'j M Y', $post ) ) . '</td><td class="pm-row-actions">';
             if ( self::can_edit_in_admin() && current_user_can( 'edit_post', $post->ID ) && $edit ) echo '<a href="' . esc_url( $edit ) . '">Edit</a> ';
@@ -188,7 +208,7 @@ final class Pera_Manage {
     }
 
     private static function link_button( string $url, string $text ): void {
-        echo '<a class="btn" href="' . esc_url( $url ) . '">' . esc_html( $text ) . '</a>';
+        echo '<a class="btn btn--solid btn--blue" href="' . esc_url( $url ) . '">' . esc_html( $text ) . '</a>';
     }
 
     private static function overview(): void {
