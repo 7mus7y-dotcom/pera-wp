@@ -37,8 +37,10 @@ assert.match(data, /'task_type'\s*=>\s*peracrm_reminder_normalize_type/, 'dashbo
 assert.match(overview, /\$_GET\['task_type'\]/, 'overview reads selected category');
 assert.match(overview, /\$todays_tasks = array_values\(\s*array_filter\(\s*\$todays_tasks,\s*\$match_task_type\s*\)\s*\)/,'today filters');
 assert.match(overview, /\$overdue_tasks = array_values\(\s*array_filter\(\s*\$overdue_tasks,\s*\$match_task_type\s*\)\s*\)/,'overdue filters');
-assert.match(overview, /aria-label="<\?php esc_attr_e\( 'Filter priority work by task type'/,'accessible filter navigation');
+assert.match(overview, /\$render_work_type_filters\( home_url\( '\/crm\/' \), \$work_type_filter, \$work_type_options, array\(\), __\( 'Filter priority work by task type', 'peracrm' \) \)/, 'Overview passes accessible label to shared navigation');
+assert.match(overview, /<nav class="crm-work-type-filters" aria-label="<\?php echo esc_attr\( \$accessible_label \); \?>"/, 'shared navigation renders accessible label');
 assert.match(overview, /crm-overview-work-type/, 'task rows show category');
 assert.match(overview, /'All', 'peracrm'/,'all categories reset');
-assert.match(css, /\.crm-page--overview \.crm-overview-work-filters/, 'styles scoped to Overview');
+assert.match(css, /\.crm-page--overview \.crm-work-type-filters/, 'Overview filter spacing scoped appropriately');
+assert.match(css, /\.crm-page \.crm-work-type-filters \.crm-work-type-filter/, 'shared compact chips styled for both routes');
 console.log('PASS reminder task categories: schema, persistence, validation, frontend creation, Overview filtering.');
