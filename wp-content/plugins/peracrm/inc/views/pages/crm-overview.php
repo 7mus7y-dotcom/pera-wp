@@ -87,6 +87,28 @@ if ( ! $is_tasks && ! $is_leads && '' !== $work_type_filter ) {
     $overdue_tasks = array_values( array_filter( $overdue_tasks, $match_task_type ) );
 }
 
+// Reuse compact CRM chips for task categories on Overview and the Tasks workspace.
+// Query arguments are whitelisted by the caller; switching category must not
+// discard the Tasks due-date scope or chosen view.
+$render_work_type_filters = static function ( string $base_url, string $selected, array $types, array $preserved_args, string $accessible_label ): void {
+    $links = array( '' => __( 'All', 'peracrm' ) ) + $types;
+    ?>
+    <nav class="crm-work-type-filters" aria-label="<?php echo esc_attr( $accessible_label ); ?>">
+      <?php foreach ( $links as $type_key => $label ) :
+        $url_args = $preserved_args;
+        if ( '' !== $type_key ) {
+            $url_args['task_type'] = $type_key;
+        }
+        $url = empty( $url_args ) ? $base_url : add_query_arg( $url_args, $base_url );
+        $active = $selected === $type_key;
+      ?>
+        <a class="crm-chip crm-chip--xs crm-work-type-filter <?php echo esc_attr( $active ? 'crm-chip--selected' : 'crm-chip--neutral' ); ?>"
+           href="<?php echo esc_url( $url ); ?>"<?php echo $active ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
+      <?php endforeach; ?>
+    </nav>
+    <?php
+};
+
 $new_leads     = is_array( $crm_dashboard['new_leads'] ?? null ) ? $crm_dashboard['new_leads'] : array();
 $notices       = is_array( $crm_dashboard['notices'] ?? null ) ? $crm_dashboard['notices'] : array();
 
@@ -285,12 +307,7 @@ peracrm_frontend_render_shell_header();
               <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'Open task workspace', 'peracrm' ); ?></a>
             </div>
           </header>
-          <nav class="crm-overview-work-filters" aria-label="<?php esc_attr_e( 'Filter priority work by task type', 'peracrm' ); ?>">
-            <a class="btn <?php echo '' === $work_type_filter ? 'btn--solid' : 'btn--ghost'; ?> btn--blue" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>" <?php echo '' === $work_type_filter ? 'aria-current="page"' : ''; ?>><?php esc_html_e( 'All', 'peracrm' ); ?></a>
-            <?php foreach ( $work_type_options as $work_type_key => $work_type_label ) : ?>
-              <a class="btn <?php echo $work_type_filter === $work_type_key ? 'btn--solid' : 'btn--ghost'; ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'task_type', $work_type_key, home_url( '/crm/' ) ) ); ?>" <?php echo $work_type_filter === $work_type_key ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $work_type_label ); ?></a>
-            <?php endforeach; ?>
-          </nav>
+          <?php $render_work_type_filters( home_url( '/crm/' ), $work_type_filter, $work_type_options, array(), __( 'Filter priority work by task type', 'peracrm' ) ); ?>
           <div class="crm-section__body crm-overview-priority__body">
             <section class="crm-overview-priority-card crm-overview-priority-card--urgent" aria-labelledby="crm-overdue-tasks-heading">
               <header class="crm-overview-priority-card__header">
@@ -558,8 +575,20 @@ peracrm_frontend_render_shell_header();
 			$upcoming       = is_array( $tasks_data['upcoming'] ?? null ) ? $tasks_data['upcoming'] : array();
 			$active_rows    = is_array( $tasks_data['active_rows'] ?? null ) ? $tasks_data['active_rows'] : array();
 			$tasks_active_filter = sanitize_key( (string) ( $tasks_data['active_filter'] ?? '' ) );
-			$task_rows      = '' !== $tasks_active_filter ? $active_rows : $task_rows_all;
-			$show_assigned  = ! empty( $task_rows ) && empty( $tasks_data['is_employee'] );
+			// Apply the same work-type filter to all task layouts and counts.
+            // Due-date scope is evaluated separately and retained in filter links.
+            if ( '' !== $work_type_filter ) {
+                $by_work_type = static function ( array $task ) use ( $work_type_filter ): bool {
+                    return peracrm_reminder_normalize_type( $task['task_type'] ?? '' ) === $work_type_filter;
+                };
+                $task_rows_all = array_values( array_filter( $task_rows_all, $by_work_type ) );
+                $today_rows    = array_values( array_filter( $today_rows, $by_work_type ) );
+                $outstanding   = array_values( array_filter( $outstanding, $by_work_type ) );
+                $upcoming      = array_values( array_filter( $upcoming, $by_work_type ) );
+                $active_rows   = array_values( array_filter( $active_rows, $by_work_type ) );
+            }
+            $task_rows      = '' !== $tasks_active_filter ? $active_rows : $task_rows_all;
+            $show_assigned  = ! empty( $task_rows ) && empty( $tasks_data['is_employee'] );
 			$task_filter_labels  = array(
 				'overdue' => __( 'Overdue reminders', 'peracrm' ),
 				'today'   => __( 'Due today', 'peracrm' ),
@@ -641,7 +670,7 @@ peracrm_frontend_render_shell_header();
             <?php if ( '' !== $tasks_active_filter_label ) : ?>
               <div class="crm-list-workspace-toolbar__active-filter" aria-live="polite">
                 <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( __( 'Showing: %s', 'peracrm' ), $tasks_active_filter_label ) ); ?></span>
-                <a class="btn btn--ghost btn--blue crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
+                <a class="btn btn--ghost btn--blue crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( '' !== $work_type_filter ? add_query_arg( 'task_type', $work_type_filter, home_url( '/crm/tasks/' ) ) : home_url( '/crm/tasks/' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
               </div>
             <?php endif; ?>
             <div class="crm-meta-line crm-list-workspace-toolbar__meta">
@@ -665,6 +694,17 @@ peracrm_frontend_render_shell_header();
           </div>
         </div>
       </section>
+
+      <?php
+      $work_filter_args = array();
+      if ( '' !== $tasks_active_filter ) {
+          $work_filter_args['filter'] = $tasks_active_filter;
+      }
+      if ( in_array( $requested_tasks_view, array( 'cards', 'table' ), true ) ) {
+          $work_filter_args['tasks_view'] = $requested_tasks_view;
+      }
+      $render_work_type_filters( home_url( '/crm/tasks/' ), $work_type_filter, $work_type_options, $work_filter_args, __( 'Filter tasks by work type', 'peracrm' ) );
+      ?>
 
       <section class="crm-panel-surface crm-section crm-list-workspace crm-list-workspace--table-first" data-crm-view="table" aria-labelledby="crm-tasks-table-heading">
         <header class="crm-section__header">
