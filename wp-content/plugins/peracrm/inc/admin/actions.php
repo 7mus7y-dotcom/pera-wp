@@ -1879,7 +1879,7 @@ function peracrm_handle_add_reminder()
         $assigned_advisor = $current_user_id;
     }
 
-    $reminder_id = peracrm_reminder_add($client_id, $assigned_advisor, $due_at_mysql, $note);
+    $reminder_id = peracrm_reminder_add($client_id, $assigned_advisor, $due_at_mysql, $note, sanitize_key((string) wp_unslash($_POST['peracrm_task_type'] ?? 'general_follow_up')));
     if (!$reminder_id) {
         peracrm_admin_redirect_with_notice($redirect, 'reminder_failed');
     }
