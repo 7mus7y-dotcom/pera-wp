@@ -2,14 +2,28 @@
 /**
  * Plugin Name: Pera Manage
  * Description: Private, read-only website administration hub linking to existing WordPress editors.
- * Version: 0.1.0
+ * Version: 0.2.0
  */
 defined( 'ABSPATH' ) || exit;
 
 final class Pera_Manage {
-    private const VERSION = '0.1.0';
+    private const VERSION = '0.2.0';
+    private const ACCESS_CAP = 'pera_access_manage_dashboard';
+
+    public static function grant_access(): void {
+        foreach ( array( 'administrator', 'manager', 'employee' ) as $name ) {
+            $role = get_role( $name );
+            if ( $role && ! $role->has_cap( self::ACCESS_CAP ) ) $role->add_cap( self::ACCESS_CAP );
+        }
+        update_option( 'pera_manage_role_caps_version', self::VERSION, false );
+    }
 
     public static function boot(): void {
+        register_activation_hook( __FILE__, array( __CLASS__, 'grant_access' ) );
+        add_action( 'init', static function (): void {
+            if ( get_option( 'pera_manage_role_caps_version' ) !== self::VERSION ) self::grant_access();
+        }, 30 );
+        add_filter( 'login_redirect', array( __CLASS__, 'login_redirect' ), 99, 3 );
         // Bypass WordPress content routing: this is a private, plugin-owned shell.
         add_action( 'template_redirect', array( __CLASS__, 'route' ), -200 );
         add_filter( 'robots_txt', array( __CLASS__, 'robots' ), 10, 2 );
@@ -18,7 +32,17 @@ final class Pera_Manage {
     /** This intentionally grants no editing capability of its own. */
     private static function allowed(): bool {
         // The theme currently redirects non-managers away from wp-admin.
+        return current_user_can( self::ACCESS_CAP );
+    }
+
+    private static function can_edit_in_admin(): bool {
         return current_user_can( 'manage_options' );
+    }
+
+    public static function login_redirect( $redirect_to, $requested_redirect_to, $user ) {
+        if ( ! $user instanceof WP_User || ! user_can( $user, self::ACCESS_CAP ) ) return $redirect_to;
+        if ( is_string( $requested_redirect_to ) && '' !== trim( $requested_redirect_to ) ) return $redirect_to;
+        return home_url( '/manage/' );
     }
 
     private static function request_section(): string {
@@ -84,12 +108,13 @@ final class Pera_Manage {
         $search = isset( $_GET['s'] ) && is_string( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
         $status = isset( $_GET['status'] ) && is_string( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : 'all';
         if ( ! in_array( $status, array( 'all', 'publish', 'draft', 'pending', 'future' ), true ) ) $status = 'all';
+        if ( ! self::can_edit_in_admin() ) $status = 'publish';
         $kind = isset( $_GET['kind'] ) && is_string( $_GET['kind'] ) ? sanitize_key( wp_unslash( $_GET['kind'] ) ) : 'all';
         if ( ! in_array( $kind, array( 'all', 'project', 'resales' ), true ) ) $kind = 'all';
         $page = isset( $_GET['pg'] ) ? max( 1, absint( $_GET['pg'] ) ) : 1;
         $args = array(
             'post_type' => 'property',
-            'post_status' => 'all' === $status ? array( 'publish', 'draft', 'pending', 'future', 'private' ) : $status,
+            'post_status' => ! self::can_edit_in_admin() ? 'publish' : ( 'all' === $status ? array( 'publish', 'draft', 'pending', 'future', 'private' ) : $status ),
             'posts_per_page' => 20,
             'paged' => $page,
             's' => $search,
@@ -102,11 +127,11 @@ final class Pera_Manage {
         $query = new WP_Query( $args );
 
         echo '<div class="pm-title-row"><div><h1>Properties</h1><p>Find listings and open their existing WordPress editor.</p></div>';
-        self::link_button( admin_url( 'post-new.php?post_type=property' ), 'Add property' );
+        if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=property' ), 'Add property' );
         echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '">';
         echo '<input type="hidden" name="view" value="properties"><label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Name or keyword"></label>';
         echo '<label>Status <select name="status">';
-        foreach ( array( 'all' => 'All', 'publish' => 'Published', 'draft' => 'Draft', 'pending' => 'Pending', 'future' => 'Scheduled' ) as $key => $label ) {
+        foreach ( self::can_edit_in_admin() ? array( 'all' => 'All', 'publish' => 'Published', 'draft' => 'Draft', 'pending' => 'Pending', 'future' => 'Scheduled' ) : array( 'publish' => 'Published' ) as $key => $label ) {
             echo '<option value="' . esc_attr( $key ) . '"' . selected( $status, $key, false ) . '>' . esc_html( $label ) . '</option>';
         }
         echo '</select></label><label>Type <select name="kind">';
@@ -123,9 +148,9 @@ final class Pera_Manage {
         $type = isset( $_GET['type'] ) && 'page' === sanitize_key( wp_unslash( $_GET['type'] ) ) ? 'page' : 'post';
         $search = isset( $_GET['s'] ) && is_string( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
         $page = isset( $_GET['pg'] ) ? max( 1, absint( $_GET['pg'] ) ) : 1;
-        $query = new WP_Query( array( 'post_type' => $type, 'post_status' => array( 'publish', 'draft', 'pending', 'future', 'private' ), 'posts_per_page' => 20, 'paged' => $page, 's' => $search, 'orderby' => 'modified', 'order' => 'DESC' ) );
+        $query = new WP_Query( array( 'post_type' => $type, 'post_status' => self::can_edit_in_admin() ? array( 'publish', 'draft', 'pending', 'future', 'private' ) : 'publish', 'posts_per_page' => 20, 'paged' => $page, 's' => $search, 'orderby' => 'modified', 'order' => 'DESC' ) );
         echo '<div class="pm-title-row"><div><h1>Content</h1><p>Articles and pages use the existing WordPress editor.</p></div>';
-        self::link_button( admin_url( 'post-new.php?post_type=' . $type ), 'Add ' . ( 'post' === $type ? 'article' : 'page' ) );
+        if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=' . $type ), 'Add ' . ( 'post' === $type ? 'article' : 'page' ) );
         echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '"><input type="hidden" name="view" value="content">';
         echo '<label>Content type <select name="type"><option value="post"' . selected( $type, 'post', false ) . '>Articles</option><option value="page"' . selected( $type, 'page', false ) . '>Pages</option></select></label>';
         echo '<label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Title or keyword"></label><button class="btn" type="submit">Filter</button></form>';
@@ -138,13 +163,13 @@ final class Pera_Manage {
         echo '<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th scope="col">Title</th><th scope="col">Status</th><th scope="col">Updated</th><th scope="col">Actions</th></tr></thead><tbody>';
         if ( ! $query->have_posts() ) echo '<tr><td colspan="4">No matching items.</td></tr>';
         foreach ( $query->posts as $post ) {
-            if ( ! current_user_can( 'edit_post', $post->ID ) ) continue;
+            if ( ! self::can_edit_in_admin() && 'publish' !== $post->post_status ) continue;
             $edit = get_edit_post_link( $post->ID, 'raw' );
             $view = get_permalink( $post );
             echo '<tr><td><strong>' . esc_html( get_the_title( $post ) ?: '(Untitled)' ) . '</strong><span class="pm-sub">#' . (int) $post->ID . '</span></td>';
             echo '<td><span class="pill">' . esc_html( ucfirst( $post->post_status ) ) . '</span></td>';
             echo '<td>' . esc_html( get_the_modified_date( 'j M Y', $post ) ) . '</td><td class="pm-row-actions">';
-            if ( $edit ) echo '<a href="' . esc_url( $edit ) . '">Edit</a> ';
+            if ( self::can_edit_in_admin() && current_user_can( 'edit_post', $post->ID ) && $edit ) echo '<a href="' . esc_url( $edit ) . '">Edit</a> ';
             if ( $view ) echo '<a href="' . esc_url( $view ) . '" target="_blank" rel="noopener noreferrer">View</a>';
             echo '</td></tr>';
         }
@@ -168,14 +193,15 @@ final class Pera_Manage {
 
     private static function overview(): void {
         echo '<div class="pm-title-row"><div><h1>Website overview</h1><p>Quick access to the tools you use every day.</p></div>';
-        self::link_button( admin_url( 'post-new.php?post_type=property' ), 'Add property' );
+        if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=property' ), 'Add property' );
         echo '</div><div class="pm-stats">';
         foreach ( array(
             array( 'Published properties', self::count( 'property', 'publish' ), 'properties' ),
-            array( 'Draft properties', self::count( 'property', 'draft' ), 'properties' ),
+            array( 'Draft properties', self::can_edit_in_admin() ? self::count( 'property', 'draft' ) : 0, 'properties' ),
             array( 'Published articles', self::count( 'post', 'publish' ), 'content' ),
-            array( 'Draft articles', self::count( 'post', 'draft' ), 'content' ),
+            array( 'Draft articles', self::can_edit_in_admin() ? self::count( 'post', 'draft' ) : 0, 'content' ),
         ) as $stat ) {
+            if ( ! self::can_edit_in_admin() && 0 === strpos( $stat[0], 'Draft' ) ) continue;
             echo '<a class="card-shell pm-stat" href="' . esc_url( self::url( $stat[2] ) ) . '"><span>' . esc_html( $stat[0] ) . '</span><strong>' . number_format_i18n( $stat[1] ) . '</strong></a>';
         }
         echo '</div><h2>Quick actions</h2><div class="pm-actions">';
@@ -187,10 +213,11 @@ final class Pera_Manage {
             array( 'Translation tools', self::url( 'translations' ) ),
             array( 'Site Performance', admin_url( 'admin.php?page=pera-site-performance' ) ),
         );
+        if ( ! self::can_edit_in_admin() ) $actions = array_filter( $actions, static function ( $item ) { return ! in_array( $item[0], array( 'Add a property', 'New article', 'Translation tools', 'Site Performance' ), true ); } );
         if ( self::crm_access() ) $actions[] = array( 'Open CRM', home_url( '/crm/' ) );
         foreach ( $actions as $item ) echo '<a class="card-shell pm-action" href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . ' <span aria-hidden="true">→</span></a>';
         echo '</div><h2>Recently updated properties</h2>';
-        $query = new WP_Query( array( 'post_type' => 'property', 'post_status' => array( 'publish', 'draft', 'pending' ), 'posts_per_page' => 6, 'orderby' => 'modified', 'order' => 'DESC' ) );
+        $query = new WP_Query( array( 'post_type' => 'property', 'post_status' => self::can_edit_in_admin() ? array( 'publish', 'draft', 'pending' ) : 'publish', 'posts_per_page' => 6, 'orderby' => 'modified', 'order' => 'DESC' ) );
         self::table( $query );
         wp_reset_postdata();
     }
@@ -200,6 +227,7 @@ final class Pera_Manage {
     }
 
     private static function translations(): void {
+        if ( ! self::can_edit_in_admin() ) { echo '<h1>Translations</h1><p>Only administrators can use the existing WordPress translation tools.</p>'; return; }
         echo '<h1>Translations</h1><p>Translation actions remain in the existing WordPress property and article editors.</p><div class="pm-actions">';
         foreach ( array( array( 'Properties', admin_url( 'edit.php?post_type=property' ) ), array( 'Articles', admin_url( 'edit.php' ) ), array( 'Pages', admin_url( 'edit.php?post_type=page' ) ) ) as $item ) {
             echo '<a class="card-shell pm-action" href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . ' <span aria-hidden="true">→</span></a>';
@@ -208,6 +236,7 @@ final class Pera_Manage {
     }
 
     private static function tools(): void {
+        if ( ! self::can_edit_in_admin() ) { echo '<h1>Site tools</h1><p>Only administrators can use WordPress site tools.</p>'; return; }
         echo '<h1>Site tools</h1><p>Links to existing administrative screens; no maintenance actions are executed here.</p><div class="pm-actions">';
         foreach ( array( array( 'WordPress dashboard', admin_url() ), array( 'Media Library', admin_url( 'upload.php' ) ), array( 'Site Performance', admin_url( 'admin.php?page=pera-site-performance' ) ), array( 'Site Health', admin_url( 'site-health.php' ) ), array( 'Menus', admin_url( 'nav-menus.php' ) ) ) as $item ) {
             echo '<a class="card-shell pm-action" href="' . esc_url( $item[1] ) . '">' . esc_html( $item[0] ) . ' <span aria-hidden="true">→</span></a>';
@@ -233,7 +262,7 @@ final class Pera_Manage {
 <aside class="pm-side" aria-label="Website management navigation">
 <a class="pm-brand" href="<?php echo esc_url( self::url() ); ?>"><strong>PERA PROPERTY</strong><small>Website management</small></a>
 <nav class="pm-nav" aria-label="Main navigation">
-<?php foreach ( array( 'overview' => 'Overview', 'properties' => 'Properties', 'content' => 'Articles & pages', 'translations' => 'Translations', 'tools' => 'Site tools' ) as $key => $label ) : ?>
+<?php foreach ( array_filter( array( 'overview' => 'Overview', 'properties' => 'Properties', 'content' => 'Articles & pages', 'translations' => self::can_edit_in_admin() ? 'Translations' : null, 'tools' => self::can_edit_in_admin() ? 'Site tools' : null ) ) as $key => $label ) : ?>
 <a href="<?php echo esc_url( self::url( $key ) ); ?>" <?php echo $view === $key ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
 <?php endforeach; ?>
 <?php if ( self::crm_access() ) : ?><a href="<?php echo esc_url( home_url( '/crm/' ) ); ?>">CRM</a><?php endif; ?>

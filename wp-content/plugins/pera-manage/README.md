@@ -8,7 +8,7 @@ This is a **read-only navigation layer**. Clicking "Edit", "Add property", "New 
 Activate **Pera Manage** in WP Admin > Plugins on staging. Unlike a rewrite-based implementation, this implementation intercepts only the exact /manage path at template_redirect, so no permalink flush is needed. Also configure your origin/CDN cache to bypass `/manage` and `/manage/`, including query-string variants, independently of PHP headers.
 
 ## Access
-This initial phase is **administrator-only** (manage_options). The site currently sends employees away from wp-admin. Opening the dashboard does not grant editing permissions; native WordPress editors apply their usual per-record capability checks. Staff access must be designed and tested separately rather than implying that an existing CRM role can use wp-admin.
+The dashboard grants the dedicated `pera_access_manage_dashboard` capability to **administrator, manager, and employee** roles. It does not grant `manage_options`, editing, or wp-admin access. Employees/managers get published inventories and existing CRM navigation, not administrative editing links. Subscribers get HTTP 403; logged-out visitors are directed to sign-in. On a normal staff login without an explicit return URL, the default destination is `/manage/`; explicitly requested destinations are preserved.
 
 ## What is included
 - Overview with counts, quick actions and recently changed properties
@@ -22,7 +22,7 @@ This initial phase is **administrator-only** (manage_options). The site currentl
 
 ## Stage validation checklist
 1. Activate plugin on staging; visit /manage/ signed out, expect branded WordPress login and safe return.
-2. As subscriber/employee/CRM-only user, expect 403; direct /wp-admin/post.php and post-new.php must retain existing restrictions.
+2. As subscriber expect 403; as visitor expect login; as manager or employee expect dashboard with only published inventory and permitted CRM navigation. Direct /wp-admin/post.php and post-new.php must retain existing restrictions.
 3. As administrator, test overview counts, property queries, search, status filters, project/resales taxonomy filters, pagination and content queries.
 4. Verify classification against actual `special` term slugs and legacy records; adjust filters if production taxonomy uses different slugs.
 5. Click Edit on published/draft properties, and Add Property; confirm the *original* WordPress/ACF editor opens, with unchanged V2 indexing after any subsequent wp-admin save.
@@ -34,3 +34,10 @@ This initial phase is **administrator-only** (manage_options). The site currentl
 
 ## Non-goals
 No custom editor panels, forms, translations regeneration, new REST endpoints, V2 indexing code, schema migration, automated database maintenance or custom CRM interface.
+
+## Staff access validation (v0.2.0)
+- Verify `wp role list` and `wp cap list employee`, `wp cap list manager`, `wp cap list administrator` show `pera_access_manage_dashboard` after updating plugin; do **not** grant `manage_options`.
+- Test ordinary sign-in for admin, manager and employee redirects to `/manage/` when no `redirect_to` was requested. Deep-link sign-ins to `/crm/tasks/` or a specific allowed page must still return there.
+- Already authenticated staff opening login pages should be returned to `/manage/`; subscribers retain the existing client portal behavior.
+- Verify employee/manager cannot access draft/private records, Site Performance, Media Library or normal WordPress editing through dashboard shortcuts; original wp-admin access restrictions remain in effect.
+- For roles managed by custom role plugins, verify effective capability resolution on production.
