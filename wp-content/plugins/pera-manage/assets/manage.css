@@ -21,6 +21,15 @@
 .pm-root .pm-stat { display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: var(--text); }
 .pm-root .pm-stat span { font-size: .8rem; color: var(--text-soft); }
 .pm-root .pm-stat strong { font-size: 1.85rem; color: var(--brand); }
+/* Shared theme retains a dark --brand in dark mode. Keep KPI figures legible
+   against the dark .card-shell background without changing the global palette. */
+@media (prefers-color-scheme: dark) {
+  .pm-root .pm-stat strong { color: #93c5fd; }
+}
+[data-theme="dark"] .pm-root .pm-stat strong,
+.dark .pm-root .pm-stat strong,
+.pm-root[data-theme="dark"] .pm-stat strong,
+.pm-root.dark .pm-stat strong { color: #93c5fd; }
 .pm-root .pm-actions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
 .pm-root .pm-action { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none; color: var(--text); font-weight: 600; }
 .pm-root .pm-action span { color: var(--brand); }
