@@ -263,6 +263,12 @@
 @media (prefers-color-scheme: dark) {
   .crm-page .pill--outline { color: var(--inverse); }
   .crm-page .border-dm { border: 1px solid rgba(255,255,255,0.18); }
+  /* On the overview, retain a visible inner edge with breathing room in dark mode. */
+  .crm-page--overview .content-panel-box.border-dm.crm-layout {
+    box-sizing: border-box;
+    border-color: rgba(148, 163, 184, 0.35);
+    padding: clamp(12px, 2vw, 22px);
+  }
   .crm-page .btn--solid:focus-visible,
   .crm-page .btn--ghost:focus-visible,
   #crm-hero .btn--solid:focus-visible,
@@ -646,6 +652,33 @@
   flex: 1 1 auto;
   width: auto;
   min-width: 0;
+}
+
+/* Use the existing compact icon-button geometry beside the saved phone value. */
+.crm-page--client-view .crm-phone-row .crm-phone-wa-shortcut {
+  flex: 0 0 38px;
+  width: 38px;
+  min-width: 38px;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: var(--radius-md, 10px);
+}
+.crm-page--client-view .crm-phone-row .crm-phone-wa-shortcut .icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.crm-page--client-view .crm-phone-row:has(.crm-phone-wa-shortcut) {
+  gap: 7px;
+}
+@media (max-width: 480px) {
+  .crm-page--client-view .crm-phone-row .crm-phone-country {
+    flex-basis: 94px;
+    width: 94px;
+  }
 }
 
 .crm-client-profile-panel,
@@ -4209,6 +4242,20 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   background: var(--crm-chip-urgent-bg);
   border-color: var(--crm-chip-urgent-border);
   color: var(--crm-chip-urgent-text);
+}
+
+/* Today has its own green task-date badge; future dates retain --status blue. */
+.crm-page .crm-chip--due-today {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+@media (prefers-color-scheme: dark) {
+  .crm-page .crm-chip--due-today {
+    background: #123524;
+    border-color: #39845b;
+    color: #bbf7d0;
+  }
 }
 
 .crm-page .crm-chip--selected {

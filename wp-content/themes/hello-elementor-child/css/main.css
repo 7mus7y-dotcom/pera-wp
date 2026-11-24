@@ -1000,8 +1000,24 @@ section,
   transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
+/* The single-property favourite heart needs an apparent resting/hover/focus state.
+   Keep selected and unselected hearts distinguishable in both colour modes. */
+@media (hover: hover) {
+  .single-property .fav-toggle:not(.is-fav):hover,
+  .single-property-page .fav-toggle:not(.is-fav):hover,
+  body.single-property .fav-toggle:not(.is-fav):hover {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+  body.single-property .fav-toggle.is-fav:hover,
+  .single-property-page .fav-toggle.is-fav:hover {
+    background: color-mix(in srgb, var(--brand) 10%, white);
+  }
+}
 .fav-toggle:focus-visible {
-  outline: 0;
+  outline: 2px solid var(--brand-yellow, #ffed00);
+  outline-offset: 3px;
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
 }
 

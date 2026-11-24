@@ -550,6 +550,15 @@ peracrm_frontend_render_shell_header();
                             <?php endforeach; ?>
                           </select>
                           <input type="text" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $crm_phone_national_value ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="Phone number" aria-label="Phone number" />
+                          <?php if ( '' !== $whatsapp_link ) : ?>
+                          <a class="crm-phone-wa-shortcut btn btn--ghost btn--green"
+                             href="<?php echo esc_url( $whatsapp_link ); ?>"
+                             target="_blank" rel="noopener noreferrer"
+                             aria-label="<?php echo esc_attr__( 'WhatsApp saved phone number', 'peracrm' ); ?>"
+                             title="<?php echo esc_attr__( 'WhatsApp saved phone number', 'peracrm' ); ?>">
+                            <svg class="icon" width="20" height="20" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use></svg>
+                          </a>
+                          <?php endif; ?>
                         </div>
                         <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" />
                       </div>

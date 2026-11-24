@@ -168,7 +168,7 @@ $build_overview_task_cards = static function ( array $tasks, int $cap ) {
 $render_overview_task_rows = static function ( array $tasks, string $empty_message, string $crm_current_url, string $variant = 'today' ) use ( $build_overview_task_cards, $overview_task_cap ) {
 	$task_set = $build_overview_task_cards( $tasks, $overview_task_cap );
 	$is_urgent = 'overdue' === $variant;
-	$due_chip_class = $is_urgent ? 'crm-chip crm-chip--urgent' : 'crm-chip crm-chip--status';
+	$due_chip_class = $is_urgent ? 'crm-chip crm-chip--urgent' : 'crm-chip crm-chip--due-today';
 	$row_class      = $is_urgent ? 'crm-row-list__item crm-row-list__item--urgent' : 'crm-row-list__item';
 
 	if ( empty( $task_set['tasks'] ) ) {
@@ -615,12 +615,17 @@ peracrm_frontend_render_shell_header();
           <?php else : ?>
             <ul class="crm-row-list crm-list-workspace__rows">
               <?php foreach ( $rows as $task ) : ?>
-                <?php $task_is_overdue = ! empty( $task['is_overdue'] ) || 'urgent' === $tone; ?>
+                <?php
+                  $task_is_overdue = ! empty( $task['is_overdue'] ) || 'urgent' === $tone;
+                  $task_due_is_today = ! $task_is_overdue && ! empty( $task['due_ts'] )
+                    && wp_date( 'Y-m-d', (int) $task['due_ts'] ) === wp_date( 'Y-m-d' );
+                  $task_due_class = $task_is_overdue ? 'crm-chip--urgent' : ( $task_due_is_today ? 'crm-chip--due-today' : 'crm-chip--status' );
+                ?>
                 <li class="crm-row-list__item<?php echo esc_attr( $task_is_overdue ? ' crm-row-list__item--urgent' : '' ); ?>" data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) absint( $task['reminder_id'] ?? 0 ) ); ?>">
                   <div class="crm-row-list__content">
                     <div class="crm-row-list__header">
                       <h4 class="crm-row-list__title"><a href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html( (string) $task['client_name'] ); ?></a></h4>
-                      <span class="crm-chip <?php echo esc_attr( $task_is_overdue ? 'crm-chip--urgent' : 'crm-chip--status' ); ?>"><?php echo esc_html( (string) $task['due_display'] ); ?></span>
+                      <span class="crm-chip <?php echo esc_attr( $task_due_class ); ?>"><?php echo esc_html( (string) $task['due_display'] ); ?></span>
                     </div>
                     <p class="crm-row-list__summary">
                       <?php
@@ -731,10 +736,15 @@ peracrm_frontend_render_shell_header();
                 <tr class="crm-table__empty"><td colspan="6"><?php echo esc_html__( 'No open tasks found.', 'peracrm' ); ?></td></tr>
                 <?php else : ?>
                   <?php foreach ( $task_rows as $task ) : ?>
-                  <?php $task_is_overdue = ! empty( $task['is_overdue'] ); ?>
+                  <?php
+                  $task_is_overdue = ! empty( $task['is_overdue'] );
+                  $task_due_is_today = ! $task_is_overdue && ! empty( $task['due_ts'] )
+                    && wp_date( 'Y-m-d', (int) $task['due_ts'] ) === wp_date( 'Y-m-d' );
+                  $task_due_class = $task_is_overdue ? 'crm-chip--urgent' : ( $task_due_is_today ? 'crm-chip--due-today' : 'crm-chip--status' );
+                  ?>
                   <tr data-sort-row data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) absint( $task['reminder_id'] ?? 0 ) ); ?>" data-row-url="<?php echo esc_url( (string) $task['client_url'] ); ?>" data-due="<?php echo esc_attr( (string) ( $task['due_ts'] ?? 0 ) ); ?>" data-client="<?php echo esc_attr( strtolower( (string) $task['client_name'] ) ); ?>" data-note="<?php echo esc_attr( strtolower( (string) $task['note'] ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) $task['assigned_to'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $task['status_label'] ) ); ?>">
                     <td>
-                      <div class="crm-table__primary"><?php echo esc_html( (string) $task['due_display'] ); ?></div>
+                      <div class="crm-table__primary"><span class="crm-chip <?php echo esc_attr( $task_due_class ); ?>"><?php echo esc_html( (string) $task['due_display'] ); ?></span></div>
                       <?php if ( $task_is_overdue ) : ?><span class="crm-table__subtext"><?php echo esc_html__( 'Overdue', 'peracrm' ); ?></span><?php endif; ?>
                     </td>
                     <td class="crm-table__cell--primary"><div class="crm-table__primary"><a href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html( (string) $task['client_name'] ); ?></a></div></td>
