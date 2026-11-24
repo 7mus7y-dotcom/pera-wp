@@ -147,15 +147,22 @@ final class Pera_Manage {
     private static function content(): void {
         $type = isset( $_GET['type'] ) && 'page' === sanitize_key( wp_unslash( $_GET['type'] ) ) ? 'page' : 'post';
         $search = isset( $_GET['s'] ) && is_string( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+        $status = isset( $_GET['status'] ) && is_string( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : 'all';
+        if ( ! in_array( $status, array( 'all', 'publish', 'draft', 'pending', 'future' ), true ) ) $status = 'all';
+        if ( ! self::can_edit_in_admin() ) $status = 'publish';
         $page = isset( $_GET['pg'] ) ? max( 1, absint( $_GET['pg'] ) ) : 1;
-        $query = new WP_Query( array( 'post_type' => $type, 'post_status' => self::can_edit_in_admin() ? array( 'publish', 'draft', 'pending', 'future', 'private' ) : 'publish', 'posts_per_page' => 20, 'paged' => $page, 's' => $search, 'orderby' => 'modified', 'order' => 'DESC' ) );
+        $query = new WP_Query( array( 'post_type' => $type, 'post_status' => 'all' === $status ? array( 'publish', 'draft', 'pending', 'future', 'private' ) : $status, 'posts_per_page' => 20, 'paged' => $page, 's' => $search, 'orderby' => 'modified', 'order' => 'DESC' ) );
         echo '<div class="pm-title-row"><div><h1>Content</h1><p>Articles and pages use the existing WordPress editor.</p></div>';
         if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=' . $type ), 'Add ' . ( 'post' === $type ? 'article' : 'page' ) );
         echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '"><input type="hidden" name="view" value="content">';
         echo '<label>Content type <select name="type"><option value="post"' . selected( $type, 'post', false ) . '>Articles</option><option value="page"' . selected( $type, 'page', false ) . '>Pages</option></select></label>';
-        echo '<label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Title or keyword"></label><button class="btn btn--solid btn--blue" type="submit">Filter</button></form>';
+        echo '<label>Status <select name="status">';
+        foreach ( self::can_edit_in_admin() ? array( 'all' => 'All', 'publish' => 'Published', 'draft' => 'Draft', 'pending' => 'Pending', 'future' => 'Scheduled' ) : array( 'publish' => 'Published' ) as $key => $label ) {
+            echo '<option value="' . esc_attr( $key ) . '"' . selected( $status, $key, false ) . '>' . esc_html( $label ) . '</option>';
+        }
+        echo '</select></label><label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Title or keyword"></label><button class="btn btn--solid btn--blue" type="submit">Filter</button></form>';
         self::table( $query );
-        self::pagination( $query, 'content', array( 'type' => $type, 's' => $search ) );
+        self::pagination( $query, 'content', array( 'type' => $type, 'status' => $status, 's' => $search ) );
         wp_reset_postdata();
     }
 
@@ -185,7 +192,11 @@ final class Pera_Manage {
         foreach ( $query->posts as $post ) {
             if ( ! self::can_edit_in_admin() && 'publish' !== $post->post_status ) continue;
             $edit = get_edit_post_link( $post->ID, 'raw' );
-            $view = get_permalink( $post );
+            $view = 'publish' === $post->post_status
+                ? get_permalink( $post )
+                : ( self::can_edit_in_admin() && current_user_can( 'edit_post', $post->ID )
+                    ? get_preview_post_link( $post )
+                    : '' );
             echo '<tr><td><div class="pm-entry">' . self::image_html( $post ) . '<div class="pm-entry-copy"><strong>' . esc_html( get_the_title( $post ) ?: '(Untitled)' ) . '</strong><span class="pm-sub">#' . (int) $post->ID . '</span></div></div></td>';
             echo '<td><span class="pill">' . esc_html( ucfirst( $post->post_status ) ) . '</span></td>';
             echo '<td>' . esc_html( get_the_modified_date( 'j M Y', $post ) ) . '</td><td class="pm-row-actions">';
@@ -216,19 +227,19 @@ final class Pera_Manage {
         if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=property' ), 'Add property' );
         echo '</div><div class="pm-stats">';
         foreach ( array(
-            array( 'Published properties', self::count( 'property', 'publish' ), 'properties' ),
-            array( 'Draft properties', self::can_edit_in_admin() ? self::count( 'property', 'draft' ) : 0, 'properties' ),
-            array( 'Published articles', self::count( 'post', 'publish' ), 'content' ),
-            array( 'Draft articles', self::can_edit_in_admin() ? self::count( 'post', 'draft' ) : 0, 'content' ),
+            array( 'Published properties', self::count( 'property', 'publish' ), self::url( 'properties', array( 'status' => 'publish' ) ) ),
+            array( 'Draft properties', self::can_edit_in_admin() ? self::count( 'property', 'draft' ) : 0, self::url( 'properties', array( 'status' => 'draft' ) ) ),
+            array( 'Published articles', self::count( 'post', 'publish' ), self::url( 'content', array( 'type' => 'post', 'status' => 'publish' ) ) ),
+            array( 'Draft articles', self::can_edit_in_admin() ? self::count( 'post', 'draft' ) : 0, self::url( 'content', array( 'type' => 'post', 'status' => 'draft' ) ) ),
         ) as $stat ) {
             if ( ! self::can_edit_in_admin() && 0 === strpos( $stat[0], 'Draft' ) ) continue;
-            echo '<a class="card-shell pm-stat" href="' . esc_url( self::url( $stat[2] ) ) . '"><span>' . esc_html( $stat[0] ) . '</span><strong>' . number_format_i18n( $stat[1] ) . '</strong></a>';
+            echo '<a class="card-shell pm-stat" href="' . esc_url( $stat[2] ) . '"><span>' . esc_html( $stat[0] ) . '</span><strong>' . number_format_i18n( $stat[1] ) . '</strong></a>';
         }
         echo '</div><h2>Quick actions</h2><div class="pm-actions">';
         $actions = array(
             array( 'Find a property', self::url( 'properties' ) ),
             array( 'Add a property', admin_url( 'post-new.php?post_type=property' ) ),
-            array( 'Edit articles', self::url( 'content' ) ),
+            array( 'Browse articles', self::url( 'content', array( 'type' => 'post' ) ) ),
             array( 'New article', admin_url( 'post-new.php' ) ),
             array( 'Translation tools', self::url( 'translations' ) ),
             array( 'Site Performance', admin_url( 'admin.php?page=pera-site-performance' ) ),

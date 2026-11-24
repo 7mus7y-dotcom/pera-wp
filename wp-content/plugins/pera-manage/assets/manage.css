@@ -17,10 +17,11 @@
 .pm-root .pm-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 .pm-root .pm-title-row h1 { margin: 0; }
 .pm-root .pm-title-row p { margin: 5px 0; }
-.pm-root .pm-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 15px; }
-.pm-root .pm-stat { display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: var(--text); }
-.pm-root .pm-stat span { font-size: .8rem; color: var(--text-soft); }
-.pm-root .pm-stat strong { font-size: 1.85rem; color: var(--brand); }
+/* Compact KPI tiles, keeping the site's shared .card-shell styling. */
+.pm-root .pm-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.pm-root .pm-stat.card-shell { display: flex; flex-direction: column; justify-content: center; gap: 5px; min-width: 0; min-height: 0; padding: 12px 14px; text-decoration: none; color: var(--text); }
+.pm-root .pm-stat span { font-size: .77rem; line-height: 1.35; color: var(--text-soft); }
+.pm-root .pm-stat strong { font-size: 1.5rem; line-height: 1.15; font-variant-numeric: tabular-nums; color: var(--brand); }
 /* Shared theme retains a dark --brand in dark mode. Keep KPI figures legible
    against the dark .card-shell background without changing the global palette. */
 @media (prefers-color-scheme: dark) {
@@ -69,5 +70,5 @@
 .pm-root .offcanvas-backdrop { visibility: hidden; }
 .pm-root.is-nav-open .offcanvas-backdrop { visibility: visible; }
 @media(max-width: 950px) { .pm-root .pm-stats { grid-template-columns: repeat(2,minmax(0,1fr)); } .pm-root .pm-actions { grid-template-columns: repeat(2,minmax(0,1fr)); } }
-@media(max-width: 620px) { .pm-root .pm-title-row { flex-direction: column; } .pm-root .pm-hero { padding-left: 20px; padding-right: 20px; } .pm-root .pm-content { padding: 22px 14px 60px; } .pm-root .pm-stats,.pm-root .pm-actions { grid-template-columns: 1fr; } .pm-root .pm-filters label { width: 100%; } .pm-root .pm-filters input,.pm-root .pm-filters select { width: 100%; } }
+@media(max-width: 620px) { .pm-root .pm-title-row { flex-direction: column; } .pm-root .pm-hero { padding-left: 20px; padding-right: 20px; } .pm-root .pm-content { padding: 22px 14px 60px; } .pm-root .pm-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; } .pm-root .pm-stat.card-shell { padding: 11px 12px; } .pm-root .pm-stat strong { font-size: 1.4rem; } .pm-root .pm-actions { grid-template-columns: 1fr; } .pm-root .pm-filters label { width: 100%; } .pm-root .pm-filters input,.pm-root .pm-filters select { width: 100%; } }
 @media(prefers-reduced-motion: reduce) { .pm-root .offcanvas-nav, .pm-root .offcanvas-backdrop { transition: none; } }
