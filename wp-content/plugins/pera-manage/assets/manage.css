@@ -1,58 +1,64 @@
-/* Pera Manage: layout-only CSS. Theme main.css supplies fonts, tokens and primitives. */
-.pm-root{margin:0;background:var(--bg-soft,#f7f7f7);color:var(--text,#222);font-family:Montserrat,Arial,sans-serif;min-height:100vh}
-.pm-root *{box-sizing:border-box}
-.pm-root a{text-decoration:none}
-.pm-root a:focus-visible,.pm-root button:focus-visible,.pm-root input:focus-visible,.pm-root select:focus-visible{outline:3px solid var(--accent,#0056b3);outline-offset:3px}
-.pm-skip{position:absolute;left:-9999px;top:1rem;padding:.8rem;background:#fff;z-index:100}
-.pm-skip:focus{left:1rem}
-.pm-shell{display:grid;grid-template-columns:245px minmax(0,1fr);min-height:100vh}
-.pm-side{display:flex;flex-direction:column;gap:2rem;background:var(--brand,#002d72);color:#fff;padding:1.6rem 1rem}
-.pm-brand{color:#fff!important;display:flex;flex-direction:column;gap:.3rem;padding:.7rem}
-.pm-brand strong{letter-spacing:.07em;font-weight:800}
-.pm-brand small{font-size:.8rem;opacity:.85}
-.pm-nav{display:flex;flex-direction:column;gap:.25rem}
-.pm-nav a,.pm-side-footer a{display:block;color:#fff!important;padding:.8rem 1rem;border-radius:var(--radius,8px);font-size:.9rem}
-.pm-nav a:hover,.pm-nav a[aria-current=page],.pm-side-footer a:hover{background:rgba(255,255,255,.16)}
-.pm-side-footer{margin-top:auto;border-top:1px solid rgba(255,255,255,.2);padding-top:.7rem}
-.pm-body{min-width:0}
-.pm-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.2rem 2rem;background:var(--bg,#fff);border-bottom:1px solid var(--border-neutral,#e5e7eb);font-size:.86rem}
-.pm-content{max-width:1450px;margin:0 auto;padding:2rem}
-.pm-content h1{margin:0;font-size:1.8rem;line-height:1.25}
-.pm-content h2{font-size:1.2rem;margin:2.2rem 0 1rem}
-.pm-content p{color:var(--text-soft,#555);margin:.6rem 0}
-.pm-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1.6rem}
-.pm-root .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;white-space:nowrap;min-height:40px;background:var(--brand,#002d72);color:#fff!important;border:1px solid transparent;border-radius:var(--radius,8px);padding:.65rem 1.1rem;font:inherit;font-size:.88rem;cursor:pointer}
-.pm-root .btn:hover{background:var(--accent,#0056b3)}
-.pm-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
-.pm-stat{display:flex;flex-direction:column;gap:.9rem}
-.pm-stat span{font-size:.82rem;color:var(--text-soft,#555)}
-.pm-stat strong{font-size:2rem;color:var(--brand,#002d72)}
-.pm-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.85rem}
-.pm-root .card-shell{background:var(--bg,#fff);border:1px solid var(--border-neutral,#e5e7eb);border-radius:var(--radius-md,12px);padding:1.2rem;color:var(--text,#222);box-shadow:none}
-.pm-action{display:flex;align-items:center;justify-content:space-between;gap:.5rem;font-weight:600}
-.pm-action span{color:var(--brand,#002d72)}
-.pm-root .card-shell:hover{border-color:var(--accent,#0056b3)}
-.pm-filters{display:flex;flex-wrap:wrap;gap:.9rem;align-items:end;background:var(--bg,#fff);border:1px solid var(--border-neutral,#e5e7eb);padding:1rem;border-radius:var(--radius-md,12px);margin-bottom:1rem}
-.pm-filters label{display:flex;flex-direction:column;gap:.35rem;font-size:.82rem;font-weight:600}
-.pm-filters input,.pm-filters select{height:42px;min-width:160px;max-width:100%;padding:0 .7rem;border:1px solid var(--border-neutral,#e5e7eb);background:var(--bg,#fff);color:var(--text,#222);border-radius:var(--radius-sm,6px);font:inherit}
-.pm-table-wrap{overflow-x:auto;background:var(--bg,#fff);border:1px solid var(--border-neutral,#e5e7eb);border-radius:var(--radius-md,12px)}
-.pm-table{width:100%;border-collapse:collapse;min-width:610px;text-align:left}
-.pm-table th,.pm-table td{padding:1rem;border-bottom:1px solid var(--border-neutral,#e5e7eb);font-size:.84rem;vertical-align:middle}
-.pm-table th{background:var(--bg-soft,#f7f7f7);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
-.pm-table tbody tr:last-child td{border-bottom:0}
-.pm-table .pm-sub{display:block;font-size:.75rem;color:var(--text-soft,#555);margin-top:.3rem}
-.pm-root .pill{display:inline-block;border-radius:999px;background:var(--pill-bg,rgba(0,0,0,.04));padding:.3rem .7rem;font-size:.75rem;color:var(--pill-text,var(--brand,#002d72))}
-.pm-row-actions{white-space:nowrap}
-.pm-row-actions a{font-weight:600;color:var(--brand,#002d72);margin-right:.8rem}
-.pm-pagination{display:flex;gap:.4rem;padding-top:1rem}
-.pm-pagination a{padding:.5rem .75rem;border:1px solid var(--border-neutral,#e5e7eb);border-radius:var(--radius-sm,6px)}
-.pm-pagination a[aria-current=page]{background:var(--brand,#002d72);color:#fff}
-.pm-note{margin-top:1.5rem}
-[data-theme=dark] .pm-root,.dark .pm-root{--bg:#101827;--bg-soft:#0b1220;--text:#eef2f8;--text-soft:#a9b4c6;--border-neutral:#29364a;--brand:#6daeff;--accent:#95c3ff}
-[data-theme=dark] .pm-side,.dark .pm-side{background:#001d4a}
-[data-theme=dark] .pm-root .btn,.dark .pm-root .btn{background:#043673}
-[data-theme=dark] .pm-root .btn:hover,.dark .pm-root .btn:hover{background:#0056b3}
-@media(prefers-color-scheme:dark){.pm-root:not([data-theme=light]){--bg:#101827;--bg-soft:#0b1220;--text:#eef2f8;--text-soft:#a9b4c6;--border-neutral:#29364a;--brand:#6daeff;--accent:#95c3ff}.pm-root:not([data-theme=light]) .pm-side{background:#001d4a}.pm-root:not([data-theme=light]) .btn{background:#043673}}
-@media(max-width:1050px){.pm-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.pm-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:760px){.pm-shell{display:block}.pm-side{padding:.8rem 1rem;gap:.6rem}.pm-brand{padding:.35rem}.pm-nav{flex-direction:row;overflow-x:auto;white-space:nowrap}.pm-nav a{padding:.55rem .7rem}.pm-side-footer{display:none}.pm-top{padding:.85rem 1rem}.pm-content{padding:1.2rem}.pm-title-row{align-items:stretch;flex-direction:column}.pm-stats,.pm-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:480px){.pm-stats,.pm-actions{grid-template-columns:1fr}.pm-filters label{width:100%}.pm-filters input,.pm-filters select{width:100%}}
+/* Pera Manage layout only. Typography, logo, header scroll glass, burger,
+   off-canvas, buttons, pills and card primitives come from theme main.css. */
+.pm-root { margin: 0; min-height: 100vh; background: var(--bg-soft); color: var(--text); }
+.pm-root .pm-skip { position: absolute; left: -9999px; top: 1rem; z-index: 10001; padding: 8px 16px; background: #fff; }
+.pm-root .pm-skip:focus { left: 1rem; }
+.pm-root a:focus-visible,.pm-root button:focus-visible,.pm-root input:focus-visible,.pm-root select:focus-visible { outline: 3px solid var(--brand-yellow); outline-offset: 3px; }
+.pm-root #site-header { z-index: 1000; }
+.pm-root .pm-hero { position: relative; margin-top: calc(-1 * var(--header-height, 122px)); padding: calc(var(--header-height, 122px) + 25px) 24px 35px; background: var(--brand-blue); color: #fff; }
+.pm-root .pm-hero .container { max-width: var(--container); }
+.pm-root .pm-hero p { color: rgba(255,255,255,.83); max-width: 68ch; }
+.pm-root .pm-hero h1 { margin: 0; color: #fff; font-size: clamp(1.45rem,3vw,2rem); }
+.pm-root .pm-hero .pm-hero-sub { margin: 8px 0 0; }
+.pm-root .pm-content { max-width: var(--container); margin: 0 auto; padding: 30px 20px 80px; }
+.pm-root .pm-content h1 { font-size: 1.75rem; }
+.pm-root .pm-content h2 { font-size: 1.18rem; margin: 28px 0 14px; }
+.pm-root .pm-content p { color: var(--text-soft); margin: 5px 0 16px; }
+.pm-root .pm-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.pm-root .pm-title-row h1 { margin: 0; }
+.pm-root .pm-title-row p { margin: 5px 0; }
+.pm-root .pm-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 15px; }
+.pm-root .pm-stat { display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: var(--text); }
+.pm-root .pm-stat span { font-size: .8rem; color: var(--text-soft); }
+.pm-root .pm-stat strong { font-size: 1.85rem; color: var(--brand); }
+.pm-root .pm-actions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.pm-root .pm-action { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none; color: var(--text); font-weight: 600; }
+.pm-root .pm-action span { color: var(--brand); }
+.pm-root .pm-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 12px 0; padding: 18px; background: var(--bg); border: 1px solid var(--border-neutral); border-radius: var(--radius-lg); }
+.pm-root .pm-filters label { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-ui-sm); font-weight: 600; }
+.pm-root .pm-filters input,.pm-root .pm-filters select { min-width: 150px; max-width: 100%; min-height: 40px; border: 1px solid var(--border-neutral); border-radius: var(--radius-sm); padding: 7px 10px; background: var(--bg); color: var(--text); font: inherit; }
+.pm-root .pm-filters .btn { min-height: 40px; }
+.pm-root .pm-table-wrap { overflow-x: auto; background: var(--bg); border: 1px solid var(--border-neutral); border-radius: var(--radius-lg); }
+.pm-root .pm-table { width: 100%; min-width: 595px; border-collapse: collapse; text-align: left; }
+.pm-root .pm-table th,.pm-root .pm-table td { padding: 11px 14px; border-bottom: 1px solid var(--border-neutral); vertical-align: middle; font-size: var(--fs-ui-sm); }
+.pm-root .pm-table th { background: var(--bg-soft); font-size: var(--fs-ui-xs); }
+.pm-root .pm-table tr:last-child td { border-bottom: 0; }
+.pm-root .pm-table .pm-entry { display: flex; align-items: center; gap: 12px; min-width: 235px; }
+.pm-root .pm-table .pm-entry-copy { min-width: 0; }
+.pm-root .pm-table .pm-thumb { width: 80px; height: 60px; flex: 0 0 80px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-soft); border: 1px solid var(--border-neutral); border-radius: var(--radius-sm); }
+.pm-root .pm-table .pm-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pm-root .pm-table .pm-thumb--empty { color: var(--text-soft); font-size: .7rem; text-align: center; }
+.pm-root .pm-table .pm-sub { display: block; margin-top: 3px; font-size: .74rem; color: var(--text-soft); }
+.pm-root .pm-table .pm-row-actions { white-space: nowrap; }
+.pm-root .pm-table .pm-row-actions a { margin-right: 12px; font-weight: 600; }
+.pm-root .pm-pagination { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.pm-root .pm-pagination a { padding: 6px 11px; border-radius: var(--radius-sm); border: 1px solid var(--border-neutral); }
+.pm-root .pm-pagination [aria-current=page] { background: var(--brand); color: #fff; }
+.pm-root .pm-nav-list { list-style: none; padding: 0; margin: 0; }
+.pm-root .pm-nav-list a[aria-current=page] { font-weight: 800; }
+.pm-root .pm-menu-heading { font-size: .83rem; letter-spacing: .06em; text-transform: uppercase; opacity: .78; margin: 0 0 14px; }
+.pm-root .offcanvas-nav { visibility: hidden; }
+.pm-root.is-nav-open .offcanvas-nav { visibility: visible; }
+.pm-root .offcanvas-main { display: block; }
+.pm-root .offcanvas-main-left { width: 100%; }
+.pm-root .offcanvas-inner { padding: 35px 28px; }
+.pm-root .offcanvas-menu > li { margin-bottom: 10px; }
+.pm-root .offcanvas-menu > li > a { padding: 9px 0; }
+.pm-root .pm-menu-footer { margin-top: 30px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.25); display: flex; flex-wrap: wrap; gap: 16px; }
+.pm-root .pm-menu-footer a { color: #fff; font-size: .85rem; }
+.pm-root .pm-menu-footer a:hover { text-decoration: underline; }
+.pm-root .offcanvas-backdrop { visibility: hidden; }
+.pm-root.is-nav-open .offcanvas-backdrop { visibility: visible; }
+@media(max-width: 950px) { .pm-root .pm-stats { grid-template-columns: repeat(2,minmax(0,1fr)); } .pm-root .pm-actions { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width: 620px) { .pm-root .pm-title-row { flex-direction: column; } .pm-root .pm-hero { padding-left: 20px; padding-right: 20px; } .pm-root .pm-content { padding: 22px 14px 60px; } .pm-root .pm-stats,.pm-root .pm-actions { grid-template-columns: 1fr; } .pm-root .pm-filters label { width: 100%; } .pm-root .pm-filters input,.pm-root .pm-filters select { width: 100%; } }
+@media(prefers-reduced-motion: reduce) { .pm-root .offcanvas-nav, .pm-root .offcanvas-backdrop { transition: none; } }
