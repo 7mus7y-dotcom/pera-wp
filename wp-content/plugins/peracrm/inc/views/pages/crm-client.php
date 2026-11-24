@@ -755,6 +755,13 @@ peracrm_frontend_render_shell_header();
                   <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                   <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                   <div class="crm-form-row-2">
+                    <label><?php esc_html_e( 'Task type', 'peracrm' ); ?>
+                      <select name="peracrm_task_type">
+                        <?php foreach ( peracrm_reminder_type_options() as $task_type_value => $task_type_label ) : ?>
+                          <option value="<?php echo esc_attr( $task_type_value ); ?>"><?php echo esc_html( $task_type_label ); ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </label>
                     <label><?php esc_html_e( 'Due date & time', 'peracrm' ); ?><input type="datetime-local" name="peracrm_due_at" required /></label>
                     <label><?php esc_html_e( 'Reminder note', 'peracrm' ); ?><textarea name="peracrm_reminder_note" rows="2" maxlength="5000" placeholder="<?php echo esc_attr__( 'Add a reminder note…', 'peracrm' ); ?>"></textarea></label>
                   </div>
