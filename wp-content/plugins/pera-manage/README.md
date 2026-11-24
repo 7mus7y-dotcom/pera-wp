@@ -41,3 +41,10 @@ No custom editor panels, forms, translations regeneration, new REST endpoints, V
 - Already authenticated staff opening login pages should be returned to `/manage/`; subscribers retain the existing client portal behavior.
 - Verify employee/manager cannot access draft/private records, Site Performance, Media Library or normal WordPress editing through dashboard shortcuts; original wp-admin access restrictions remain in effect.
 - For roles managed by custom role plugins, verify effective capability resolution on production.
+
+## Shared-site styling follow-up (v0.3.0)
+- The management shell deliberately uses the existing theme `#site-header`, `.site-branding`, `site-logo logo-pera`, `.header-menu-toggle`, `.offcanvas-nav`, `.offcanvas-menu`, `.offcanvas-backdrop` and the public logo helper. The plugin's small `manage.js` toggles the exact public scroll/menu state classes without loading public tracking or other frontend scripts.
+- Global `main.css` supplies logo, sticky/ghost-blur scroll treatment, icon geometry, off-canvas, fonts, buttons, pills and cards. The isolated `manage.css` now focuses on layout, navigation composition and list thumbnails; no public stylesheet was modified.
+- Property listing images use ACF `main_image` attachment ID (post meta) with formatted ACF fallback; regular posts/pages use WordPress featured images. A missing image shows a neutral placeholder. Images load lazily at thumbnail size.
+- Validate header logo and menu against the home page on desktop and mobile, before/after scrolling; verify off-canvas close, backdrop, Escape, focus trap and body scroll, keyboard focus, dark-mode contrast, and no tracking assets in the dashboard.
+- Validate real properties with ACF image arrays and IDs, missing images, posts with/without featured thumbnails, and 20-row list performance. Confirm no edits to WordPress post data or wp-admin access rules.
