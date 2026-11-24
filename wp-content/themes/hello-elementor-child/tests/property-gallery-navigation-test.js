@@ -37,7 +37,7 @@ const strip = {
   scrollWidth: 1307.2,
   scrollLeft: 0,
   querySelectorAll: () => stripItems,
-  getBoundingClientRect: () => ({ left: 11 }),
+  getBoundingClientRect: () => ({ left: 11, width: 320 }),
   addEventListener(type, callback) { listeners[type] = callback; },
   scrollTo(options) {
     this.scrollLeft = options.left;
@@ -46,7 +46,11 @@ const strip = {
   }
 };
 const shell = {
-  classList: { toggle() {} },
+  classList: {
+    values: new Set(),
+    toggle(name, active) { if (active) this.values.add(name); else this.values.delete(name); },
+    contains(name) { return this.values.has(name); }
+  },
   querySelector(selector) {
     return ({
       '.property-gallery__strip': strip,
@@ -115,6 +119,15 @@ windowListeners.resize();
 strip.scrollLeft = strip.scrollWidth - strip.clientWidth;
 listeners.scroll();
 expect(nextButton.disabled, 'resizing keeps the end state accurate');
+
+// Empty strip space moves by one item without intercepting tile clicks.
+strip.scrollLeft = 320.4;
+listeners.click({ target: strip, clientX: 300 });
+expect(strip.scrollLeft === 481.2, 'blank space right advances gallery');
+listeners.click({ target: strip, clientX: 20 });
+expect(strip.scrollLeft === 320.4, 'blank space left reverses gallery');
+listeners.click({ target: stripItems[2], clientX: 300 });
+expect(strip.scrollLeft === 320.4, 'clicking a gallery tile does not scroll the strip');
 
 console.log('Property gallery navigation tests passed');
 
