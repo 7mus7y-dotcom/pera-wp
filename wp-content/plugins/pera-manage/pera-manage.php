@@ -192,7 +192,11 @@ final class Pera_Manage {
         foreach ( $query->posts as $post ) {
             if ( ! self::can_edit_in_admin() && 'publish' !== $post->post_status ) continue;
             $edit = get_edit_post_link( $post->ID, 'raw' );
-            $view = get_permalink( $post );
+            $view = 'publish' === $post->post_status
+                ? get_permalink( $post )
+                : ( self::can_edit_in_admin() && current_user_can( 'edit_post', $post->ID )
+                    ? get_preview_post_link( $post )
+                    : '' );
             echo '<tr><td><div class="pm-entry">' . self::image_html( $post ) . '<div class="pm-entry-copy"><strong>' . esc_html( get_the_title( $post ) ?: '(Untitled)' ) . '</strong><span class="pm-sub">#' . (int) $post->ID . '</span></div></div></td>';
             echo '<td><span class="pill">' . esc_html( ucfirst( $post->post_status ) ) . '</span></td>';
             echo '<td>' . esc_html( get_the_modified_date( 'j M Y', $post ) ) . '</td><td class="pm-row-actions">';
