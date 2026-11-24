@@ -125,9 +125,9 @@ strip.scrollLeft = 320.4;
 listeners.click({ target: strip, clientX: 300 });
 expect(strip.scrollLeft === 481.2, 'blank space right advances gallery');
 listeners.click({ target: strip, clientX: 20 });
-expect(strip.scrollLeft === 320.4, 'blank space left reverses gallery');
+expect(strip.scrollLeft === 320.8, 'blank space left reverses gallery to the previous snapped item');
 listeners.click({ target: stripItems[2], clientX: 300 });
-expect(strip.scrollLeft === 320.4, 'clicking a gallery tile does not scroll the strip');
+expect(strip.scrollLeft === 320.8, 'clicking a gallery tile does not scroll the strip');
 
 console.log('Property gallery navigation tests passed');
 
