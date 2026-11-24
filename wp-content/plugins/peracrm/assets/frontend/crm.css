@@ -9724,6 +9724,15 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
   background: var(--bg-soft);
   transition: background-color .2s ease, border-color .2s ease;
 }
+/* Ensure the inactive switch track remains visible on white CRM panels. */
+.crm-page--pipeline .crm-pipeline-inactive-toggle__input:not(:checked) + .crm-pipeline-inactive-toggle__track {
+  border-color: #9aa9ba;
+  background: #e9eff5;
+}
+[data-theme="dark"] .crm-page--pipeline .crm-pipeline-inactive-toggle__input:not(:checked) + .crm-pipeline-inactive-toggle__track {
+  border-color: #91a0b2;
+  background: #29374b;
+}
 .crm-page--pipeline .crm-pipeline-inactive-toggle__track::after {
   content: '';
   position: absolute;
