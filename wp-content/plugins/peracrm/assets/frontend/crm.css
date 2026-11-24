@@ -3428,6 +3428,40 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   color: var(--brand);
   font-weight: 600;
 }
+/* Progressive disclosure for low-frequency CRM tools (desktop and mobile).
+   Native details/summary provides keyboard and touch operation without new JS. */
+.crm-side-nav__advanced { border-top: 1px solid rgba(15, 23, 42, 0.12); }
+.crm-side-nav__advanced-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 10px;
+  border-radius: 12px;
+  color: #243145;
+  font-family: var(--crm-font-family);
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.crm-side-nav__advanced-summary::-webkit-details-marker { display: none; }
+.crm-side-nav__advanced-summary:hover,
+.crm-side-nav__advanced-summary:focus-visible {
+  background: rgba(0,45,114,.06);
+  color: #002d72;
+}
+.crm-side-nav__advanced-summary:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.crm-side-nav__advanced-chevron { margin-left: auto; transition: transform 160ms ease; }
+.crm-side-nav__advanced-details[open] .crm-side-nav__advanced-chevron { transform: rotate(180deg); }
+.crm-side-nav__advanced-list { padding: 0 0 5px 30px; }
+.crm-side-nav__advanced-list a { padding: 8px 10px; font-size: .84rem; }
+.crm-side-nav__list--drawer .crm-side-nav__advanced { border-top-color: rgba(255,255,255,.16); }
+.crm-side-nav__list--drawer .crm-side-nav__advanced-summary { color: #fff; padding: 13px 0; }
+.crm-side-nav__list--drawer .crm-side-nav__advanced-summary:hover,
+.crm-side-nav__list--drawer .crm-side-nav__advanced-summary:focus-visible { color: #fff; background: rgba(255,255,255,.06); }
+.crm-side-nav__list--drawer .crm-side-nav__advanced-list { padding-left: 30px; }
+.crm-side-nav__list--drawer .crm-side-nav__advanced-list a { padding: 10px 0; }
+
 .crm-side-nav__overlay {
   position: fixed;
   inset: 0;

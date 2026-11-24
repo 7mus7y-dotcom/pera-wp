@@ -1791,15 +1791,36 @@ if ( ! empty( $yt_video ) ) {
     <div class="media-frame media-frame--image-fill media-frame--cta">
       <div class="media-frame__bg">
           <?php
+            // Match the owner's location CTA to this listing's assigned district.
+            // Preserve the existing illustration when a district has no usable image.
+            $owner_cta_image_id = 0;
+            if ( $district_term instanceof WP_Term ) {
+              if ( function_exists( 'get_field' ) ) {
+                $district_image = get_field( 'district_image', 'district_' . $district_term->term_id );
+                if ( is_array( $district_image ) ) {
+                  $owner_cta_image_id = absint( $district_image['ID'] ?? $district_image['id'] ?? 0 );
+                } elseif ( is_numeric( $district_image ) ) {
+                  $owner_cta_image_id = absint( $district_image );
+                }
+              }
+              if ( ! $owner_cta_image_id && function_exists( 'pera_get_term_featured_image_id' ) ) {
+                $owner_cta_image_id = absint( pera_get_term_featured_image_id( (int) $district_term->term_id, 'district' ) );
+              }
+            }
+            if ( ! $owner_cta_image_id || ! wp_get_attachment_image_url( $owner_cta_image_id, 'pera-card' ) ) {
+              $owner_cta_image_id = 55686;
+            }
             echo wp_get_attachment_image(
-              55686,
+              $owner_cta_image_id,
               'pera-card',
               false,
               array(
                 'class'    => 'media-frame__bg-img',
                 'loading'  => 'lazy',
                 'decoding' => 'async',
-                'alt'      => 'Isometric illustration of Beşiktaş',
+                'alt'      => $owner_cta_image_id === 55686
+                  ? 'Illustration of an Istanbul neighbourhood'
+                  : sprintf( 'View of %s', (string) $district_term->name ),
               )
             );
           ?>
