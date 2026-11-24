@@ -1,0 +1,42 @@
+name: CRM Overview work categories
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/peracrm/inc/schema.php'
+      - 'wp-content/plugins/peracrm/peracrm.php'
+      - 'wp-content/plugins/peracrm/inc/repositories/reminders.php'
+      - 'wp-content/plugins/peracrm/inc/frontend-data/crm-data.php'
+      - 'wp-content/plugins/peracrm/inc/views/pages/crm-client.php'
+      - 'wp-content/plugins/peracrm/inc/views/pages/crm-overview.php'
+      - 'wp-content/plugins/peracrm/inc/frontend-data/crm-client-view.php'
+      - 'wp-content/plugins/peracrm/inc/admin/actions.php'
+      - 'wp-content/plugins/peracrm/assets/frontend/crm.css'
+      - 'wp-content/plugins/peracrm/tests/overview-work-types-test.js'
+      - '.github/workflows/crm-overview-work-types.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  overview-work-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax
+        run: |
+          php -l wp-content/plugins/peracrm/inc/schema.php
+          php -l wp-content/plugins/peracrm/peracrm.php
+          php -l wp-content/plugins/peracrm/inc/repositories/reminders.php
+          php -l wp-content/plugins/peracrm/inc/frontend-data/crm-data.php
+          php -l wp-content/plugins/peracrm/inc/views/pages/crm-client.php
+          php -l wp-content/plugins/peracrm/inc/views/pages/crm-overview.php
+          php -l wp-content/plugins/peracrm/inc/frontend-data/crm-client-view.php
+          php -l wp-content/plugins/peracrm/inc/admin/actions.php
+      - name: Work categorisation structural regression
+        run: node wp-content/plugins/peracrm/tests/overview-work-types-test.js
