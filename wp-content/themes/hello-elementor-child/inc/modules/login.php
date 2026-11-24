@@ -21,9 +21,10 @@ if ( ! function_exists( 'pera_get_logged_in_auth_redirect_url' ) ) {
    * Resolve the post-auth destination for users who should not view auth forms.
    */
   function pera_get_logged_in_auth_redirect_url(): string {
-    return current_user_can( 'manage_options' )
-      ? admin_url()
-      : home_url( '/client-portal/' );
+    if ( current_user_can( 'pera_access_manage_dashboard' ) ) {
+      return home_url( '/manage/' );
+    }
+    return current_user_can( 'manage_options' ) ? admin_url() : home_url( '/client-portal/' );
   }
 }
 
