@@ -1,0 +1,33 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const php = fs.readFileSync(path.join(root, 'inc/views/pages/crm-overview.php'), 'utf8');
+const css = fs.readFileSync(path.join(root, 'assets/frontend/crm.css'), 'utf8');
+const start = php.indexOf('$render_work_type_filters = static function');
+const end = php.indexOf('$new_leads',start);
+assert.ok(start >= 0 && end > start, 'shared filter helper present');
+const filter = php.slice(start,end);
+assert.match(filter, /'All', 'peracrm'/, 'All resets type filter');
+assert.match(filter, /array\( '' => __\( 'All', 'peracrm' \) \) \+ \$types/, 'same options on both pages');
+assert.match(filter, /class="crm-chip crm-chip--xs crm-work-type-filter/, 'filter links are compact pills');
+assert.match(filter, /'crm-chip--selected' : 'crm-chip--neutral'/, 'only selected type uses active style');
+assert.match(filter, /add_query_arg\( \$url_args, \$base_url \)/, 'date and view arguments preserved');
+assert.match(filter, /aria-current="page"/, 'selected filter marked accessibly');
+assert.equal((php.match(/\$render_work_type_filters\(/g)||[]).length, 2, 'helper is used on Overview and Tasks');
+const taskStart=php.indexOf('// Apply the same work-type filter to all task layouts');
+const taskEnd=php.indexOf('$task_rows      =',taskStart);
+assert.ok(taskStart>0 && taskEnd>taskStart, 'task type scope exists before displayed rows assigned');
+const taskFilter=php.slice(taskStart,taskEnd);
+for (const key of ['$task_rows_all','$today_rows','$outstanding','$upcoming','$active_rows']) {
+  assert.ok(taskFilter.includes(key+' = array_values(')||new RegExp(key.replace('$','\\$')+'\\s*=\\s*array_values\\(').test(taskFilter), key+' filtered');
+}
+assert.match(taskFilter, /peracrm_reminder_normalize_type\(\s*\$task\['task_type'\] \?\? ''\s*\)/, 'same normalized types as Overview');
+assert.match(php, /\$work_filter_args\['filter'\] = \$tasks_active_filter/, 'date scope preserved in links');
+assert.match(php, /\$work_filter_args\['tasks_view'\] = \$requested_tasks_view/, 'tasks view preference retained');
+assert.match(php, /home_url\( '\/crm\/tasks\/' \), \$work_type_filter, \$work_type_options, \$work_filter_args/, 'Tasks includes shared pills');
+assert.match(php, /'' !== \$work_type_filter \? add_query_arg\( 'task_type', \$work_type_filter, home_url\( '\/crm\/tasks\/' \) \)/, 'clearing date scope retains work category');
+assert.match(css, /\.crm-page \.crm-work-type-filters \.crm-work-type-filter\s*\{[\s\S]*?border-radius:\s*999px;[\s\S]*?font-size:\s*11px;/, 'compact CRM-sized pills');
+assert.match(css, /crm-work-type-filter:focus-visible/, 'keyboard focus visible');
+console.log('PASS shared Overview/Tasks task category filtering and compact pill UI.');
