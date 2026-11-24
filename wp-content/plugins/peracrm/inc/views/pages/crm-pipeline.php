@@ -80,9 +80,10 @@ peracrm_frontend_render_shell_header();
         ?>
           <input type="hidden" name="<?php echo esc_attr( $filter_key ); ?>" value="<?php echo esc_attr( $filter_value ); ?>" />
         <?php endforeach; ?>
-        <label for="crm-pipeline-include-inactive">
-          <input type="checkbox" id="crm-pipeline-include-inactive" name="include_inactive" value="1" <?php checked( $include_inactive ); ?> onchange="this.form.submit()" />
-          <?php esc_html_e( 'Include inactive leads', 'peracrm' ); ?>
+        <label class="crm-pipeline-inactive-toggle" for="crm-pipeline-include-inactive">
+          <span class="crm-pipeline-inactive-toggle__label"><?php esc_html_e( 'Include inactive leads', 'peracrm' ); ?></span>
+          <input class="crm-pipeline-inactive-toggle__input" type="checkbox" id="crm-pipeline-include-inactive" name="include_inactive" value="1" <?php checked( $include_inactive ); ?> onchange="this.form.submit()" />
+          <span class="crm-pipeline-inactive-toggle__track" aria-hidden="true"></span>
         </label>
         <noscript><button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Apply', 'peracrm' ); ?></button></noscript>
       </form>
