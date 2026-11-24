@@ -42,6 +42,15 @@
 .pm-root .pm-table { width: 100%; min-width: 595px; border-collapse: collapse; text-align: left; }
 .pm-root .pm-table th,.pm-root .pm-table td { padding: 11px 14px; border-bottom: 1px solid var(--border-neutral); vertical-align: middle; font-size: var(--fs-ui-sm); }
 .pm-root .pm-table th { background: var(--bg-soft); font-size: var(--fs-ui-xs); }
+/* Sort controls reuse the existing table heading typography and brand focus styles. */
+.pm-root .pm-table .pm-sort-link { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; color: inherit; font: inherit; text-decoration: none; }
+.pm-root .pm-table .pm-sort-link:hover { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
+.pm-root .pm-table .pm-sort-arrow { font-size: 1rem; line-height: 1; opacity: .7; }
+.pm-root .pm-table .pm-date-empty { color: var(--text-soft); }
+@media (prefers-color-scheme: dark) {
+  .pm-root .pm-table .pm-sort-link:hover { color: #93c5fd; }
+}
+
 .pm-root .pm-table tr:last-child td { border-bottom: 0; }
 .pm-root .pm-table .pm-entry { display: flex; align-items: center; gap: 12px; min-width: 235px; }
 .pm-root .pm-table .pm-entry-copy { min-width: 0; }
