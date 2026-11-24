@@ -2,12 +2,12 @@
 /**
  * Plugin Name: Pera Manage
  * Description: Private, read-only website administration hub linking to existing WordPress editors.
- * Version: 0.2.0
+ * Version: 0.3.0
  */
 defined( 'ABSPATH' ) || exit;
 
 final class Pera_Manage {
-    private const VERSION = '0.2.0';
+    private const VERSION = '0.3.0';
     private const ACCESS_CAP = 'pera_access_manage_dashboard';
 
     public static function grant_access(): void {
@@ -138,7 +138,7 @@ final class Pera_Manage {
         foreach ( array( 'all' => 'All types', 'project' => 'Projects', 'resales' => 'Resales' ) as $key => $label ) {
             echo '<option value="' . esc_attr( $key ) . '"' . selected( $kind, $key, false ) . '>' . esc_html( $label ) . '</option>';
         }
-        echo '</select></label><button class="btn" type="submit">Filter</button></form>';
+        echo '</select></label><button class="btn btn--solid btn--blue" type="submit">Filter</button></form>';
         self::table( $query );
         self::pagination( $query, 'properties', array( 's' => $search, 'status' => $status, 'kind' => $kind ) );
         wp_reset_postdata();
@@ -153,10 +153,30 @@ final class Pera_Manage {
         if ( self::can_edit_in_admin() ) self::link_button( admin_url( 'post-new.php?post_type=' . $type ), 'Add ' . ( 'post' === $type ? 'article' : 'page' ) );
         echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '"><input type="hidden" name="view" value="content">';
         echo '<label>Content type <select name="type"><option value="post"' . selected( $type, 'post', false ) . '>Articles</option><option value="page"' . selected( $type, 'page', false ) . '>Pages</option></select></label>';
-        echo '<label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Title or keyword"></label><button class="btn" type="submit">Filter</button></form>';
+        echo '<label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Title or keyword"></label><button class="btn btn--solid btn--blue" type="submit">Filter</button></form>';
         self::table( $query );
         self::pagination( $query, 'content', array( 'type' => $type, 's' => $search ) );
         wp_reset_postdata();
+    }
+
+    /** Properties use canonical ACF main_image; articles/pages use featured images. */
+    private static function image_html( WP_Post $post ): string {
+        $id = 0;
+        if ( 'property' === $post->post_type ) {
+            $raw = get_post_meta( $post->ID, 'main_image', true );
+            if ( is_numeric( $raw ) ) $id = absint( $raw );
+            if ( ! $id && function_exists( 'get_field' ) ) {
+                $image = get_field( 'main_image', $post->ID );
+                if ( is_numeric( $image ) ) $id = absint( $image );
+                elseif ( is_array( $image ) ) $id = absint( $image['ID'] ?? $image['id'] ?? 0 );
+            }
+        }
+        if ( ! $id ) $id = (int) get_post_thumbnail_id( $post->ID );
+        if ( $id ) {
+            $img = wp_get_attachment_image( $id, 'thumbnail', false, array( 'loading' => 'lazy', 'alt' => '' ) );
+            if ( $img ) return '<span class="pm-thumb" aria-hidden="true">' . $img . '</span>';
+        }
+        return '<span class="pm-thumb pm-thumb--empty" aria-hidden="true">No image</span>';
     }
 
     private static function table( WP_Query $query ): void {
@@ -166,7 +186,7 @@ final class Pera_Manage {
             if ( ! self::can_edit_in_admin() && 'publish' !== $post->post_status ) continue;
             $edit = get_edit_post_link( $post->ID, 'raw' );
             $view = get_permalink( $post );
-            echo '<tr><td><strong>' . esc_html( get_the_title( $post ) ?: '(Untitled)' ) . '</strong><span class="pm-sub">#' . (int) $post->ID . '</span></td>';
+            echo '<tr><td><div class="pm-entry">' . self::image_html( $post ) . '<div class="pm-entry-copy"><strong>' . esc_html( get_the_title( $post ) ?: '(Untitled)' ) . '</strong><span class="pm-sub">#' . (int) $post->ID . '</span></div></div></td>';
             echo '<td><span class="pill">' . esc_html( ucfirst( $post->post_status ) ) . '</span></td>';
             echo '<td>' . esc_html( get_the_modified_date( 'j M Y', $post ) ) . '</td><td class="pm-row-actions">';
             if ( self::can_edit_in_admin() && current_user_can( 'edit_post', $post->ID ) && $edit ) echo '<a href="' . esc_url( $edit ) . '">Edit</a> ';
@@ -188,7 +208,7 @@ final class Pera_Manage {
     }
 
     private static function link_button( string $url, string $text ): void {
-        echo '<a class="btn" href="' . esc_url( $url ) . '">' . esc_html( $text ) . '</a>';
+        echo '<a class="btn btn--solid btn--blue" href="' . esc_url( $url ) . '">' . esc_html( $text ) . '</a>';
     }
 
     private static function overview(): void {
@@ -246,29 +266,113 @@ final class Pera_Manage {
 
     private static function render(): void {
         $view = self::request_section();
-        $styles = get_stylesheet_directory() . '/css/main.css';
-        wp_enqueue_style( 'pera-main-css', get_stylesheet_directory_uri() . '/css/main.css', array(), file_exists( $styles ) ? (string) filemtime( $styles ) : self::VERSION );
+        $style_path = get_stylesheet_directory() . '/css/main.css';
+        $style_version = file_exists( $style_path ) ? (string) filemtime( $style_path ) : self::VERSION;
+        wp_enqueue_style( 'pera-main-css', get_stylesheet_directory_uri() . '/css/main.css', array(), $style_version );
         wp_enqueue_style( 'pera-manage-css', plugin_dir_url( __FILE__ ) . 'assets/manage.css', array( 'pera-main-css' ), self::VERSION );
+        wp_enqueue_script( 'pera-manage-js', plugin_dir_url( __FILE__ ) . 'assets/manage.js', array(), self::VERSION, true );
 
+        $sections = array(
+            'overview' => 'Website overview',
+            'properties' => 'Properties',
+            'content' => 'Articles & pages',
+            'translations' => 'Translations',
+            'tools' => 'Site tools',
+        );
+        $section_title = $sections[ $view ] ?? $sections['overview'];
+        $navigation = array(
+            'overview' => 'Overview',
+            'properties' => 'Properties',
+            'content' => 'Articles & pages',
+        );
+        if ( self::can_edit_in_admin() ) {
+            $navigation['translations'] = 'Translations';
+            $navigation['tools'] = 'Site tools';
+        }
+        $icon_sprite = get_stylesheet_directory_uri() . '/logos-icons/icons.svg';
         ?><!doctype html>
 <html <?php language_attributes(); ?>>
-<head><meta charset="<?php bloginfo( 'charset' ); ?>"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive">
-<title><?php echo esc_html( 'Website management | ' . get_bloginfo( 'name' ) ); ?></title>
+<head>
+<meta charset="<?php bloginfo( 'charset' ); ?>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<link rel="icon" href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/favicon-32x32.png' ); ?>">
+<title><?php echo esc_html( $section_title . ' | ' . get_bloginfo( 'name' ) ); ?></title>
 <?php wp_print_styles( array( 'pera-main-css', 'pera-manage-css' ) ); ?>
 </head>
 <body class="pm-root">
-<a class="pm-skip" href="#pm-main">Skip to content</a>
-<div class="pm-shell">
-<aside class="pm-side" aria-label="Website management navigation">
-<a class="pm-brand" href="<?php echo esc_url( self::url() ); ?>"><strong>PERA PROPERTY</strong><small>Website management</small></a>
-<nav class="pm-nav" aria-label="Main navigation">
-<?php foreach ( array_filter( array( 'overview' => 'Overview', 'properties' => 'Properties', 'content' => 'Articles & pages', 'translations' => self::can_edit_in_admin() ? 'Translations' : null, 'tools' => self::can_edit_in_admin() ? 'Site tools' : null ) ) as $key => $label ) : ?>
-<a href="<?php echo esc_url( self::url( $key ) ); ?>" <?php echo $view === $key ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
-<?php endforeach; ?>
-<?php if ( self::crm_access() ) : ?><a href="<?php echo esc_url( home_url( '/crm/' ) ); ?>">CRM</a><?php endif; ?>
-</nav><div class="pm-side-footer"><a href="<?php echo esc_url( home_url( '/' ) ); ?>">View website</a><a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>">Log out</a></div>
-</aside>
-<div class="pm-body"><header class="pm-top"><span>Website management</span><span><?php echo esc_html( wp_get_current_user()->display_name ); ?></span></header><main id="pm-main" class="pm-content">
+<a href="#pm-main" class="pm-skip">Skip to content</a>
+
+<header id="site-header" class="site-header" aria-label="Pera Property management">
+  <div class="container header-inner">
+    <div class="site-branding">
+      <?php
+      if ( function_exists( 'pera_get_site_logo_markup' ) ) {
+          echo pera_get_site_logo_markup( array(
+              'link_class' => 'site-logo logo-pera',
+              'aria_label' => 'Pera Property management overview',
+              'title' => 'Pera Property management',
+              'home_url' => self::url(),
+              'show_since' => true,
+          ) );
+      } else {
+          echo '<a class="site-logo logo-pera" href="' . esc_url( self::url() ) . '">Pera Property</a>';
+      }
+      ?>
+    </div>
+    <div class="site-header__actions">
+      <div class="header-icons">
+        <button type="button" class="header-menu-toggle" aria-controls="pera-offcanvas-menu" aria-expanded="false" aria-label="Open management menu">
+          <svg class="icon" aria-hidden="true"><use href="<?php echo esc_url( $icon_sprite . '#icon-bars' ); ?>"></use></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav id="pera-offcanvas-menu" class="offcanvas-nav" inert aria-hidden="true" aria-label="Management menu">
+  <div class="offcanvas-inner">
+    <div class="offcanvas-top">
+      <?php
+      if ( function_exists( 'pera_get_site_logo_markup' ) ) {
+          echo pera_get_site_logo_markup( array(
+              'link_class' => 'site-logo logo-pera',
+              'aria_label' => 'Pera Property management overview',
+              'home_url' => self::url(),
+              'show_since' => true,
+          ) );
+      }
+      ?>
+      <button type="button" class="offcanvas-close" aria-controls="pera-offcanvas-menu" aria-label="Close management menu">&times;</button>
+    </div>
+    <div class="offcanvas-main">
+      <div class="offcanvas-main-left">
+        <p class="pm-menu-heading">Website management</p>
+        <ul class="offcanvas-menu pm-nav-list">
+          <?php foreach ( $navigation as $key => $label ) : ?>
+          <li><a href="<?php echo esc_url( self::url( $key ) ); ?>" <?php echo $view === $key ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a></li>
+          <?php endforeach; ?>
+          <?php if ( self::crm_access() ) : ?>
+          <li><a href="<?php echo esc_url( home_url( '/crm/' ) ); ?>">CRM</a></li>
+          <?php endif; ?>
+        </ul>
+        <div class="pm-menu-footer">
+          <a href="<?php echo esc_url( home_url( '/' ) ); ?>">View website</a>
+          <a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>">Log out</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="offcanvas-backdrop" aria-hidden="true"></div>
+
+<section class="pm-hero" aria-label="Management area">
+  <div class="container">
+    <h1><?php echo esc_html( $section_title ); ?></h1>
+    <p class="pm-hero-sub">Website management · <?php echo esc_html( wp_get_current_user()->display_name ); ?></p>
+  </div>
+</section>
+<main id="pm-main" class="pm-content">
 <?php
         switch ( $view ) {
             case 'properties': self::properties(); break;
@@ -278,7 +382,8 @@ final class Pera_Manage {
             default: self::overview(); break;
         }
 ?>
-</main></div></div>
+</main>
+<?php wp_print_scripts( array( 'pera-manage-js' ) ); ?>
 </body></html><?php
     }
 }
