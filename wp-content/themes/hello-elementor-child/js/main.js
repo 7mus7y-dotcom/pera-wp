@@ -764,6 +764,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     previousButton.addEventListener('click', function () { scrollToAdjacentItem(-1); });
     nextButton.addEventListener('click', function () { scrollToAdjacentItem(1); });
+
+    // A click on unused strip space advances in the clicked direction.
+    // Image/video tiles retain their own lightbox click handlers; dragging
+    // remains native and does not trigger a second navigation.
+    strip.addEventListener('click', function (event) {
+      if (event.target !== strip || !shell.classList.contains('is-scrollable')) return;
+      var bounds = strip.getBoundingClientRect();
+      scrollToAdjacentItem(event.clientX < bounds.left + bounds.width / 2 ? -1 : 1);
+    });
     strip.addEventListener('scroll', requestControlUpdate, { passive: true });
     window.addEventListener('resize', requestControlUpdate);
 
