@@ -266,29 +266,113 @@ final class Pera_Manage {
 
     private static function render(): void {
         $view = self::request_section();
-        $styles = get_stylesheet_directory() . '/css/main.css';
-        wp_enqueue_style( 'pera-main-css', get_stylesheet_directory_uri() . '/css/main.css', array(), file_exists( $styles ) ? (string) filemtime( $styles ) : self::VERSION );
+        $style_path = get_stylesheet_directory() . '/css/main.css';
+        $style_version = file_exists( $style_path ) ? (string) filemtime( $style_path ) : self::VERSION;
+        wp_enqueue_style( 'pera-main-css', get_stylesheet_directory_uri() . '/css/main.css', array(), $style_version );
         wp_enqueue_style( 'pera-manage-css', plugin_dir_url( __FILE__ ) . 'assets/manage.css', array( 'pera-main-css' ), self::VERSION );
+        wp_enqueue_script( 'pera-manage-js', plugin_dir_url( __FILE__ ) . 'assets/manage.js', array(), self::VERSION, true );
 
+        $sections = array(
+            'overview' => 'Website overview',
+            'properties' => 'Properties',
+            'content' => 'Articles & pages',
+            'translations' => 'Translations',
+            'tools' => 'Site tools',
+        );
+        $section_title = $sections[ $view ] ?? $sections['overview'];
+        $navigation = array(
+            'overview' => 'Overview',
+            'properties' => 'Properties',
+            'content' => 'Articles & pages',
+        );
+        if ( self::can_edit_in_admin() ) {
+            $navigation['translations'] = 'Translations';
+            $navigation['tools'] = 'Site tools';
+        }
+        $icon_sprite = get_stylesheet_directory_uri() . '/logos-icons/icons.svg';
         ?><!doctype html>
 <html <?php language_attributes(); ?>>
-<head><meta charset="<?php bloginfo( 'charset' ); ?>"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive">
-<title><?php echo esc_html( 'Website management | ' . get_bloginfo( 'name' ) ); ?></title>
+<head>
+<meta charset="<?php bloginfo( 'charset' ); ?>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<link rel="icon" href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/favicon-32x32.png' ); ?>">
+<title><?php echo esc_html( $section_title . ' | ' . get_bloginfo( 'name' ) ); ?></title>
 <?php wp_print_styles( array( 'pera-main-css', 'pera-manage-css' ) ); ?>
 </head>
 <body class="pm-root">
-<a class="pm-skip" href="#pm-main">Skip to content</a>
-<div class="pm-shell">
-<aside class="pm-side" aria-label="Website management navigation">
-<a class="pm-brand" href="<?php echo esc_url( self::url() ); ?>"><strong>PERA PROPERTY</strong><small>Website management</small></a>
-<nav class="pm-nav" aria-label="Main navigation">
-<?php foreach ( array_filter( array( 'overview' => 'Overview', 'properties' => 'Properties', 'content' => 'Articles & pages', 'translations' => self::can_edit_in_admin() ? 'Translations' : null, 'tools' => self::can_edit_in_admin() ? 'Site tools' : null ) ) as $key => $label ) : ?>
-<a href="<?php echo esc_url( self::url( $key ) ); ?>" <?php echo $view === $key ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a>
-<?php endforeach; ?>
-<?php if ( self::crm_access() ) : ?><a href="<?php echo esc_url( home_url( '/crm/' ) ); ?>">CRM</a><?php endif; ?>
-</nav><div class="pm-side-footer"><a href="<?php echo esc_url( home_url( '/' ) ); ?>">View website</a><a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>">Log out</a></div>
-</aside>
-<div class="pm-body"><header class="pm-top"><span>Website management</span><span><?php echo esc_html( wp_get_current_user()->display_name ); ?></span></header><main id="pm-main" class="pm-content">
+<a href="#pm-main" class="pm-skip">Skip to content</a>
+
+<header id="site-header" class="site-header" aria-label="Pera Property management">
+  <div class="container header-inner">
+    <div class="site-branding">
+      <?php
+      if ( function_exists( 'pera_get_site_logo_markup' ) ) {
+          echo pera_get_site_logo_markup( array(
+              'link_class' => 'site-logo logo-pera',
+              'aria_label' => 'Pera Property management overview',
+              'title' => 'Pera Property management',
+              'home_url' => self::url(),
+              'show_since' => true,
+          ) );
+      } else {
+          echo '<a class="site-logo logo-pera" href="' . esc_url( self::url() ) . '">Pera Property</a>';
+      }
+      ?>
+    </div>
+    <div class="site-header__actions">
+      <div class="header-icons">
+        <button type="button" class="header-menu-toggle" aria-controls="pera-offcanvas-menu" aria-expanded="false" aria-label="Open management menu">
+          <svg class="icon" aria-hidden="true"><use href="<?php echo esc_url( $icon_sprite . '#icon-bars' ); ?>"></use></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav id="pera-offcanvas-menu" class="offcanvas-nav" inert aria-hidden="true" aria-label="Management menu">
+  <div class="offcanvas-inner">
+    <div class="offcanvas-top">
+      <?php
+      if ( function_exists( 'pera_get_site_logo_markup' ) ) {
+          echo pera_get_site_logo_markup( array(
+              'link_class' => 'site-logo logo-pera',
+              'aria_label' => 'Pera Property management overview',
+              'home_url' => self::url(),
+              'show_since' => true,
+          ) );
+      }
+      ?>
+      <button type="button" class="offcanvas-close" aria-controls="pera-offcanvas-menu" aria-label="Close management menu">&times;</button>
+    </div>
+    <div class="offcanvas-main">
+      <div class="offcanvas-main-left">
+        <p class="pm-menu-heading">Website management</p>
+        <ul class="offcanvas-menu pm-nav-list">
+          <?php foreach ( $navigation as $key => $label ) : ?>
+          <li><a href="<?php echo esc_url( self::url( $key ) ); ?>" <?php echo $view === $key ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $label ); ?></a></li>
+          <?php endforeach; ?>
+          <?php if ( self::crm_access() ) : ?>
+          <li><a href="<?php echo esc_url( home_url( '/crm/' ) ); ?>">CRM</a></li>
+          <?php endif; ?>
+        </ul>
+        <div class="pm-menu-footer">
+          <a href="<?php echo esc_url( home_url( '/' ) ); ?>">View website</a>
+          <a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>">Log out</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="offcanvas-backdrop" aria-hidden="true"></div>
+
+<section class="pm-hero" aria-label="Management area">
+  <div class="container">
+    <h1><?php echo esc_html( $section_title ); ?></h1>
+    <p class="pm-hero-sub">Website management · <?php echo esc_html( wp_get_current_user()->display_name ); ?></p>
+  </div>
+</section>
+<main id="pm-main" class="pm-content">
 <?php
         switch ( $view ) {
             case 'properties': self::properties(); break;
@@ -298,7 +382,8 @@ final class Pera_Manage {
             default: self::overview(); break;
         }
 ?>
-</main></div></div>
+</main>
+<?php wp_print_scripts( array( 'pera-manage-js' ) ); ?>
 </body></html><?php
     }
 }
