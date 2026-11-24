@@ -108,6 +108,7 @@ final class Pera_Manage {
         $search = isset( $_GET['s'] ) && is_string( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
         $status = isset( $_GET['status'] ) && is_string( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : 'all';
         if ( ! in_array( $status, array( 'all', 'publish', 'draft', 'pending', 'future' ), true ) ) $status = 'all';
+        if ( ! self::can_edit_in_admin() ) $status = 'publish';
         $kind = isset( $_GET['kind'] ) && is_string( $_GET['kind'] ) ? sanitize_key( wp_unslash( $_GET['kind'] ) ) : 'all';
         if ( ! in_array( $kind, array( 'all', 'project', 'resales' ), true ) ) $kind = 'all';
         $page = isset( $_GET['pg'] ) ? max( 1, absint( $_GET['pg'] ) ) : 1;
@@ -130,7 +131,7 @@ final class Pera_Manage {
         echo '</div><form class="pm-filters" method="get" action="' . esc_url( self::url() ) . '">';
         echo '<input type="hidden" name="view" value="properties"><label>Search <input type="search" name="s" value="' . esc_attr( $search ) . '" placeholder="Name or keyword"></label>';
         echo '<label>Status <select name="status">';
-        foreach ( array( 'all' => 'All', 'publish' => 'Published', 'draft' => 'Draft', 'pending' => 'Pending', 'future' => 'Scheduled' ) as $key => $label ) {
+        foreach ( self::can_edit_in_admin() ? array( 'all' => 'All', 'publish' => 'Published', 'draft' => 'Draft', 'pending' => 'Pending', 'future' => 'Scheduled' ) : array( 'publish' => 'Published' ) as $key => $label ) {
             echo '<option value="' . esc_attr( $key ) . '"' . selected( $status, $key, false ) . '>' . esc_html( $label ) . '</option>';
         }
         echo '</select></label><label>Type <select name="kind">';
@@ -200,6 +201,7 @@ final class Pera_Manage {
             array( 'Published articles', self::count( 'post', 'publish' ), 'content' ),
             array( 'Draft articles', self::can_edit_in_admin() ? self::count( 'post', 'draft' ) : 0, 'content' ),
         ) as $stat ) {
+            if ( ! self::can_edit_in_admin() && 0 === strpos( $stat[0], 'Draft' ) ) continue;
             echo '<a class="card-shell pm-stat" href="' . esc_url( self::url( $stat[2] ) ) . '"><span>' . esc_html( $stat[0] ) . '</span><strong>' . number_format_i18n( $stat[1] ) . '</strong></a>';
         }
         echo '</div><h2>Quick actions</h2><div class="pm-actions">';
