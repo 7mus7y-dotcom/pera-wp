@@ -269,7 +269,12 @@ final class Pera_Manage {
         $style_path = get_stylesheet_directory() . '/css/main.css';
         $style_version = file_exists( $style_path ) ? (string) filemtime( $style_path ) : self::VERSION;
         wp_enqueue_style( 'pera-main-css', get_stylesheet_directory_uri() . '/css/main.css', array(), $style_version );
-        wp_enqueue_style( 'pera-manage-css', plugin_dir_url( __FILE__ ) . 'assets/manage.css', array( 'pera-main-css' ), self::VERSION );
+        // Content-based versioning prevents stale browser/CDN CSS after a style-only deploy.
+        $manage_css_path = plugin_dir_path( __FILE__ ) . 'assets/manage.css';
+        $manage_css_version = is_readable( $manage_css_path )
+            ? substr( md5_file( $manage_css_path ), 0, 12 )
+            : self::VERSION;
+        wp_enqueue_style( 'pera-manage-css', plugin_dir_url( __FILE__ ) . 'assets/manage.css', array( 'pera-main-css' ), $manage_css_version );
         wp_enqueue_script( 'pera-manage-js', plugin_dir_url( __FILE__ ) . 'assets/manage.js', array(), self::VERSION, true );
 
         $sections = array(
