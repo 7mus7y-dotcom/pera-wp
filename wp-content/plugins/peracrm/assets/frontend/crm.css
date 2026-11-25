@@ -5342,6 +5342,24 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   justify-content: flex-start;
 }
 
+.crm-page--client-view .crm-client-reminders .crm-form-row-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.crm-page--client-view .crm-client-reminders .crm-form-row-2 > label {
+  min-width: 0;
+}
+
+.crm-page--client-view .crm-client-reminders .crm-form-row-2 select,
+.crm-page--client-view .crm-client-reminders .crm-form-row-2 input[type="datetime-local"] {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  min-height: 42px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
 .crm-page--client-view .crm-reminder-item--next {
   border-left: 3px solid #4e84dd;
   padding-left: 8px;
