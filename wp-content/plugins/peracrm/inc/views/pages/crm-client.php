@@ -111,6 +111,7 @@ $advisor_label = $assigned_user instanceof WP_User ? (string) $assigned_user->di
 $link_label    = $linked_user instanceof WP_User ? sprintf( __( 'Linked (%s)', 'peracrm' ), (string) $linked_user->user_login ) : __( 'Not linked', 'peracrm' );
 
 $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+$show_buyer_requirements = ! in_array( $client_type_value, array( 'seller', 'landlord', 'agent' ), true );
 $party_stages       = function_exists( 'peracrm_party_stage_options' ) ? (array) peracrm_party_stage_options( $client_type_value ) : array();
 $lead_pipeline_stage_key   = isset( $party['lead_pipeline_stage'] ) ? sanitize_key( (string) $party['lead_pipeline_stage'] ) : '';
 $lead_pipeline_stage_label = isset( $party_stages[ $lead_pipeline_stage_key ] ) ? (string) $party_stages[ $lead_pipeline_stage_key ] : '';
@@ -511,7 +512,7 @@ peracrm_frontend_render_shell_header();
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
                   <h3 class="crm-section__title"><?php esc_html_e( 'Profile and key facts', 'peracrm' ); ?></h3>
-                  <p class="crm-section__description"><?php esc_html_e( 'Keep contact details, budget, and lead details in one stable section. Lead status is managed in the CRM status panel.', 'peracrm' ); ?></p>
+                  <p class="crm-section__description"><?php echo esc_html( $show_buyer_requirements ? __( 'Manage contact details and buyer requirements. Lead status is managed in the CRM status panel.', 'peracrm' ) : __( 'Manage contact details. Client type and lifecycle are managed in the CRM status panel.', 'peracrm' ) ); ?></p>
                 </div>
               </header>
               <div class="crm-section__body crm-client-profile-stack">
@@ -589,6 +590,7 @@ peracrm_frontend_render_shell_header();
                       </fieldset>
                     </div>
                     <div class="crm-keyfacts-grid crm-form-grid crm-form-grid--keyfacts">
+                      <?php if ( $show_buyer_requirements ) : ?>
                       <div class="crm-field crm-field--half">
                         <label><?php esc_html_e( 'Budget min (USD)', 'peracrm' ); ?></label>
                         <input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" />
@@ -601,6 +603,7 @@ peracrm_frontend_render_shell_header();
                         <label><?php esc_html_e( 'Bedrooms', 'peracrm' ); ?></label>
                         <input type="number" min="0" step="1" name="peracrm_bedrooms" value="<?php echo esc_attr( (string) ( $profile['bedrooms'] ?? '' ) ); ?>" />
                       </div>
+                      <?php endif; ?>
                       <div class="crm-field crm-field--inline crm-field--actions">
                         <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'peracrm' ); ?></button>
                       </div>
