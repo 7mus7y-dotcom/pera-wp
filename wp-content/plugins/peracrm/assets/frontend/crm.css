@@ -654,21 +654,28 @@
   min-width: 0;
 }
 
-/* Use the existing compact icon-button geometry beside the saved phone value. */
+/* Keep the saved-phone WhatsApp shortcut as a compact round icon button. */
 .crm-page--client-view .crm-phone-row .crm-phone-wa-shortcut {
-  flex: 0 0 38px;
-  width: 38px;
-  min-width: 38px;
-  align-self: stretch;
+  flex: 0 0 18px;
+  width: 18px;
+  min-width: 18px;
+  max-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  max-height: 18px;
+  align-self: center;
+  aspect-ratio: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border-radius: var(--radius-md, 10px);
+  line-height: 1;
+  border-radius: 50%;
+  box-sizing: border-box;
 }
 .crm-page--client-view .crm-phone-row .crm-phone-wa-shortcut .icon {
-  width: 20px;
-  height: 20px;
+  width: 12px;
+  height: 12px;
   fill: currentColor;
 }
 .crm-page--client-view .crm-phone-row:has(.crm-phone-wa-shortcut) {
@@ -2265,7 +2272,7 @@ a.crm-health-card:focus-visible {
 
   .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li {
     gap: 4px;
-    padding: 7px 0;
+    padding: 7px 8px;
   }
 
   .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li p,

@@ -593,11 +593,11 @@ peracrm_frontend_render_shell_header();
                     <div class="crm-keyfacts-grid crm-form-grid crm-form-grid--keyfacts">
                       <?php if ( $show_buyer_requirements ) : ?>
                       <div class="crm-field crm-field--half">
-                        <label><?php esc_html_e( 'Budget min (USD)', 'peracrm' ); ?></label>
+                        <label><?php esc_html_e( 'Budget min', 'peracrm' ); ?></label>
                         <input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" />
                       </div>
                       <div class="crm-field crm-field--half">
-                        <label><?php esc_html_e( 'Budget max (USD)', 'peracrm' ); ?></label>
+                        <label><?php esc_html_e( 'Budget max', 'peracrm' ); ?></label>
                         <input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" />
                       </div>
                       <div class="crm-field crm-field--inline">
