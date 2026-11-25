@@ -5337,6 +5337,20 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   line-height: 1.35;
 }
 
+.crm-page--client-view .crm-client-reminders .crm-reminder-item__type,
+.crm-page--client-view .crm-client-reminders .crm-reminder-item__summary {
+  min-width: 0;
+}
+
+.crm-page--client-view .crm-client-reminders .crm-reminder-item__summary {
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.crm-page--client-view .crm-client-reminders .crm-reminder-item__summary strong {
+  display: block;
+}
+
 .crm-page--client-view .crm-client-reminders .crm-task-action {
   margin-top: 4px;
   justify-content: flex-start;
