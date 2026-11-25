@@ -1888,9 +1888,18 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 			$data['preferred_contact'] = isset( $_POST['peracrm_preferred_contact'] )
 				? wp_unslash( $_POST['peracrm_preferred_contact'] )
 				: array();
-			$data['budget_min_usd'] = isset( $_POST['peracrm_budget_min_usd'] ) ? (float) wp_unslash( (string) $_POST['peracrm_budget_min_usd'] ) : '';
-			$data['budget_max_usd'] = isset( $_POST['peracrm_budget_max_usd'] ) ? (float) wp_unslash( (string) $_POST['peracrm_budget_max_usd'] ) : '';
-			$data['bedrooms'] = isset( $_POST['peracrm_bedrooms'] ) ? absint( wp_unslash( (string) $_POST['peracrm_bedrooms'] ) ) : '';
+			// Buyer requirements are intentionally absent for sellers, landlords and agents.
+			// Only update fields actually submitted; an omitted input must never erase
+			// historical requirements when a client type changes.
+			if ( isset( $_POST['peracrm_budget_min_usd'] ) ) {
+				$data['budget_min_usd'] = (float) wp_unslash( (string) $_POST['peracrm_budget_min_usd'] );
+			}
+			if ( isset( $_POST['peracrm_budget_max_usd'] ) ) {
+				$data['budget_max_usd'] = (float) wp_unslash( (string) $_POST['peracrm_budget_max_usd'] );
+			}
+			if ( isset( $_POST['peracrm_bedrooms'] ) ) {
+				$data['bedrooms'] = absint( wp_unslash( (string) $_POST['peracrm_bedrooms'] ) );
+			}
 			$data['phone'] = function_exists( 'peracrm_phone_canonical_from_source' )
 				? peracrm_phone_canonical_from_source( $_POST, 'peracrm_phone_country', 'peracrm_phone_national', 'peracrm_phone' )
 				: ( isset( $_POST['peracrm_phone'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['peracrm_phone'] ) ) : '' );
