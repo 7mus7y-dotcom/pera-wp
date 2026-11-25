@@ -534,6 +534,20 @@ peracrm_frontend_render_shell_header();
                           <?php endforeach; ?>
                         </select>
                       </div>
+                      <div class="crm-field crm-field--half">
+                        <div class="crm-client-email-field-heading">
+                          <label for="peracrm-profile-email"><?php esc_html_e( 'Email', 'peracrm' ); ?></label>
+                          <?php
+                          $saved_client_email = sanitize_email( (string) ( $profile['email'] ?? '' ) );
+                          if ( is_email( $saved_client_email ) ) :
+                            $gmail_query = '{from:' . $saved_client_email . ' to:' . $saved_client_email . '}';
+                            $gmail_url   = 'https://mail.google.com/mail/u/0/#search/' . rawurlencode( $gmail_query );
+                          ?>
+                          <a class="crm-client-email-gmail-link" href="<?php echo esc_url( $gmail_url ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr( sprintf( __( 'Find emails to or from %s in Gmail', 'peracrm' ), $saved_client_email ) ); ?>"><?php esc_html_e( 'View in Gmail', 'peracrm' ); ?></a>
+                          <?php endif; ?>
+                        </div>
+                        <input id="peracrm-profile-email" type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" />
+                      </div>
                       <div class="crm-phone-field crm-field crm-field--inline">
                         <label class="crm-field__label"><?php esc_html_e( 'Mobile / WhatsApp', 'peracrm' ); ?></label>
                         <div class="crm-phone-row">
@@ -563,20 +577,7 @@ peracrm_frontend_render_shell_header();
                         </div>
                         <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" />
                       </div>
-                      <div class="crm-field crm-field--half">
-                        <div class="crm-client-email-field-heading">
-                          <label for="peracrm-profile-email"><?php esc_html_e( 'Email', 'peracrm' ); ?></label>
-                          <?php
-                          $saved_client_email = sanitize_email( (string) ( $profile['email'] ?? '' ) );
-                          if ( is_email( $saved_client_email ) ) :
-                            $gmail_query = '{from:' . $saved_client_email . ' to:' . $saved_client_email . '}';
-                            $gmail_url   = 'https://mail.google.com/mail/u/0/#search/' . rawurlencode( $gmail_query );
-                          ?>
-                          <a class="crm-client-email-gmail-link" href="<?php echo esc_url( $gmail_url ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr( sprintf( __( 'Find emails to or from %s in Gmail', 'peracrm' ), $saved_client_email ) ); ?>"><?php esc_html_e( 'View in Gmail', 'peracrm' ); ?></a>
-                          <?php endif; ?>
-                        </div>
-                        <input id="peracrm-profile-email" type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" />
-                      </div>
+                      
                       <fieldset class="crm-checkbox-group crm-checkbox-group--preferred-contact crm-field crm-field--inline">
                         <legend><?php esc_html_e( 'Preferred contact', 'peracrm' ); ?></legend>
                         <div class="crm-checkbox-group__options crm-checkbox-group__options--preferred-contact">
@@ -684,7 +685,7 @@ peracrm_frontend_render_shell_header();
                         <?php
                         $reminder_id       = (int) ( $reminder_row['id'] ?? 0 );
                         $reminder_note     = trim( (string) ( $reminder_row['note'] ?? '' ) );
-                        $reminder_summary  = '' !== $reminder_note ? wp_trim_words( $reminder_note, 16, '…' ) : sprintf( __( 'Reminder #%d', 'peracrm' ), $reminder_id );
+                        $reminder_summary  = '' !== $reminder_note ? wp_trim_words( $reminder_note, 16, '…' ) : '';
                         $reminder_due      = (string) ( $reminder_row['due_display'] ?? '' );
                         $reminder_status   = sanitize_key( (string) ( $reminder_row['status'] ?? 'pending' ) );
                         $status_label      = ucfirst( str_replace( '_', ' ', $reminder_status ) );
@@ -697,7 +698,7 @@ peracrm_frontend_render_shell_header();
                             $reminder_type = peracrm_reminder_normalize_type( $reminder_row['task_type'] ?? '' );
                             $reminder_types = peracrm_reminder_type_options();
                             echo esc_html( $reminder_types[ $reminder_type ] ?? __( 'General follow-up', 'peracrm' ) );
-                          ?></span> <strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
+                          ?></span><?php if ( '' !== $reminder_summary ) : ?> <strong><?php echo esc_html( $reminder_summary ); ?></strong><?php endif; ?></p>
                           <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Assigned: %s', 'peracrm' ), $assignee_label ) ); ?></small>
@@ -730,7 +731,7 @@ peracrm_frontend_render_shell_header();
                         <?php
                         $reminder_id       = (int) ( $reminder_row['id'] ?? 0 );
                         $reminder_note     = trim( (string) ( $reminder_row['note'] ?? '' ) );
-                        $reminder_summary  = '' !== $reminder_note ? wp_trim_words( $reminder_note, 16, '…' ) : sprintf( __( 'Reminder #%d', 'peracrm' ), $reminder_id );
+                        $reminder_summary  = '' !== $reminder_note ? wp_trim_words( $reminder_note, 16, '…' ) : '';
                         $reminder_due      = (string) ( $reminder_row['due_display'] ?? '' );
                         $reminder_status   = sanitize_key( (string) ( $reminder_row['status'] ?? 'pending' ) );
                         $status_label      = ucfirst( str_replace( '_', ' ', $reminder_status ) );
@@ -743,7 +744,7 @@ peracrm_frontend_render_shell_header();
                             $reminder_type = peracrm_reminder_normalize_type( $reminder_row['task_type'] ?? '' );
                             $reminder_types = peracrm_reminder_type_options();
                             echo esc_html( $reminder_types[ $reminder_type ] ?? __( 'General follow-up', 'peracrm' ) );
-                          ?></span> <strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
+                          ?></span><?php if ( '' !== $reminder_summary ) : ?> <strong><?php echo esc_html( $reminder_summary ); ?></strong><?php endif; ?></p>
                           <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Assigned: %s', 'peracrm' ), $assignee_label ) ); ?></small>
