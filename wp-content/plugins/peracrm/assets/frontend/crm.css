@@ -2265,7 +2265,7 @@ a.crm-health-card:focus-visible {
 
   .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li {
     gap: 4px;
-    padding: 7px 0;
+    padding: 7px 8px;
   }
 
   .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li p,
