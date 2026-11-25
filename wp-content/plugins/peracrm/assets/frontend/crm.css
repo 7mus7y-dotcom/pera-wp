@@ -5301,6 +5301,13 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   box-sizing: border-box;
 }
 
+.crm-page--client-view .crm-form-grid--profile .crm-field--half select,
+.crm-page--client-view .crm-form-grid--profile .crm-field--half input[type="email"] {
+  height: 42px;
+  min-height: 42px;
+  box-sizing: border-box;
+}
+
 .crm-page--client-view .crm-client-task-groups {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
