@@ -115,6 +115,8 @@ if ( ! function_exists( 'pera_crm_client_view_notice_message' ) ) {
 			'reminder_added'       => array( 'success', __( 'CRM reminder created.', 'peracrm' ) ),
 			'reminder_done'        => array( 'success', __( 'Reminder marked done.', 'peracrm' ) ),
 			'reminder_dismissed'   => array( 'success', __( 'Reminder dismissed.', 'peracrm' ) ),
+			'reminder_rescheduled' => array( 'success', __( 'Reminder date updated.', 'peracrm' ) ),
+			'reminder_invalid_due_at' => array( 'warning', __( 'Enter a valid reminder date and time.', 'peracrm' ) ),
 			'reminder_failed'      => array( 'warning', __( 'Unable to update reminder.', 'peracrm' ) ),
 			'profile_saved'        => array( 'success', __( 'Profile saved.', 'peracrm' ) ),
 			'profile_failed'       => array( 'warning', __( 'Unable to save profile.', 'peracrm' ) ),

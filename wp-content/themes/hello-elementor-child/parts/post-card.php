@@ -3,10 +3,10 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
  * Template Part: Post Card
- * Public API: variant, card_classes, show_readmore
+ * Public API: variant, card_classes, show_readmore, post_id, permalink
  */
 
-$card_args = get_query_var( 'pera_post_card_args' );
+$card_args = ! empty( $args ) ? $args : get_query_var( 'pera_post_card_args' );
 $card_args = is_array( $card_args ) ? $card_args : array();
 
 $variant       = isset( $card_args['variant'] ) ? sanitize_key( $card_args['variant'] ) : 'grid';
@@ -15,8 +15,8 @@ $show_readmore = array_key_exists( 'show_readmore', $card_args ) ? (bool) $card_
 
 $card_classes = trim( $extra_classes . ' post-card post-card--' . $variant );
 
-$post_id = get_the_ID();
-$post_permalink = get_permalink( $post_id );
+$post_id = $card_args['post_id'] ?? get_the_ID();
+$post_permalink = $card_args['permalink'] ?? get_permalink( $post_id );
 $post_title     = trim( wp_strip_all_tags( get_the_title( $post_id ) ) );
 if ( '' === $post_title ) {
   $post_title = pera_ml_ui( 'Article', 'theme.parts.post-card.article' ) . ' #' . $post_id;
@@ -41,8 +41,8 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
   $updated_date_display = pera_get_public_updated_date( 'M j, Y', $post_id );
   $updated_datetime     = pera_get_public_updated_datetime_attr( $post_id );
 } else {
-  $updated_date_display = get_the_modified_date( 'M j, Y' );
-  $updated_datetime     = get_the_modified_date( DATE_W3C );
+  $updated_date_display = get_the_modified_date( 'M j, Y', $post_id );
+  $updated_datetime     = get_the_modified_date( DATE_W3C, $post_id );
 }
 ?>
 
@@ -92,20 +92,20 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
   <div class="post-card-body">
     <h2 class="post-card-title">
       <a href="<?php echo esc_url( $post_permalink ); ?>">
-        <?php the_title(); ?>
+        <?php if ( isset( $card_args['post_id'] ) ) { echo esc_html( $post_title ); } else { the_title(); } ?>
       </a>
     </h2>
 
     <div class="post-card-excerpt">
-      <?php echo esc_html( wp_trim_words( get_the_excerpt(), 22, '…' ) ); ?>
+      <?php echo esc_html( wp_trim_words( get_the_excerpt( $post_id ), 22, '…' ) ); ?>
     </div>
 
     <div class="post-card-footer">
       <div class="article-meta-secondary post-card-meta-secondary">
         <span class="article-meta-item">
           <?php echo esc_html( pera_ml_ui( 'Pub:', 'theme.parts.post-card.published_short' ) ); ?>
-          <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>">
-            <?php echo esc_html( get_the_date( 'M j, Y' ) ); ?>
+          <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C, $post_id ) ); ?>">
+            <?php echo esc_html( get_the_date( 'M j, Y', $post_id ) ); ?>
           </time>
         </span>
 

@@ -13,9 +13,9 @@ root = Path(__file__).resolve().parents[1]
 script = (root / 'js/regional-guides-map.js').read_text()
 leaflet = (root / 'vendor/leaflet/leaflet.js').read_text()
 css = (root / 'vendor/leaflet/leaflet.css').read_text()
-data = dict(guides=[dict(lat=41.05, lng=29.05, title='<img src=x onerror=alert(1)> Guide', label='', url='https://example.test/ar/guide/'), dict(lat=41.05, lng=29.05, title='Second guide', label='', url='https://example.test/ar/second/')], landmarks=[dict(lat=41.02566,lng=28.97416,title='Galata Tower'),dict(lat=41.01152,lng=28.98338,title='Topkapı Palace'),dict(lat=41.00546,lng=28.97682,title='Sultanahmet Mosque')],read='Read guide')
+data = dict(guides=[dict(id=1, lat=41.05, lng=29.05, title='<img src=x onerror=alert(1)> Guide', label='', url='https://example.test/ar/guide/'), dict(id=2, lat=41.05, lng=29.05, title='Second guide', label='', url='https://example.test/ar/second/')], landmarks=[dict(lat=41.02566,lng=28.97416,title='Galata Tower'),dict(lat=41.01152,lng=28.98338,title='Topkapı Palace'),dict(lat=41.00546,lng=28.97682,title='Sultanahmet Mosque')],read='Read guide')
 fixture = '''<meta charset="utf-8"><style>CSS\n.regional-map__canvas{height:480px;width:100%}</style>
-<section data-regional-map><div data-map-canvas class="regional-map__canvas"></div><p data-map-status>Fallback</p><a href="https://example.test/ar/guide/">Guide</a></section>
+<section data-regional-map><div data-map-canvas class="regional-map__canvas"></div><div data-map-preview hidden><div data-map-choices></div><div data-map-card></div></div><template data-map-guide="1"><article><a href="https://example.test/ar/guide/">Guide</a></article></template><template data-map-guide="2"><article><a href="https://example.test/ar/second/">Second guide</a></article></template><p data-map-status>Fallback</p></section>
 <script>LEAFLET</script><script>
 const root=document.querySelector('section');root.dataset.mapConfig=JSON.stringify(DATA);
 const maps=[]; const originalMap=L.map; L.map=(...args)=>{const map=originalMap(...args);maps.push(map);return map;};
@@ -26,10 +26,14 @@ function check(ok,label){if(!ok)throw Error(label);}
 try {
 const map=maps[0];check(!!map,'map created');check(!map.scrollWheelZoom.enabled(),'wheel disabled');check(map.touchZoom.enabled(),'two-finger gestures immediately enabled');
 const markers=Array.from(document.querySelectorAll('.regional-map__marker--guide'));check(markers.length===1,'nearby guides grouped');check(document.querySelectorAll('.regional-map__marker--landmark').length===3,'distinct landmarks');
-check(markers[0].getAttribute('tabindex')==='0','keyboard marker');markers[0].click();
-check(document.querySelectorAll('.regional-map__popup a').length===2,'both guide links in popup');check(!document.querySelector('.regional-map__popup img'),'title treated as text');
-check(document.querySelector('.regional-map__popup a').href==='https://example.test/ar/guide/','translated link retained');
-check(!root.querySelector('button'),'no activation button');
+check(markers[0].getAttribute('tabindex')==='0','keyboard marker');markers[0].dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+check(!root.querySelector('[data-map-preview]').hidden,'keyboard opens card preview');
+check(root.querySelectorAll('[data-map-choices] button').length===2,'both guides are selectable');
+check(!root.querySelector('[data-map-choices] img'),'title treated as text');
+check(root.querySelector('[data-map-card] a').href==='https://example.test/ar/guide/','translated link retained');
+root.querySelectorAll('[data-map-choices] button')[1].click();
+check(root.querySelector('[data-map-card] a').href==='https://example.test/ar/second/','selection updates the card');
+check(!root.querySelector('.leaflet-popup'),'guide markers have no popup');
 const canvas=root.querySelector('[data-map-canvas]');
 canvas.dispatchEvent(new PointerEvent('pointerdown',{pointerType:'touch',bubbles:true}));
 check(!map.dragging.enabled(),'touch drag disabled');

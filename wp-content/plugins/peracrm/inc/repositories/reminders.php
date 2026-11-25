@@ -478,7 +478,7 @@ function peracrm_reminders_count_for_advisor($advisor_user_id, $status = null, $
     return peracrm_reminders_count_for_advisor_fallback($advisor_user_id, $status, $range);
 }
 
-function peracrm_reminders_get($reminder_id)
+function peracrm_reminders_get($reminder_id, $client_id = 0)
 {
     $reminder_id = (int) $reminder_id;
     if ($reminder_id <= 0) {
@@ -489,7 +489,66 @@ function peracrm_reminders_get($reminder_id)
         return peracrm_reminders_get_table($reminder_id);
     }
 
-    return peracrm_reminders_get_fallback($reminder_id);
+    return peracrm_reminders_get_fallback($reminder_id, $client_id);
+}
+
+/**
+ * Update a pending reminder only if it still matches the row that was read.
+ */
+function peracrm_reminders_update_due_at(array $reminder, string $due_at): bool
+{
+    $client_id = (int) $reminder['client_id'];
+    $reminder_id = (int) $reminder['id'];
+    $updated_at = peracrm_now_mysql();
+
+    if (peracrm_reminders_table_exists()) {
+        global $wpdb;
+
+        $changes = ['due_at' => $due_at, 'updated_at' => $updated_at];
+        if (peracrm_push_reminders_has_due_sent_column()) {
+            $changes['push_due_sent_at'] = null;
+        }
+
+        return 1 === $wpdb->update(
+            peracrm_table('crm_reminders'),
+            $changes,
+            [
+                'id' => $reminder_id,
+                'client_id' => $client_id,
+                'advisor_user_id' => (int) $reminder['advisor_user_id'],
+                'status' => $reminder['status'],
+                'due_at' => $reminder['due_at'],
+            ],
+            ['%s', '%s'],
+            ['%d', '%d', '%d', '%s', '%s']
+        );
+    }
+
+    // Keep the original metadata intact, including notes longer than the display normalization limit.
+    $key = '_peracrm_reminders_fallback';
+    $previous = get_post_meta($client_id, $key, true);
+    if (!is_array($previous)) {
+        return false;
+    }
+
+    $rows = $previous;
+    foreach ($rows as $index => $row) {
+        if (!is_array($row) || (int) ($row['id'] ?? 0) !== $reminder_id) {
+            continue;
+        }
+
+        $status = peracrm_reminders_sanitize_status($row['status'] ?? '') ?: 'pending';
+        if ($status !== $reminder['status'] || (string) ($row['due_at'] ?? '') !== $reminder['due_at']
+            || (int) ($row['advisor_user_id'] ?? 0) !== (int) $reminder['advisor_user_id']) {
+            return false;
+        }
+
+        $rows[$index]['due_at'] = $due_at;
+        $rows[$index]['updated_at'] = $updated_at;
+        return (bool) update_post_meta($client_id, $key, wp_slash($rows), $previous);
+    }
+
+    return false;
 }
 
 function peracrm_reminders_allowed_statuses()
@@ -918,9 +977,9 @@ function peracrm_reminders_count_for_advisor_fallback($advisor_user_id, $status,
     return count($reminders);
 }
 
-function peracrm_reminders_get_fallback($reminder_id)
+function peracrm_reminders_get_fallback($reminder_id, $client_id = 0)
 {
-    $clients = peracrm_reminders_fallback_client_ids();
+    $clients = $client_id > 0 ? [$client_id] : peracrm_reminders_fallback_client_ids();
     if (empty($clients)) {
         return null;
     }

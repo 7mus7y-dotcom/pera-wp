@@ -32,7 +32,7 @@ function pera_regional_map_guides() {
 		'post_type' => 'post', 'post_status' => 'publish', 'has_password' => false,
 		'category_name' => 'regional-guides', 'posts_per_page' => -1,
 		'orderby' => 'ID', 'order' => 'ASC', 'no_found_rows' => true,
-		'update_post_term_cache' => false,
+		'update_post_term_cache' => true,
 		'meta_query' => array( array( 'key' => '_pera_guide_map_enabled', 'value' => '1' ) ),
 	) );
 	$guides = array();
@@ -42,7 +42,7 @@ function pera_regional_map_guides() {
 		if ( null === $lat || null === $lng || 'publish' !== $post->post_status ) continue;
 		$url = get_permalink( $post->ID );
 		$guides[] = array(
-			'lat' => $lat, 'lng' => $lng,
+			'id' => (int) $post->ID, 'lat' => $lat, 'lng' => $lng,
 			'title' => get_the_title( $post->ID ),
 			'label' => (string) get_post_meta( $post->ID, '_pera_guide_map_label', true ),
 			'url' => function_exists( 'pera_ml_url' ) ? pera_ml_url( $url ) : $url,
@@ -72,13 +72,24 @@ add_action( 'wp_enqueue_scripts', function () {
 function pera_render_regional_guides_map() {
 	if ( ! pera_regional_map_visible() ) return;
 	$guides = pera_regional_map_guides();
-	$data = array( 'guides' => $guides, 'landmarks' => pera_regional_map_landmarks(), 'read' => pera_ml_ui( 'Read guide', 'theme.regional_map.read' ) );
+	$data = array( 'guides' => $guides, 'landmarks' => pera_regional_map_landmarks() );
 	?>
 	<section class="section regional-map" aria-labelledby="regional-map-heading" data-regional-map data-map-config="<?php echo esc_attr( wp_json_encode( $data ) ); ?>">
 		<div class="container">
 			<h2 id="regional-map-heading"><?php echo esc_html( pera_ml_ui( 'Explore Istanbul by neighbourhood', 'theme.regional_map.heading' ) ); ?></h2>
 			<p><?php echo esc_html( pera_ml_ui( 'Select a location on the map to explore our neighbourhood and district guides.', 'theme.regional_map.intro' ) ); ?></p>
-			<div class="regional-map__canvas" data-map-canvas role="region" aria-labelledby="regional-map-heading"></div>
+			<div class="regional-map__layout">
+				<div class="regional-map__canvas" data-map-canvas role="region" aria-labelledby="regional-map-heading"></div>
+				<div class="regional-map__preview" data-map-preview hidden>
+					<div class="regional-map__choices" data-map-choices></div>
+					<div data-map-card aria-live="polite"></div>
+				</div>
+			</div>
+			<?php foreach ( $guides as $guide ) : ?>
+				<template data-map-guide="<?php echo esc_attr( $guide['id'] ); ?>">
+					<?php get_template_part( 'parts/post-card', null, array( 'post_id' => $guide['id'], 'permalink' => $guide['url'] ) ); ?>
+				</template>
+			<?php endforeach; ?>
 			<p data-map-status role="status"><?php echo esc_html( pera_ml_ui( 'If the map is unavailable, explore the guide links below.', 'theme.regional_map.fallback' ) ); ?></p>
 			<details class="regional-map__links">
 				<summary><?php echo esc_html( pera_ml_ui( 'Browse mapped guides', 'theme.regional_map.browse' ) ); ?></summary>

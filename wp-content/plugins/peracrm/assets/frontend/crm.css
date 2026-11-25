@@ -263,11 +263,8 @@
 @media (prefers-color-scheme: dark) {
   .crm-page .pill--outline { color: var(--inverse); }
   .crm-page .border-dm { border: 1px solid rgba(255,255,255,0.18); }
-  /* On the overview, retain a visible inner edge with breathing room in dark mode. */
-  .crm-page--overview .content-panel-box.border-dm.crm-layout {
-    box-sizing: border-box;
-    border-color: rgba(148, 163, 184, 0.35);
-    padding: clamp(12px, 2vw, 22px);
+  .crm-page--overview .content-panel-box.crm-layout {
+    border: 0;
   }
   .crm-page .btn--solid:focus-visible,
   .crm-page .btn--ghost:focus-visible,
@@ -5073,6 +5070,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
   gap: 12px;
   align-items: stretch;
+  overflow-wrap: anywhere;
 }
 
 .crm-page--client-view .crm-summary-header__identity,
@@ -5130,7 +5128,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page--client-view .crm-client-name-edit__input {
-  width: min(320px, 72vw);
+  width: min(320px, 100%);
 }
 
 .crm-page--client-view .crm-summary-header__title {
@@ -5361,6 +5359,20 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page--client-view .crm-client-reminders .crm-task-action {
   margin-top: 4px;
   justify-content: flex-start;
+}
+
+.crm-page--client-view .crm-client-reminders .crm-task-action details {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.crm-page--client-view .crm-client-reminders .crm-task-action details form {
+  margin-top: 8px;
+}
+
+.crm-page--client-view .crm-client-reminders .crm-task-action input[type="datetime-local"] {
+  width: 100%;
+  min-width: 0;
 }
 
 .crm-page--client-view .crm-client-reminders .crm-form-row-2 {
@@ -5628,7 +5640,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 @media (max-width: 1080px) {
   .crm-page--client-view .crm-client-task-groups,
-  .crm-page--client-view .crm-summary-header__main,
   .crm-page--client-view .crm-summary-header__kpis,
   .crm-page--client-view .crm-summary-header__context-list,
   .crm-page--client-view .crm-client-next-step {
@@ -5663,6 +5674,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 /* Mobile collapse only */
 @media (max-width: 640px) {
+  .crm-page--client-view .crm-summary-header__main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .crm-page--client-view .crm-summary-header__facts {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

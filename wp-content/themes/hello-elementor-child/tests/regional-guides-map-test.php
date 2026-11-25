@@ -15,6 +15,7 @@ function esc_html($s){return htmlspecialchars((string)$s,ENT_QUOTES,'UTF-8');} f
 function esc_url($s){return esc_html(preg_match('#^https?://#',$s)?$s:'');}
 function get_permalink($id){return 'https://example.test/guide-'.$id.'/';}
 function pera_ml_url($url){return str_replace('example.test/','example.test/'.$GLOBALS['language'].'/',$url);}
+function get_template_part($name,$variant,$args){echo '<article data-post-id="'.esc_attr($args['post_id']).'"><a href="'.esc_url($args['permalink']).'">Guide</a></article>';}
 function get_the_title($id){return '<script>alert(1)</script>Guide '.$id;}
 function get_posts($args){
     $GLOBALS['query_args']=$args;
@@ -55,6 +56,7 @@ expect(false === $GLOBALS['query_args']['has_password'],'password protected arti
 ob_start();pera_render_regional_guides_map();$html=ob_get_clean();
 expect(false === strpos($html,'<script>'),'output escaped');expect(false !== strpos($html,'&lt;script&gt;'),'escaped article link present');
 expect(false !== strpos($html,'https://example.test/ar/guide-1/'),'crawlable localized links');
+expect(false !== strpos($html,'<template data-map-guide="1">') && false !== strpos($html,'<article data-post-id="1">'),'map prepares normal post cards by guide ID');
 expect(3 === count(pera_regional_map_landmarks()),'three landmarks');
 foreach(pera_regional_map_landmarks() as $landmark)expect(!isset($landmark['url']),'landmarks have no article links');
 $GLOBALS['category']=false;ob_start();pera_render_regional_guides_map();expect('' === ob_get_clean(),'other archives unchanged');

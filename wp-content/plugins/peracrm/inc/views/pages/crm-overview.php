@@ -293,7 +293,7 @@ peracrm_frontend_render_shell_header();
   ?>
 
 	  <section class="content-panel content-panel--overlap-hero">
-	    <div class="content-panel-box border-dm crm-layout">
+	    <div class="content-panel-box crm-layout">
       <div class="crm-layout__main">
 			<?php if ( ! $is_leads && ! $is_tasks ) : ?>
       <section class="crm-overview-band crm-overview-band--primary" aria-labelledby="crm-priority-work-heading">
