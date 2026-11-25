@@ -5257,6 +5257,18 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   gap: 10px;
 }
 
+.crm-page--client-view .crm-keyfacts-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.crm-page--client-view .crm-form-grid--keyfacts .crm-field--inline:not(.crm-field--actions) {
+  grid-column: span 1;
+}
+
+.crm-page--client-view .crm-form-grid--keyfacts .crm-field--actions {
+  grid-column: 1 / -1;
+}
+
 .crm-page--client-view .crm-profile-grid .crm-field,
 .crm-page--client-view .crm-keyfacts-grid .crm-field,
 .crm-page--client-view .crm-status-grid .crm-field {
@@ -5668,14 +5680,28 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 }
 
-@media (max-width: 575px) {
-  .crm-page--client-view .crm-form-grid--keyfacts {
+@media (max-width: 767px) {
+  .crm-page--client-view .crm-form-grid--profile {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .crm-page--client-view .crm-form-grid--keyfacts .crm-field--inline,
+  .crm-page--client-view .crm-form-grid--profile .crm-phone-field,
+  .crm-page--client-view .crm-form-grid--profile .crm-checkbox-group--preferred-contact {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 575px) {
+  .crm-page--client-view .crm-form-grid--keyfacts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .crm-page--client-view .crm-form-grid--keyfacts .crm-field--actions {
     grid-column: 1 / -1;
+  }
+
+  .crm-page--client-view .crm-form-grid--keyfacts .crm-field > label {
+    font-size: 0.75rem;
   }
 
   .crm-page--client-view .crm-form-grid.crm-status-grid {
