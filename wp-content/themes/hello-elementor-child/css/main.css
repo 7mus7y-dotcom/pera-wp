@@ -5883,8 +5883,6 @@ ol.pretty-list li::before {
 .regional-map__marker--landmark { background: #64748b; border: 2px solid #fff; }
 .regional-map__marker:focus-visible { outline: 3px solid var(--brand-yellow); outline-offset: 3px; }
 .regional-map .leaflet-popup-content-wrapper, .regional-map .leaflet-popup-tip { background: var(--bg); color: var(--text); }
-.regional-map__links { margin-top: 1rem; }
-.regional-map__links summary { cursor: pointer; }
 @media (max-width: 767px) {
   .regional-map__layout { grid-template-columns: minmax(0, 1fr); }
   .regional-map__canvas { height: 350px; }

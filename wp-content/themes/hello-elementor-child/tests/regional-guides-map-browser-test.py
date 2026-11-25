@@ -25,6 +25,8 @@ window.matchMedia=()=>({matches:true});
 function check(ok,label){if(!ok)throw Error(label);}
 try {
 const map=maps[0];check(!!map,'map created');check(!map.scrollWheelZoom.enabled(),'wheel disabled');check(map.touchZoom.enabled(),'two-finger gestures immediately enabled');
+check(map.getZoom()===12 && map.getCenter().distanceTo([41.025,28.985])<20,'opens on central Istanbul at zoom 12');
+check(JSON.parse(root.dataset.mapConfig).landmarks.every(({lat,lng})=>map.getBounds().contains([lat,lng])),'all three city landmarks visible initially');
 const markers=Array.from(document.querySelectorAll('.regional-map__marker--guide'));check(markers.length===1,'nearby guides grouped');check(document.querySelectorAll('.regional-map__marker--landmark').length===3,'distinct landmarks');
 check(markers[0].getAttribute('tabindex')==='0','keyboard marker');markers[0].dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
 check(!root.querySelector('[data-map-preview]').hidden,'keyboard opens card preview');

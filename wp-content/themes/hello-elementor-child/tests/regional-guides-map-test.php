@@ -54,8 +54,9 @@ foreach(array('en','zh','ru','de','ar') as $lang){$GLOBALS['language']=$lang;$gu
 expect(-1 === $GLOBALS['query_args']['posts_per_page'] && !isset($GLOBALS['query_args']['paged']),'pagination independent query');
 expect(false === $GLOBALS['query_args']['has_password'],'password protected articles excluded');
 ob_start();pera_render_regional_guides_map();$html=ob_get_clean();
-expect(false === strpos($html,'<script>'),'output escaped');expect(false !== strpos($html,'&lt;script&gt;'),'escaped article link present');
-expect(false !== strpos($html,'https://example.test/ar/guide-1/'),'crawlable localized links');
+expect(false === strpos($html,'<script>'),'output escaped');expect(false !== strpos($html,'&lt;script&gt;'),'escaped guide title in map configuration');
+expect(false !== strpos($html,'https://example.test/ar/guide-1/'),'localized post card link');
+expect(false === strpos($html,'<details') && false === strpos($html,'Browse mapped guides'),'no duplicate map guide list');
 expect(false !== strpos($html,'<template data-map-guide="1">') && false !== strpos($html,'<article data-post-id="1">'),'map prepares normal post cards by guide ID');
 expect(3 === count(pera_regional_map_landmarks()),'three landmarks');
 foreach(pera_regional_map_landmarks() as $landmark)expect(!isset($landmark['url']),'landmarks have no article links');
