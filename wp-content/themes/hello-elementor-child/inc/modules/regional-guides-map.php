@@ -91,10 +91,6 @@ function pera_render_regional_guides_map() {
 				</template>
 			<?php endforeach; ?>
 			<p data-map-status role="status"><?php echo esc_html( pera_ml_ui( 'If the map is unavailable, explore the guide links below.', 'theme.regional_map.fallback' ) ); ?></p>
-			<details class="regional-map__links">
-				<summary><?php echo esc_html( pera_ml_ui( 'Browse mapped guides', 'theme.regional_map.browse' ) ); ?></summary>
-				<ul><?php foreach ( $guides as $guide ) : ?><li><a href="<?php echo esc_url( $guide['url'] ); ?>"><?php echo esc_html( $guide['title'] ); ?></a></li><?php endforeach; ?></ul>
-			</details>
 		</div>
 	</section>
 	<?php

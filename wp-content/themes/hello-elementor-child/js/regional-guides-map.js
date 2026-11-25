@@ -1,10 +1,10 @@
 /* global L */
 (() => {
   'use strict';
-  const initialBounds = [[40.90, 28.60], [41.27, 29.35]];
+  const pickerBounds = [[40.90, 28.60], [41.27, 29.35]];
   function baseMap(canvas, options = {}) {
     const map = L.map(canvas, { scrollWheelZoom: false, ...options });
-    map.fitBounds(initialBounds);
+    if (!options.center) map.fitBounds(pickerBounds);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -14,7 +14,7 @@
   function icon(kind) {
     return L.divIcon({ className: `regional-map__marker regional-map__marker--${kind}`, iconSize: kind === 'guide' ? [24, 24] : [12, 12] });
   }
-  // Group by screen distance at each zoom. Identical coordinates always share a popup.
+  // Group nearby guides at each zoom. Identical coordinates always share a marker.
   function groups(guides, map) {
     const result = [];
     guides.forEach(guide => {
@@ -62,7 +62,12 @@
       preview.hidden = false;
       showCard(guides.find(guide => guide.id === selectedGuideId) || guides[0]);
     }
-    const map = baseMap(canvas, { touchZoom: true, tapHold: false });
+    const map = baseMap(canvas, {
+      center: [41.025, 28.985],
+      zoom: 12,
+      touchZoom: true,
+      tapHold: false
+    });
     // Leaflet's TouchZoom handles both pinch and two-finger midpoint panning.
     // Keep its touch-action pan-x pan-y, allowing the browser to scroll with one
     // finger. Disable Drag before Leaflet sees touch input; do not cancel taps.
