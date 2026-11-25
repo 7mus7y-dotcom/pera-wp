@@ -842,8 +842,8 @@ peracrm_frontend_render_shell_header();
 				$active_filter_bits[] = sprintf( __( 'Filter: %s', 'peracrm' ), $clients_active_filter_label );
 			}
 			?>
-      <div data-crm-clients-workspace<?php echo $is_new72 ? ' class="crm-new72-workspace"' : ''; ?>>
-      <?php if ( ! empty( $clients_new_leads_items ) ) : ?>
+      <div data-crm-clients-workspace<?php echo $is_new72 ? ' class="crm-new72-workspace"' : ( $is_header_search ? ' class="crm-search-results-workspace"' : '' ); ?>>
+      <?php if ( ! $is_header_search && ! empty( $clients_new_leads_items ) ) : ?>
       <section class="crm-panel-surface crm-section crm-list-workspace crm-list-workspace--rows crm-list-workspace--new-leads" aria-labelledby="crm-clients-new-leads-heading">
         <header class="crm-section__header">
           <div class="crm-section__heading-group">
