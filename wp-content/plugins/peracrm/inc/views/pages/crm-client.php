@@ -784,8 +784,8 @@ peracrm_frontend_render_shell_header();
                       </select>
                     </label>
                     <label><?php esc_html_e( 'Due date & time', 'peracrm' ); ?><input type="datetime-local" name="peracrm_due_at" required /></label>
-                    <label><?php esc_html_e( 'Reminder note', 'peracrm' ); ?><textarea name="peracrm_reminder_note" rows="2" maxlength="5000" placeholder="<?php echo esc_attr__( 'Add a reminder note…', 'peracrm' ); ?>"></textarea></label>
                   </div>
+                  <label class="crm-reminder-note-field"><?php esc_html_e( 'Reminder note', 'peracrm' ); ?><textarea name="peracrm_reminder_note" rows="2" maxlength="5000" placeholder="<?php echo esc_attr__( 'Add a reminder note…', 'peracrm' ); ?>"></textarea></label>
                   <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add reminder', 'peracrm' ); ?></button>
                 </form>
               </div>
