@@ -5846,6 +5846,24 @@ ol.pretty-list li::before {
 }
 
 /* Regional Guides discovery map. Leaflet remains below the site navigation. */
+.regional-map__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-md);
+  align-items: start;
+}
+.regional-map__preview { min-width: 0; }
+.regional-map__choices:not(:empty) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+.regional-map__choices button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.regional-map__choices [aria-pressed="true"] { font-weight: 700; }
 .regional-map__canvas {
   height: 480px;
   width: 100%;
@@ -5864,11 +5882,10 @@ ol.pretty-list li::before {
 .regional-map__marker--guide { background: var(--brand-blue); border: 3px solid var(--brand-white); box-shadow: 0 1px 5px #0008; }
 .regional-map__marker--landmark { background: #64748b; border: 2px solid #fff; }
 .regional-map__marker:focus-visible { outline: 3px solid var(--brand-yellow); outline-offset: 3px; }
-.regional-map__popup { overflow-wrap: anywhere; }
 .regional-map .leaflet-popup-content-wrapper, .regional-map .leaflet-popup-tip { background: var(--bg); color: var(--text); }
-.regional-map .leaflet-popup-content a { color: var(--accent); }
 .regional-map__links { margin-top: 1rem; }
 .regional-map__links summary { cursor: pointer; }
 @media (max-width: 767px) {
+  .regional-map__layout { grid-template-columns: minmax(0, 1fr); }
   .regional-map__canvas { height: 350px; }
 }

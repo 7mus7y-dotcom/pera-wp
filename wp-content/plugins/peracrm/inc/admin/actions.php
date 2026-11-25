@@ -1938,6 +1938,57 @@ function peracrm_handle_mark_reminder_done()
     peracrm_admin_redirect_with_notice($redirect, 'reminder_done');
 }
 
+function peracrm_handle_update_reminder_due_at()
+{
+    $client_id = isset($_POST['peracrm_client_id']) ? absint($_POST['peracrm_client_id']) : 0;
+    $reminder_id = isset($_POST['peracrm_reminder_id']) ? absint($_POST['peracrm_reminder_id']) : 0;
+    check_admin_referer('peracrm_update_reminder_due_at_' . $client_id . '_' . $reminder_id);
+
+    $redirect = pera_crm_get_client_view_url($client_id) . '#crm-client-next-actions';
+    peracrm_with_target_blog(static function () use ($client_id, $reminder_id, $redirect) {
+        $actor_id = peracrm_get_actor_user_id();
+        if (!peracrm_user_can_access_client($actor_id, $client_id)) {
+            wp_die(esc_html__('Unauthorized.', 'peracrm'), '', ['response' => 403]);
+        }
+
+        $reminder = peracrm_reminders_get($reminder_id, $client_id);
+        if (!$reminder || (int) $reminder['client_id'] !== $client_id) {
+            peracrm_admin_redirect_with_notice($redirect, 'reminder_failed');
+        }
+
+        if (!user_can($actor_id, 'manage_options') && !user_can($actor_id, 'peracrm_manage_all_reminders')
+            && (int) $reminder['advisor_user_id'] !== $actor_id) {
+            wp_die(esc_html__('Unauthorized.', 'peracrm'), '', ['response' => 403]);
+        }
+
+        $raw_due = isset($_POST['peracrm_due_at']) && is_string($_POST['peracrm_due_at'])
+            ? wp_unslash($_POST['peracrm_due_at']) : '';
+        $due_at = peracrm_parse_due_at_input($raw_due);
+        if ($due_at === '' || str_replace(' ', 'T', substr($due_at, 0, 16)) !== $raw_due) {
+            peracrm_admin_redirect_with_notice($redirect, 'reminder_invalid_due_at');
+        }
+
+        if (!in_array($reminder['status'], ['pending', 'open'], true)) {
+            peracrm_admin_redirect_with_notice($redirect, 'reminder_failed');
+        }
+
+        if ($due_at !== $reminder['due_at']) {
+            if (!peracrm_reminders_update_due_at($reminder, $due_at)) {
+                peracrm_admin_redirect_with_notice($redirect, 'reminder_failed');
+            }
+
+            peracrm_log_event($client_id, 'reminder_rescheduled', [
+                'reminder_id' => $reminder_id,
+                'old_due_at' => $reminder['due_at'],
+                'due_at' => $due_at,
+                'actor_user_id' => $actor_id,
+            ]);
+        }
+
+        peracrm_admin_redirect_with_notice($redirect, 'reminder_rescheduled');
+    });
+}
+
 function peracrm_handle_update_reminder_status()
 {
     peracrm_debug_admin_post_log('PERACRM admin-post hit: action=peracrm_update_reminder_status', peracrm_debug_admin_post_request_context());

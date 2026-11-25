@@ -16,6 +16,7 @@ function wp_enqueue_script($handle){$GLOBALS['assets'][]=$handle;}
 function nocache_headers(){$GLOBALS['nocache']++;}
 function get_posts(){$GLOBALS['queries']++;return array((object)array('ID'=>1,'post_status'=>'publish'));}
 function get_post_meta($id,$key){return '_pera_guide_map_lat' === $key ? '41' : ('_pera_guide_map_lng' === $key ? '29' : '1');}
+function get_template_part($name,$variant,$args){echo '<article data-post-id="'.esc_attr($args['post_id']).'"><a href="'.esc_url($args['permalink']).'">Guide</a></article>';}
 function get_the_title(){return 'Guide';} function get_permalink(){return 'https://example.test/guide/';}
 function pera_ml_url($url){return str_replace('example.test/','example.test/'.$GLOBALS['language'].'/',$url);}
 function pera_ml_ui($s){return $s;} function wp_json_encode($v){return json_encode($v);}

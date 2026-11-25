@@ -5,8 +5,8 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 root = Path(__file__).resolve().parents[1]
-config = dict(guides=[dict(lat=41.08, lng=28.975, title='Guide', url='https://example.test/guide/')], landmarks=[], read='Read guide')
-html = '<meta name="viewport" content="width=device-width,initial-scale=1"><style>' + (root/'vendor/leaflet/leaflet.css').read_text() + (root/'css/main.css').read_text() + '</style><div style="height:250px"></div><section class="regional-map" data-regional-map><div data-map-canvas class="regional-map__canvas"></div><p data-map-status>Fallback</p></section><div style="height:2000px"></div><details data-regional-map-picker><summary>Picker</summary><div data-map-canvas style="height:240px"></div></details><input id="pera-guide-map-lat"><input id="pera-guide-map-lng">'
+config = dict(guides=[dict(id=1, lat=41.08, lng=28.975, title='Guide', url='https://example.test/guide/')], landmarks=[], read='Read guide')
+html = '<meta name="viewport" content="width=device-width,initial-scale=1"><style>' + (root/'vendor/leaflet/leaflet.css').read_text() + (root/'css/main.css').read_text() + '</style><div style="height:250px"></div><section class="regional-map" data-regional-map><div data-map-canvas class="regional-map__canvas"></div><div data-map-preview hidden><div data-map-choices></div><div data-map-card></div></div><template data-map-guide="1"><article><a href="https://example.test/guide/">Guide</a></article></template><p data-map-status>Fallback</p></section><div style="height:2000px"></div><details data-regional-map-picker><summary>Picker</summary><div data-map-canvas style="height:240px"></div></details><input id="pera-guide-map-lat"><input id="pera-guide-map-lng">'
 html += '<script>' + (root/'vendor/leaflet/leaflet.js').read_text() + '</script><script>document.querySelector("section").dataset.mapConfig=' + json.dumps(json.dumps(config)) + ';window.maps=[];const original=L.map;L.map=(...args)=>{const m=original(...args);maps.push(m);return m;};const Grid=L.GridLayer.extend({createTile(){return document.createElement("div");}});L.tileLayer=()=>new Grid();</script><script>' + (root/'js/regional-guides-map.js').read_text() + '</script>'
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=shutil.which('chromium') or shutil.which('google-chrome'), args=['--no-sandbox'])
@@ -46,11 +46,11 @@ with sync_playwright() as p:
     assert page.evaluate('scrollY') > 50
     page.evaluate('scrollTo(0,0); maps[0].setView([41.08,28.975],12,{animate:false})')
     page.locator('.regional-map__marker--guide').tap()
-    link = page.locator('.regional-map__popup a')
+    link = page.locator('[data-map-card] a')
     assert link.get_attribute('href') == 'https://example.test/guide/'
-    page.evaluate('window.followed=false;document.querySelector(".regional-map__popup a").addEventListener("click",e=>{e.preventDefault();window.followed=true})')
+    page.evaluate('window.followed=false;document.querySelector("[data-map-card] a").addEventListener("click",e=>{e.preventDefault();window.followed=true})')
     link.tap()
-    assert page.evaluate('followed'), 'popup links receive taps'
+    assert page.evaluate('followed'), 'guide card links receive taps'
     # Picker is independent: default Drag and TouchZoom, click coordinates, input sync.
     page.evaluate('document.querySelector("details").open=true')
     page.wait_for_timeout(100)

@@ -25,28 +25,43 @@
     });
     return result;
   }
-  function popup(guides, read) {
-    const content = document.createElement('div');
-    content.className = 'regional-map__popup';
-    guides.forEach(guide => {
-      const item = document.createElement('p');
-      const title = document.createElement('strong');
-      title.textContent = guide.title;
-      const link = document.createElement('a');
-      link.textContent = read;
-      // PHP esc_url protects crawlable links; constrain the separate JSON consumer too.
-      const url = new URL(guide.url, window.location.href);
-      if (!['https:', 'http:'].includes(url.protocol)) return;
-      link.href = url.href;
-      item.append(title, document.createElement('br'), link);
-      content.append(item);
-    });
-    return content;
-  }
   function archive(root) {
     const data = JSON.parse(root.dataset.mapConfig);
     const canvas = root.querySelector('[data-map-canvas]');
     const status = root.querySelector('[data-map-status]');
+    const preview = root.querySelector('[data-map-preview]');
+    const choices = root.querySelector('[data-map-choices]');
+    const card = root.querySelector('[data-map-card]');
+    const templates = new Map(Array.from(root.querySelectorAll('[data-map-guide]'), template => [
+      Number(template.dataset.mapGuide), template
+    ]));
+    let selectedGuideId;
+    function showGuides(guides) {
+      const showCard = guide => {
+        const template = templates.get(guide.id);
+        if (!template) return;
+        selectedGuideId = guide.id;
+        card.replaceChildren(template.content.cloneNode(true));
+        for (const button of choices.children) {
+          button.setAttribute('aria-pressed', String(Number(button.dataset.guideId) === guide.id));
+        }
+      };
+
+      choices.replaceChildren();
+      if (guides.length > 1) {
+        for (const guide of guides) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'btn btn--ghost btn--blue';
+          button.dataset.guideId = guide.id;
+          button.textContent = guide.title;
+          button.addEventListener('click', () => showCard(guide));
+          choices.append(button);
+        }
+      }
+      preview.hidden = false;
+      showCard(guides.find(guide => guide.id === selectedGuideId) || guides[0]);
+    }
     const map = baseMap(canvas, { touchZoom: true, tapHold: false });
     // Leaflet's TouchZoom handles both pinch and two-finger midpoint panning.
     // Keep its touch-action pan-x pan-y, allowing the browser to scroll with one
@@ -69,8 +84,14 @@
       groups(data.guides, map).forEach(group => {
         const guide = group.guides[0];
         const label = group.guides.map(item => item.label || item.title).join(', ');
-        L.marker([guide.lat, guide.lng], { icon: icon('guide'), title: label, alt: label, keyboard: true })
-          .bindPopup(popup(group.guides, data.read), { maxHeight: 220 }).addTo(layers);
+        const marker = L.marker([guide.lat, guide.lng], { icon: icon('guide'), title: label, alt: label, keyboard: true })
+          .on('click', () => showGuides(group.guides)).addTo(layers);
+        marker.getElement().addEventListener('keydown', event => {
+          if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault();
+            showGuides(group.guides);
+          }
+        });
       });
     }
     data.landmarks.forEach(landmark => {

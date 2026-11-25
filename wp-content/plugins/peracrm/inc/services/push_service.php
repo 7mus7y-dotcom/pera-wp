@@ -749,7 +749,7 @@ function peracrm_push_reminders_has_due_sent_column()
     return isset($columns['push_due_sent_at']);
 }
 
-function peracrm_push_mark_due_sent($reminder_id, $sent_at_mysql = '')
+function peracrm_push_mark_due_sent($reminder_id, $sent_at_mysql = '', $expected_due_at = '')
 {
     global $wpdb;
 
@@ -763,13 +763,19 @@ function peracrm_push_mark_due_sent($reminder_id, $sent_at_mysql = '')
         $sent_at_mysql = current_time('mysql');
     }
 
-    $table = peracrm_table('crm_reminders');
+    $where = ['id' => $reminder_id];
+    $where_formats = ['%d'];
+    if ($expected_due_at !== '') {
+        $where['due_at'] = $expected_due_at;
+        $where_formats[] = '%s';
+    }
+
     $updated = $wpdb->update(
-        $table,
+        peracrm_table('crm_reminders'),
         ['push_due_sent_at' => $sent_at_mysql],
-        ['id' => $reminder_id],
+        $where,
         ['%s'],
-        ['%d']
+        $where_formats
     );
 
     return $updated !== false;
@@ -957,7 +963,7 @@ function peracrm_push_run_digest($args = [])
             }
 
             if ($has_success) {
-                peracrm_push_mark_due_sent($reminder_id, current_time('mysql'));
+                peracrm_push_mark_due_sent($reminder_id, current_time('mysql'), (string) $row['due_at']);
                 peracrm_push_digest_debug_log('sent', [
                     'advisor_user_id' => $advisor_user_id,
                     'reminder_id' => $reminder_id,

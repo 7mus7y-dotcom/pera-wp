@@ -274,6 +274,32 @@ usort(
 );
 
 $active_reminder_rows = array_merge( $overdue_task_rows, $upcoming_rows );
+$reminder_actor_id = peracrm_get_actor_user_id();
+$can_manage_all_reminders = ! empty( $active_reminder_rows ) && peracrm_with_target_blog(
+    static function () use ( $reminder_actor_id ): bool {
+        return user_can( $reminder_actor_id, 'manage_options' ) || user_can( $reminder_actor_id, 'peracrm_manage_all_reminders' );
+    }
+);
+$render_reminder_date_editor = static function ( int $reminder_id, array $reminder ) use ( $client_id, $reminder_actor_id, $can_manage_all_reminders ): void {
+    if ( ! $can_manage_all_reminders && (int) ( $reminder['advisor_user_id'] ?? 0 ) !== $reminder_actor_id ) {
+        return;
+    }
+
+    $due_input = str_replace( ' ', 'T', substr( (string) $reminder['due_at'], 0, 16 ) );
+    ?>
+    <details>
+      <summary class="btn btn--ghost btn--blue"><?php esc_html_e( 'Change date', 'peracrm' ); ?></summary>
+      <form class="crm-form-stack" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+        <?php wp_nonce_field( 'peracrm_update_reminder_due_at_' . $client_id . '_' . $reminder_id, '_wpnonce', false ); ?>
+        <input type="hidden" name="action" value="peracrm_update_reminder_due_at" />
+        <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+        <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) $reminder_id ); ?>" />
+        <label><?php esc_html_e( 'Due date & time', 'peracrm' ); ?><input type="datetime-local" name="peracrm_due_at" value="<?php echo esc_attr( $due_input ); ?>" required /></label>
+        <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save date', 'peracrm' ); ?></button>
+      </form>
+    </details>
+    <?php
+};
 $reminder_assignee_ids = array_values(
 	array_unique(
 		array_filter(
@@ -716,6 +742,7 @@ peracrm_frontend_render_shell_header();
                               <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                               <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Mark done', 'peracrm' ); ?></button>
                             </form>
+                            <?php $render_reminder_date_editor( $reminder_id, $reminder_row ); ?>
                           </div>
                           <?php endif; ?>
                         </li>
@@ -765,6 +792,7 @@ peracrm_frontend_render_shell_header();
                               <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                               <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Mark done', 'peracrm' ); ?></button>
                             </form>
+                            <?php $render_reminder_date_editor( $reminder_id, $reminder_row ); ?>
                           </div>
                           <?php endif; ?>
                         </li>
