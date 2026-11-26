@@ -20,7 +20,9 @@ assert.match(crmCss, /@media \(prefers-color-scheme: dark\)[\s\S]*?\.crm-page--o
 assert.match(client, /\$whatsapp_link = function_exists\( 'peracrm_whatsapp_url_from_phone' \)/);
 assert.match(client, /class="crm-phone-wa-shortcut btn btn--ghost btn--green"/);
 assert.match(client, /if \( '' !== \$whatsapp_link \)/);
-assert.match(crmCss, /\.crm-page--client-view \.crm-phone-row \.crm-phone-wa-shortcut/);
+assert.match(crmCss, /\.crm-page--client-view \.crm-phone-row a\.crm-phone-wa-shortcut\.btn/);
+assert.match(crmCss, /\.crm-phone-wa-shortcut\.btn\s*\{[\s\S]*?width:\s*18px;[\s\S]*?height:\s*18px;[\s\S]*?gap:\s*0;[\s\S]*?padding:\s*0;[\s\S]*?border-radius:\s*50%/);
+assert.match(crmCss, /a\.crm-phone-wa-shortcut\.btn \.icon\s*\{[\s\S]*?width:\s*14px;[\s\S]*?height:\s*14px;/);
 
 // Trello #160: date semantics remain distinct, in both task layouts.
 assert.match(overview, /\$task_due_is_today = ! \$task_is_overdue/);
