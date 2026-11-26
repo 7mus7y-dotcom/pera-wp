@@ -1050,6 +1050,46 @@ body.has-open-dialog{
 
 .media-grid__item.card-shell{ padding: 0 !important; }
 
+.land-planning-info {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-inline-start: 4px;
+  padding: 0;
+  border: 1px solid var(--border-neutral);
+  border-radius: 50%;
+  background: var(--bg-soft);
+  color: var(--text);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.land-planning-help {
+  width: min(280px, calc(100vw - 32px));
+  padding: 12px 16px;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+@supports selector(:popover-open) {
+  .land-planning-help:not(:popover-open) { display: none; }
+}
+
+@supports (position-area: bottom) {
+  .land-planning-help:popover-open {
+    inset: auto;
+    margin: 6px;
+    position-area: bottom;
+    position-try-fallbacks: flip-block, bottom span-left, bottom span-right;
+  }
+}
+
+@supports not selector(:popover-open) {
+  .land-planning-info { display: none; }
+  .land-planning-help { max-width: 100%; }
+}
+
 .property-fact--no-icon{ align-items: center; }
 
 .fact-pills{

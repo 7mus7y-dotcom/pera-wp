@@ -47,8 +47,6 @@ get_header();
 		$verified = pera_land_planning_is_verified( $listing_id );
 		$planning = $verified ? array(
 			array( 'icon-zoning', pera_ml_ui( 'Documented planning use', 'theme.template.single_land.planning_use' ), $text_field( 'land_planning_use' ) ),
-			array( 'icon-far', pera_ml_ui( 'Emsal / KAKS', 'theme.template.single_land.emsal' ), $text_field( 'land_emsal' ) ),
-			array( 'icon-site-coverage', pera_ml_ui( 'TAKS', 'theme.template.single_land.taks' ), $text_field( 'land_taks' ) ),
 			array( 'icon-height-limit', pera_ml_ui( 'Height limit', 'theme.template.single_land.height_limit' ), $text_field( 'land_height_limit' ) ),
 		) : array();
 		$planning_notes = $verified ? $text_field( 'land_planning_notes' ) : '';
@@ -72,6 +70,23 @@ get_header();
 			return '' !== $fact[2];
 		};
 		$plot_facts = array_filter( array_merge( $plot_facts, $planning ), $has_value );
+		$ratio_placeholder = $verified
+			? pera_ml_ui( 'Not provided', 'theme.template.single_land.ratio_not_provided' )
+			: pera_ml_ui( 'Pending verification', 'theme.template.single_land.ratio_pending' );
+		$kaks = $verified ? $text_field( 'land_emsal' ) : '';
+		$taks = $verified ? $text_field( 'land_taks' ) : '';
+		$plot_facts[] = array(
+			'icon-far',
+			pera_ml_ui( 'Emsal / KAKS', 'theme.template.single_land.emsal' ),
+			$kaks !== '' ? $kaks : $ratio_placeholder,
+			pera_ml_ui( 'The ratio of total floor area counted under the zoning rules to the plot area. For example, KAKS 1.20 on a 1,000 m² plot corresponds to 1,200 m² of counted floor area.', 'theme.template.single_land.emsal_help' ),
+		);
+		$plot_facts[] = array(
+			'icon-site-coverage',
+			pera_ml_ui( 'TAKS', 'theme.template.single_land.taks' ),
+			$taks !== '' ? $taks : $ratio_placeholder,
+			pera_ml_ui( 'The share of the plot that the building footprint may cover. For example, TAKS 0.30 on a 1,000 m² plot allows up to 300 m² of coverage, subject to setbacks and other planning rules.', 'theme.template.single_land.taks_help' ),
+		);
 		$utilities  = $text_field( 'land_utilities' );
 
 		$map_mode = $text_field( 'land_map_visibility' );
@@ -190,16 +205,25 @@ get_header();
 					<div class="card-shell">
 						<h2><?php echo esc_html( pera_ml_ui( 'Plot information', 'theme.template.single_land.plot_information' ) ); ?></h2>
 						<p class="text-soft"><?php echo esc_html( $verified ? pera_ml_ui( 'Planning verified', 'theme.template.single_land.planning_verified' ) : pera_ml_ui( 'Planning status pending verification', 'theme.template.single_land.planning_pending' ) ); ?></p>
-						<?php if ( $plot_facts ) : ?>
-							<div class="property-facts">
-								<?php foreach ( $plot_facts as list( $symbol, $label, $value ) ) : ?>
-									<div class="property-fact">
-										<svg class="icon" width="18" height="18" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . $symbol ); ?>"></use></svg>
-										<span><span class="text-sm text-soft"><?php echo esc_html( $label ); ?></span> <strong><?php echo esc_html( $value ); ?></strong></span>
+						<div class="property-facts">
+							<?php foreach ( $plot_facts as $fact ) : ?>
+								<?php
+								list( $symbol, $label, $value ) = $fact;
+								$help = $fact[3] ?? '';
+								$help_id = 'land-planning-' . $listing_id . '-' . $symbol;
+								?>
+								<div class="property-fact">
+									<svg class="icon" width="18" height="18" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . $symbol ); ?>"></use></svg>
+									<div>
+										<span class="text-sm text-soft"><?php echo esc_html( $label ); ?></span> <strong><?php echo esc_html( $value ); ?></strong>
+										<?php if ( $help !== '' ) : ?>
+											<button class="land-planning-info" type="button" popovertarget="<?php echo esc_attr( $help_id ); ?>" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'What is %s?', 'theme.template.single_land.ratio_help_label' ), $label ) ); ?>">i</button>
+											<div id="<?php echo esc_attr( $help_id ); ?>" class="card-shell land-planning-help text-sm" popover><?php echo esc_html( $help ); ?></div>
+										<?php endif; ?>
 									</div>
-								<?php endforeach; ?>
-							</div>
-						<?php endif; ?>
+								</div>
+							<?php endforeach; ?>
+						</div>
 						<?php if ( $utilities !== '' ) : ?>
 							<p class="mt-sm"><strong><?php echo esc_html( pera_ml_ui( 'Utilities', 'theme.template.single_land.utilities' ) ); ?></strong><br><?php echo esc_html( $utilities ); ?></p>
 						<?php endif; ?>
