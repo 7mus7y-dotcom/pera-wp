@@ -83,7 +83,7 @@ if ( ! function_exists( 'pera_sitemaps_is_term_indexable' ) ) {
 add_filter(
 	'wp_sitemaps_post_types',
 	static function ( array $post_types ): array {
-		$allowed = array( 'post', 'page', 'property' );
+		$allowed = array( 'post', 'page', 'property', 'land' );
 
 		return array_intersect_key( $post_types, array_flip( $allowed ) );
 	}

@@ -255,6 +255,15 @@ function pera_land_register_fields(): void {
 					'instructions'  => __( 'Use the WordPress featured image for the archive card.', 'pera-land' ),
 				),
 				array(
+					'key'           => 'field_pera_land_drone_video',
+					'label'         => __( 'Drone video', 'pera-land' ),
+					'name'          => 'land_drone_video',
+					'type'          => 'file',
+					'return_format' => 'id',
+					'mime_types'    => 'mp4,webm',
+					'instructions'  => __( 'The video will appear with the plot images in the gallery.', 'pera-land' ),
+				),
+				array(
 					'key'           => 'field_pera_land_public_plot_plan',
 					'label'         => __( 'Public plot plan', 'pera-land' ),
 					'name'          => 'land_public_plot_plan',

@@ -84,6 +84,7 @@ add_action( 'wp_enqueue_scripts', function () {
     ) );
 
   $is_single_property = is_singular( 'property' );
+  $is_single_land = is_singular( 'land' );
   $is_portfolio_token = ( function_exists( 'pera_portfolio_token_is_request' ) && pera_portfolio_token_is_request() )
     || ( function_exists( 'pera_theme_portfolio_token_is_request' ) && pera_theme_portfolio_token_is_request() );
 
@@ -110,6 +111,7 @@ add_action( 'wp_enqueue_scripts', function () {
     is_page_template( 'page-book-a-consultancy.php' ) ||
     $is_favourites_page ||
     is_singular( 'property' ) ||
+    $is_single_land ||
     is_singular( 'bodrum-property' );
 
   if ( ! $is_crm_route && defined( 'PERACRM_URL' ) && $is_enquiry_page ) {
@@ -142,6 +144,7 @@ $is_single_bodrum_property = is_singular( 'bodrum-property' );
 $needs_slider = (
   $is_home ||
   $is_single_property ||
+  $is_single_land ||
   $is_single_bodrum_property ||
   $is_single_post ||
   $is_featured_guides_archive ||
@@ -248,7 +251,7 @@ if ( $is_home || $is_citizenship_page ) {
       true
     );
   }
-  if ( $is_single_property || $is_single_bodrum_property || $is_home || $is_citizenship_properties_page ) {
+  if ( $is_single_property || $is_single_land || $is_single_bodrum_property || $is_home || $is_citizenship_properties_page ) {
     wp_enqueue_style(
       'pera-property-css',
       get_stylesheet_directory_uri() . '/css/property.css',

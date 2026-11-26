@@ -54,7 +54,7 @@ if ( ! function_exists('pera_seo_all_get_description') ) {
 
     $post_type = get_post_type( $post_id );
 
-    if ( in_array( $post_type, array( 'post', 'page' ), true ) ) {
+    if ( in_array( $post_type, array( 'post', 'page', 'land' ), true ) ) {
       $manual_desc = pera_seo_all_get_manual_post_text_field( $post_id, 'seo_meta_description' );
       if ( $manual_desc !== '' ) return $manual_desc;
     }
@@ -424,6 +424,7 @@ if ( ! function_exists( 'pera_seo_all_get_context_key' ) ) {
   function pera_seo_all_get_context_key(): string {
     if ( is_front_page() ) return 'homepage';
     if ( is_singular( 'post' ) ) return 'blog_post';
+    if ( is_singular( 'land' ) ) return 'land_listing';
     if ( is_page() ) return 'static_page';
     if ( is_home() && ! is_front_page() ) return 'blog_home';
     if ( is_category() ) return 'blog_category';
@@ -677,6 +678,11 @@ add_filter( 'pre_get_document_title', function ( $title ) {
     }
 
     return $title;
+  }
+
+  if ( $context === 'land_listing' ) {
+    $manual_title = pera_seo_all_get_manual_post_text_field( (int) get_queried_object_id(), 'seo_title' );
+    return $manual_title !== '' ? $manual_title : $title;
   }
 
   if ( in_array( $context, array( 'blog_home', 'blog_category', 'blog_tag', 'blog_date', 'blog_author' ), true ) ) {
@@ -1090,6 +1096,11 @@ add_action( 'wp_head', function () {
       }
       break;
 
+    case 'land_listing':
+      $desc = pera_seo_all_get_description( $post_id );
+      $schema_type = 'WebPage';
+      break;
+
     default:
       if ( $post_id > 0 ) {
         $desc = pera_seo_all_get_description( $post_id );
@@ -1104,7 +1115,7 @@ add_action( 'wp_head', function () {
   $img_height = 0;
   $img_attachment_id = 0;
 
-  if ( in_array( $context, array( 'homepage', 'static_page', 'blog_home', 'blog_post' ), true ) && $post_id > 0 ) {
+  if ( in_array( $context, array( 'homepage', 'static_page', 'blog_home', 'blog_post', 'land_listing' ), true ) && $post_id > 0 ) {
     $manual_img = pera_seo_all_get_post_manual_social_image( $post_id );
     if ( ! empty( $manual_img['url'] ) ) {
       $img_url = (string) $manual_img['url'];
@@ -1202,6 +1213,10 @@ add_action( 'wp_head', function () {
   if ( $img_url ) {
     echo '<meta name="twitter:image" content="' . esc_url($img_url) . '">' . "\n";
     echo '<meta name="twitter:image:alt" content="' . esc_attr($img_alt) . '">' . "\n";
+  }
+
+  if ( $context === 'land_listing' && ! post_password_required( $post_id ) ) {
+    pera_render_faq_schema( pera_get_single_post_faq_v2_items( $post_id ), array( 'post_id' => $post_id ) );
   }
 
   if ( $context === 'blog_post' && $post_id > 0 ) {
