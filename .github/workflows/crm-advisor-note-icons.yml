@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'wp-content/plugins/peracrm/inc/views/pages/crm-client.php'
+      - 'wp-content/plugins/peracrm/inc/svg-sprite.php'
+      - 'wp-content/plugins/peracrm/logos-icons/icons.svg'
       - 'wp-content/plugins/peracrm/assets/frontend/crm.css'
       - 'wp-content/themes/hello-elementor-child/logos-icons/icons.svg'
       - 'wp-content/plugins/peracrm/tests/advisor-note-type-icons-test.js'

@@ -4,6 +4,8 @@ on:
     paths:
       - 'wp-content/plugins/peracrm/assets/frontend/crm.js'
       - 'wp-content/plugins/peracrm/inc/views/pages/crm-client.php'
+      - 'wp-content/plugins/peracrm/inc/svg-sprite.php'
+      - 'wp-content/plugins/peracrm/logos-icons/icons.svg'
       - 'wp-content/plugins/peracrm/tests/note-delete-feedback-icon-cache-test.js'
       - '.github/workflows/crm-note-delete-feedback-icon.yml'
   workflow_dispatch:

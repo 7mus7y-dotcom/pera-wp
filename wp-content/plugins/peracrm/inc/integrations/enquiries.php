@@ -325,6 +325,13 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
         global $wpdb;
         $context_source = !empty($context['handler']) ? sanitize_key((string) $context['handler']) : 'website_form';
         $default_assigned_advisor = (int) peracrm_ingest_default_admin_user_id();
+        $existing_client_id = 0;
+        if ( $email !== '' && function_exists( 'peracrm_find_existing_client_id_by_email' ) ) {
+            $existing_client_id = (int) peracrm_find_existing_client_id_by_email( $email );
+        } elseif ( $phone !== '' && function_exists( 'peracrm_find_existing_client_id_by_phone' ) ) {
+            $existing_client_id = (int) peracrm_find_existing_client_id_by_phone( $phone );
+        }
+        $is_repeat_enquiry = $existing_client_id > 0;
 
         $resolver_data = [
             'first_name' => $first_name,
@@ -350,7 +357,7 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
         }
 
         peracrm_ingest_debug_log('client created/updated', $context + ['client_id' => $client_id]);
-        $advisor_assigned = peracrm_ingest_enforce_advisor_assignment($client_id, $default_assigned_advisor);
+        $advisor_assigned = $is_repeat_enquiry ? false : peracrm_ingest_enforce_advisor_assignment($client_id, $default_assigned_advisor);
         peracrm_ingest_debug_log('advisor assignment enforced', $context + [
             'client_id' => $client_id,
             'advisor_user_id' => $default_assigned_advisor,
@@ -403,6 +410,7 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
             'target_blog_id' => isset($context['target_blog_id']) ? (int) $context['target_blog_id'] : (int) peracrm_get_target_blog_id(),
             'site_url' => isset($context['site_url']) ? esc_url_raw((string) $context['site_url']) : esc_url_raw((string) home_url('/')),
             'source_event_id' => isset($context['source_event_id']) ? sanitize_text_field((string) $context['source_event_id']) : '',
+            'is_repeat_enquiry' => $is_repeat_enquiry,
         ];
 
         if (!empty($raw_fields)) {

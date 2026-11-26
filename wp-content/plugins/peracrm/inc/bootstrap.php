@@ -82,6 +82,8 @@ require_once PERACRM_INC . '/services/header_search_service.php';
 require_once PERACRM_INC . '/services/client_scope_service.php';
 require_once PERACRM_INC . '/services/activity_service.php';
 require_once PERACRM_INC . '/services/reminder_service.php';
+require_once PERACRM_INC . '/repeat-enquiries.php';
+require_once PERACRM_INC . '/svg-sprite.php';
 require_once PERACRM_INC . '/services/user_link_service.php';
 require_once PERACRM_INC . '/services/user_membership_service.php';
 require_once PERACRM_INC . '/services/push_service.php';
