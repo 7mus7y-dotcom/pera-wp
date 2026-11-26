@@ -14,6 +14,31 @@ function pera_land_text_field( int $post_id, string $name ): string {
 	return is_scalar( $value ) ? trim( (string) $value ) : '';
 }
 
+/** Read saved list items while retaining facts entered in the original textarea. */
+function pera_land_quick_facts( int $post_id ): array {
+	$raw = get_post_meta( $post_id, 'land_quick_facts', true );
+	if ( ! is_string( $raw ) || trim( $raw ) === '' ) {
+		return array();
+	}
+
+	if ( preg_match_all( '~<li\b[^>]*>(.*?)</li\s*>~is', $raw, $matches ) ) {
+		$allowed = array( 'a' => array( 'href' => true ), 'strong' => array(), 'em' => array(), 'b' => array(), 'i' => array() );
+		$facts = array_map( static function ( string $item ) use ( $allowed ): string {
+			return wp_kses( trim( $item ), $allowed );
+		}, $matches[1] );
+	} else {
+		// The editor may wrap old plain-text facts in paragraphs or add line breaks.
+		$lines = preg_replace( '~<p\b[^>]*>|</p\s*>|<br\s*/?>~i', "\n", $raw );
+		$facts = array_map( 'esc_html', preg_split( '/\R/u', $lines ) ?: array() );
+	}
+
+	$facts = array_filter( array_map( 'trim', $facts ), static function ( string $fact ): bool {
+		$text = html_entity_decode( wp_strip_all_tags( $fact ), ENT_QUOTES, 'UTF-8' );
+		return trim( str_replace( "\u{00A0}", ' ', $text ) ) !== '';
+	} );
+	return array_slice( $facts, 0, 5 );
+}
+
 function pera_land_currencies(): array {
 	return function_exists( 'pera_currency_get_supported' ) ? array_keys( pera_currency_get_supported() ) : array( 'USD' );
 }

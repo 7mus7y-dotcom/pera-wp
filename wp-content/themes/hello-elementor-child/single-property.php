@@ -1316,11 +1316,6 @@ if ( ! empty( $yt_video ) ) {
   $has_map       = is_array( $map ) && ( ! empty( $map['lat'] ) && ! empty( $map['lng'] ) );
   ?>
 
-  <?php
-  ob_start();
-  pera_render_nearby_amenities( $map, 'property-location-heading' );
-  $nearby_html = trim( ob_get_clean() );
-  ?>
     <!-- Full-width description and facilities -->
     <?php if ( $has_about || $has_facilities ) : ?>
     <div class="property-location__main">
@@ -1347,64 +1342,7 @@ if ( ! empty( $yt_video ) ) {
     </div>
 
     <?php endif; ?>
-    <?php if ( $has_map || $nearby_html !== '' ) : ?>
-      <div class="card-shell property-location__panel" role="region" aria-labelledby="property-location-heading">
-        <h2 class="inline-row property-location__heading" id="property-location-heading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-map"></use></svg><?php echo esc_html( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) ); ?></h2>
-        <div class="property-location__grid<?php if ( $has_map && $nearby_html !== '' ) echo ' property-location__grid--paired'; ?>">
-    <?php endif; ?>
-    <!-- Map column, when coordinates are available -->
-<?php if ( $has_map ) : ?>
-<aside class="property-location__aside">
-    <?php
-      $lat       = (float) $map['lat'];
-      $lng       = (float) $map['lng'];
-      $address   = ! empty( $map['address'] ) ? (string) $map['address'] : '';
-      $gmaps_url = 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng );
-      $embed_url = 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng ) . '&z=15&output=embed';
-    ?>
-
-    <div class="property-map-card">
-
-      <?php if ( $address ) : ?>
-        <p class="property-map-card__address text-soft">
-          <?php echo esc_html( $address ); ?>
-        </p>
-      <?php endif; ?>
-
-      <div class="media-frame media-frame--image-fill">
-        <iframe
-          class="media-embed--map"
-          src="<?php echo esc_url( $embed_url ); ?>"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          allowfullscreen
-          title="<?php echo esc_attr( pera_ml_ui( 'Location map', 'theme.template.single_property.title.location_map' ) ); ?>"
-        ></iframe>
-      </div>
-
-      <div class="property-map-card__actions">
-        <a
-          class="btn btn--solid btn--green"
-          href="<?php echo esc_url( $gmaps_url ); ?>"
-          target="_blank"
-          rel="noopener"
-        >
-          <?php echo esc_html( pera_ml_ui( 'Open in Google Maps', 'theme.template.single_property.open_in_google_maps' ) ); ?>
-        </a>
-      </div>
-
-    </div>
-</aside>
-<?php endif; ?>
-
-
-  <?php if ( $nearby_html !== '' ) : ?>
-    <div class="property-location__nearby"><?php echo $nearby_html; // Trusted markup from the existing POI renderer. ?></div>
-  <?php endif; ?>
-  <?php if ( $has_map || $nearby_html !== '' ) : ?>
-  </div>
-  <?php endif; ?>
-  <?php if ( $has_map || $nearby_html !== '' ) : ?></div><?php endif; ?>
+    <?php get_template_part( 'parts/listing-location-panel', null, array( 'map' => $map, 'has_map' => $has_map ) ); ?>
 </section>
 
   <section id="property-price-range" class="section section-soft property-price-range">
