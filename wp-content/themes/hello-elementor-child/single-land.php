@@ -33,8 +33,7 @@ get_header();
 		$area        = (float) $text_field( 'land_plot_area_sqm' );
 		$price       = pera_land_public_price( $listing_id );
 		$area_label  = $area > 0 ? pera_land_format_number( $area ) . ' m²' : '';
-		$quick_facts = preg_split( '/\R/u', $text_field( 'land_quick_facts' ) ) ?: array();
-		$quick_facts = array_slice( array_filter( array_map( 'trim', $quick_facts ), 'strlen' ), 0, 5 );
+		$quick_facts = pera_land_quick_facts( $listing_id );
 		$archive_url = get_post_type_archive_link( 'land' );
 
 		$availability_labels = array(
@@ -47,7 +46,6 @@ get_header();
 		$verified = pera_land_planning_is_verified( $listing_id );
 		$planning = $verified ? array(
 			array( 'icon-zoning', pera_ml_ui( 'Documented planning use', 'theme.template.single_land.planning_use' ), $text_field( 'land_planning_use' ) ),
-			array( 'icon-height-limit', pera_ml_ui( 'Height limit', 'theme.template.single_land.height_limit' ), $text_field( 'land_height_limit' ) ),
 		) : array();
 		$planning_notes = $verified ? $text_field( 'land_planning_notes' ) : '';
 
@@ -87,14 +85,22 @@ get_header();
 			$taks !== '' ? $taks : $ratio_placeholder,
 			pera_ml_ui( 'The share of the plot that the building footprint may cover. For example, TAKS 0.30 on a 1,000 m² plot allows up to 300 m² of coverage, subject to setbacks and other planning rules.', 'theme.template.single_land.taks_help' ),
 		);
+		$height_limit = $verified ? $text_field( 'land_height_limit' ) : '';
+		if ( $height_limit !== '' ) {
+			$plot_facts[] = array( 'icon-height-limit', pera_ml_ui( 'Height limit', 'theme.template.single_land.height_limit' ), $height_limit );
+		}
 		$utilities  = $text_field( 'land_utilities' );
 
 		$map_mode = $text_field( 'land_map_visibility' );
 		$pin      = in_array( $map_mode, array( 'approximate', 'exact' ), true ) ? pera_land_field( $listing_id, 'land_' . $map_mode . '_map_pin' ) : null;
-		$map_url  = '';
+		$public_map = null;
 		if ( is_array( $pin ) && is_numeric( $pin['lat'] ?? null ) && is_numeric( $pin['lng'] ?? null )
 			&& abs( (float) $pin['lat'] ) <= 90 && abs( (float) $pin['lng'] ) <= 180 ) {
-			$map_url = 'https://www.google.com/maps?q=' . rawurlencode( $pin['lat'] . ',' . $pin['lng'] );
+			$public_map = array(
+				'lat'     => (float) $pin['lat'],
+				'lng'     => (float) $pin['lng'],
+				'address' => 'exact' === $map_mode && is_string( $pin['address'] ?? null ) ? $pin['address'] : '',
+			);
 		}
 
 		$plan_id  = absint( pera_land_field( $listing_id, 'land_public_plot_plan' ) );
@@ -187,16 +193,14 @@ get_header();
 		<section class="section section-soft property-overview" id="property-overview">
 			<div class="grid-2--tight">
 				<div class="property-overview__main">
-					<?php if ( $quick_facts ) : ?>
-						<h2><?php echo esc_html( pera_ml_ui( 'Quick facts', 'theme.template.single_land.quick_facts' ) ); ?></h2>
-					<?php endif; ?>
+					<h2><?php echo esc_html( pera_ml_ui( 'Quick facts', 'theme.template.single_land.quick_facts' ) ); ?></h2>
 					<?php if ( $archive_url ) : ?>
 						<p class="text-sm"><a href="<?php echo esc_url( $archive_url ); ?>"><?php echo esc_html( pera_ml_ui( 'Browse all land for sale in Istanbul', 'theme.template.single_land.browse_all_land' ) ); ?></a></p>
 					<?php endif; ?>
 					<?php if ( $quick_facts ) : ?>
 						<ul class="checklist checklist--circle">
 							<?php foreach ( $quick_facts as $fact ) : ?>
-								<li><?php echo esc_html( $fact ); ?></li>
+								<li><?php echo $fact; // Escaped or filtered by pera_land_quick_facts(). ?></li>
 							<?php endforeach; ?>
 						</ul>
 					<?php endif; ?>
@@ -245,24 +249,28 @@ get_header();
 			<section class="section"><div class="container article-body"><?php the_content(); ?></div></section>
 		<?php endif; ?>
 
-		<?php if ( $map_url ) : ?>
-			<section class="section property-location">
-				<div class="card-shell property-location__panel">
-					<h2 class="inline-row property-location__heading"><svg class="icon" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . 'icon-map' ); ?>"></use></svg><?php echo esc_html( pera_ml_ui( 'Location map', 'theme.template.single_land.location_map' ) ); ?></h2>
-					<?php
-					$approximate = 'approximate' === $map_mode;
-					$map_title = $approximate ? pera_ml_ui( 'Approximate location', 'theme.template.single_land.approximate_location' ) : pera_ml_ui( 'Plot location', 'theme.template.single_land.plot_location' );
-					?>
-					<div class="property-map-card">
-						<p class="property-map-card__address text-soft"><?php echo esc_html( $map_title ); ?></p>
-						<div class="media-frame media-frame--map">
-							<iframe class="media-embed--map" src="<?php echo esc_url( $map_url . ( $approximate ? '&z=13' : '&z=16' ) . '&output=embed' ); ?>" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="<?php echo esc_attr( $map_title ); ?>"></iframe>
-						</div>
-						<div class="property-map-card__actions">
-							<a class="btn btn--solid btn--green" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( pera_ml_ui( 'Open in Google Maps', 'theme.template.single_land.open_map' ) ); ?></a>
-						</div>
-					</div>
-				</div>
+		<?php if ( $public_map ) : ?>
+			<section class="section section-soft property-location" id="property-location">
+				<?php
+				$approximate = 'approximate' === $map_mode;
+				$map_title = $approximate
+					? pera_ml_ui( 'Approximate location', 'theme.template.single_land.approximate_location' )
+					: pera_ml_ui( 'Plot location', 'theme.template.single_land.plot_location' );
+				if ( $public_map['address'] === '' ) {
+					$public_map['address'] = $map_title;
+				}
+				get_template_part(
+					'parts/listing-location-panel',
+					null,
+					array(
+						'map'              => $public_map,
+						'has_map'          => true,
+						'map_title'        => $map_title,
+						'map_only_heading' => pera_ml_ui( 'Location map', 'theme.template.single_land.location_map' ),
+						'zoom'             => $approximate ? 13 : 15,
+					)
+				);
+				?>
 			</section>
 		<?php endif; ?>
 

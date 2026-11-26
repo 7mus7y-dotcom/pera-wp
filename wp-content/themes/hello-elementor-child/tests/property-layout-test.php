@@ -3,6 +3,8 @@
 function expect_layout( $condition, $message ) {
     if ( ! $condition ) { fwrite( STDERR, "FAIL: $message\n" ); exit( 1 ); }
 }
+define( 'ABSPATH', __DIR__ );
+function get_template_part( $slug, $name, $args ) { require dirname( __DIR__ ) . '/' . $slug . '.php'; }
 function get_field( $key, $id ) { return $GLOBALS['fields'][$key] ?? ''; }
 function pera_ml_ui( $text, $key ) { return $text; }
 function esc_html( $text ) { return htmlspecialchars( $text, ENT_QUOTES ); }
