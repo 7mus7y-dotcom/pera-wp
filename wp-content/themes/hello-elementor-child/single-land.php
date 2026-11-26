@@ -169,6 +169,29 @@ get_header();
 			</div>
 		</section>
 
+		<?php wp_enqueue_script( 'pera-property-sticky-summary', get_stylesheet_directory_uri() . '/js/property-sticky-summary.js', array(), pera_get_asset_version( '/js/property-sticky-summary.js' ), true ); ?>
+		<aside class="card-shell property-sticky-summary" data-property-sticky-summary hidden inert aria-label="<?php echo esc_attr( pera_ml_ui( 'Land summary', 'theme.template.single_land.sticky_summary' ) ); ?>">
+			<div class="property-sticky-summary__inner">
+				<div class="property-sticky-summary__details">
+					<div class="property-sticky-summary__price text-base text-bold"><?php echo pera_land_price_html( $price ); ?></div>
+					<?php if ( $area_label !== '' ) : ?>
+						<div class="property-sticky-summary__facts text-xs text-soft"><?php echo esc_html( $area_label ); ?></div>
+					<?php endif; ?>
+				</div>
+				<div class="property-sticky-summary__actions">
+					<a class="btn btn--solid btn--green property-sticky-summary__whatsapp" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener"
+						data-whatsapp="1" data-whatsapp-type="land_detail_sticky" data-track-channel="whatsapp" data-track-intent="high"
+						data-track-source="template" data-track-context="land_detail" data-track-ga4-event="whatsapp_click"
+						data-track-crm-event="whatsapp_click" data-post-id="<?php echo esc_attr( $listing_id ); ?>"
+						data-post-title="<?php echo esc_attr( $title ); ?>" data-page-url="<?php echo esc_url( $permalink ); ?>">
+						<svg class="icon" width="18" height="18" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . 'icon-whatsapp' ); ?>"></use></svg>
+						<span class="screen-reader-text"><?php echo esc_html( pera_ml_ui( 'WhatsApp', 'theme.template.single_land.whatsapp' ) ); ?></span>
+					</a>
+					<a class="btn btn--solid btn--blue" href="#contact-form"><?php echo esc_html( pera_ml_ui( 'Enquire', 'theme.template.single_property.enquire' ) ); ?></a>
+				</div>
+			</div>
+		</aside>
+
 		<section class="section section-soft property-overview" id="property-overview">
 			<div class="grid-2--tight">
 				<div class="property-overview__main">
