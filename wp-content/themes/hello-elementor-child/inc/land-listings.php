@@ -15,25 +15,47 @@ function pera_land_text_field( int $post_id, string $name ): string {
 }
 
 function pera_land_currencies(): array {
-	return array( 'TRY', 'USD', 'EUR', 'GBP', 'CNY' );
+	return function_exists( 'pera_currency_get_supported' ) ? array_keys( pera_currency_get_supported() ) : array( 'USD' );
 }
 
 function pera_land_format_number( float $number ): string {
 	return number_format_i18n( $number, floor( $number ) === $number ? 0 : 2 );
 }
 
-function pera_land_public_price( int $post_id ): array {
+function pera_land_public_price( int $post_id ): float {
 	if ( 'public' !== pera_land_text_field( $post_id, 'land_price_visibility' ) ) {
-		return array();
+		return 0.0;
 	}
 
-	$amount   = pera_land_text_field( $post_id, 'land_asking_price' );
-	$currency = pera_land_text_field( $post_id, 'land_asking_currency' );
-	if ( ! is_numeric( $amount ) || (float) $amount <= 0 || ! in_array( $currency, pera_land_currencies(), true ) ) {
-		return array();
+	$amount = pera_land_text_field( $post_id, 'land_asking_price' );
+	// Existing non-USD records need an explicit price correction before display.
+	$legacy_currency = pera_land_text_field( $post_id, 'land_asking_currency' );
+	if ( ! is_numeric( $amount ) || (float) $amount <= 0 || ! in_array( $legacy_currency, array( '', 'USD' ), true ) ) {
+		return 0.0;
 	}
 
-	return array( 'amount' => (float) $amount, 'currency' => $currency );
+	return (float) $amount;
+}
+
+function pera_land_price_html( float $usd ): string {
+	if ( $usd <= 0 ) {
+		return esc_html( pera_ml_ui( 'Price on request', 'theme.template.single_land.price_on_request' ) );
+	}
+	return pera_property_display_price_html( pera_property_display_price( max( 1, (int) round( $usd ) ) ) );
+}
+
+function pera_land_budget_usd( array $filters ): ?float {
+	$currency = $filters['land_currency'];
+	if ( ! in_array( $currency, pera_land_currencies(), true ) ) {
+		return null;
+	}
+	$rate = 'USD' === $currency ? 1.0 : pera_currency_get_rate( $currency );
+	if ( null === $rate || $rate <= 0 ) {
+		return null;
+	}
+
+	$limit = (float) $filters['land_max_price'] / $rate;
+	return floor( round( $limit * 100, 8 ) ) / 100;
 }
 
 function pera_land_planning_is_verified( int $post_id ): bool {
@@ -80,8 +102,8 @@ function pera_land_archive_filters( array $input ): array {
 	}
 
 	if ( isset( $filters['land_max_price'] ) ) {
-		$currency = $input['land_currency'] ?? '';
-		$filters['land_currency'] = in_array( $currency, pera_land_currencies(), true ) ? $currency : 'TRY';
+		$currency = $input['land_currency'] ?? 'USD';
+		$filters['land_currency'] = is_string( $currency ) ? strtoupper( sanitize_key( wp_unslash( $currency ) ) ) : '';
 	}
 
 	return $filters;
@@ -125,14 +147,23 @@ function pera_land_filter_archive_query( WP_Query $query ): void {
 	}
 
 	if ( isset( $filters['land_max_price'] ) ) {
-		$meta[] = array( 'key' => 'land_price_visibility', 'value' => 'public' );
-		$meta[] = array( 'key' => 'land_asking_currency', 'value' => $filters['land_currency'] );
-		$meta[] = array(
-			'key'     => 'land_asking_price',
-			'value'   => array( '0.01', $filters['land_max_price'] ),
-			'compare' => 'BETWEEN',
-			'type'    => 'DECIMAL(16,2)',
-		);
+		$budget_usd = pera_land_budget_usd( $filters );
+		if ( null === $budget_usd ) {
+			$query->set( 'post__in', array( 0 ) );
+		} else {
+			$meta[] = array( 'key' => 'land_price_visibility', 'value' => 'public' );
+			$meta[] = array(
+				'relation' => 'OR',
+				array( 'key' => 'land_asking_currency', 'compare' => 'NOT EXISTS' ),
+				array( 'key' => 'land_asking_currency', 'value' => array( '', 'USD' ), 'compare' => 'IN' ),
+			);
+			$meta[] = array(
+				'key'     => 'land_asking_price',
+				'value'   => array( '0.01', $budget_usd ),
+				'compare' => 'BETWEEN',
+				'type'    => 'DECIMAL(16,2)',
+			);
+		}
 	}
 
 	$existing_meta = $query->get( 'meta_query', array() );

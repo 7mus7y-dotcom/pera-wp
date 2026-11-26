@@ -12,6 +12,7 @@ global $wp_query;
 $filters     = (array) $wp_query->get( 'pera_land_filters', array() );
 $archive_url = get_post_type_archive_link( 'land' );
 $districts   = pera_land_archive_districts();
+$budget_unavailable = isset( $filters['land_max_price'] ) && null === pera_land_budget_usd( $filters );
 $paged       = max( 1, (int) get_query_var( 'paged' ) );
 
 get_header();
@@ -56,12 +57,13 @@ get_header();
 						<label class="filter-group__label" for="land-currency"><?php echo esc_html( pera_ml_ui( 'Budget currency', 'theme.template.archive_land.budget_currency' ) ); ?></label>
 						<select class="cta-control" id="land-currency" name="land_currency">
 							<?php foreach ( pera_land_currencies() as $currency ) : ?>
-								<option value="<?php echo esc_attr( $currency ); ?>" <?php selected( $filters['land_currency'] ?? 'TRY', $currency ); ?>><?php echo esc_html( $currency ); ?></option>
+								<?php if ( 'USD' !== $currency && null === pera_currency_get_rate( $currency ) ) { continue; } ?>
+								<option value="<?php echo esc_attr( $currency ); ?>" <?php selected( $filters['land_currency'] ?? 'USD', $currency ); ?>><?php echo esc_html( $currency ); ?></option>
 							<?php endforeach; ?>
 						</select>
 					</div>
 				</div>
-				<p class="text-soft text-sm mt-xs" id="land-budget-note"><?php echo esc_html( pera_ml_ui( 'A maximum price shows plots with a public asking price in the selected currency.', 'theme.template.archive_land.budget_note' ) ); ?></p>
+				<p class="text-soft text-sm mt-xs" id="land-budget-note"><?php echo esc_html( pera_ml_ui( 'The budget is converted to USD and applied to public asking prices.', 'theme.template.archive_land.budget_note' ) ); ?></p>
 				<div class="form-actions">
 					<button type="submit" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Apply filters', 'theme.template.archive_land.apply_filters' ) ); ?></button>
 					<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $archive_url ); ?>"><?php echo esc_html( pera_ml_ui( 'Reset filters', 'theme.template.archive_land.reset_filters' ) ); ?></a>
@@ -90,6 +92,9 @@ get_header();
 			<?php else : ?>
 				<div class="content-panel-box">
 					<h2><?php echo esc_html( $filters ? pera_ml_ui( 'No land listings match these filters', 'theme.template.archive_land.no_matches' ) : pera_ml_ui( 'No land listings currently available', 'theme.template.archive_land.no_listings' ) ); ?></h2>
+					<?php if ( $budget_unavailable ) : ?>
+						<p><?php echo esc_html( pera_ml_ui( 'This budget currency is unavailable. Choose USD or another currency and try again.', 'theme.template.archive_land.currency_unavailable' ) ); ?></p>
+					<?php endif; ?>
 					<?php if ( $filters ) : ?>
 						<a href="<?php echo esc_url( $archive_url ); ?>"><?php echo esc_html( pera_ml_ui( 'View all land listings', 'theme.template.archive_land.view_all' ) ); ?></a>
 					<?php endif; ?>
