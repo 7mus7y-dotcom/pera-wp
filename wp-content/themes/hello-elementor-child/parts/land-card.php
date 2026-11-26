@@ -12,9 +12,6 @@ $image_id = get_post_thumbnail_id( $post_id );
 $district = pera_get_deepest_term( $post_id, 'district' );
 $area     = (float) pera_land_text_field( $post_id, 'land_plot_area_sqm' );
 $price    = pera_land_public_price( $post_id );
-$price_label = $price
-	? $price['currency'] . ' ' . pera_land_format_number( $price['amount'] )
-	: pera_ml_ui( 'Price on request', 'theme.template.single_land.price_on_request' );
 $under_offer = 'under_offer' === pera_land_text_field( $post_id, 'land_availability' );
 $planning_label = pera_land_planning_is_verified( $post_id )
 	? pera_ml_ui( 'Planning verified', 'theme.template.single_land.planning_verified' )
@@ -51,14 +48,14 @@ $planning_label = pera_land_planning_is_verified( $post_id )
 
 		<div class="property-card__footer">
 			<div class="property-card__footer-row property-card__footer-row--top">
-				<span class="property-card__price"><?php echo esc_html( $price_label ); ?></span>
+				<span class="property-card__price"><?php echo pera_land_price_html( $price ); ?></span>
 				<?php if ( $area > 0 ) : ?>
 					<span class="property-card__size property-card__meta-sm"><?php echo esc_html( pera_land_format_number( $area ) . ' m²' ); ?></span>
 				<?php endif; ?>
 			</div>
 			<?php if ( $price && $area > 0 ) : ?>
 				<div class="property-card__footer-row property-card__footer-row--bottom">
-					<span class="property-card__meta-sm"><?php echo esc_html( $price['currency'] . ' ' . pera_land_format_number( round( $price['amount'] / $area, 2 ) ) . ' / m²' ); ?></span>
+					<span class="property-card__meta-sm"><?php echo esc_html( 'USD ' . pera_land_format_number( round( $price / $area, 2 ) ) . ' / m²' ); ?></span>
 				</div>
 			<?php endif; ?>
 		</div>
