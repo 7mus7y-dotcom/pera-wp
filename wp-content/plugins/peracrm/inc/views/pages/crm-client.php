@@ -597,7 +597,7 @@ peracrm_frontend_render_shell_header();
                              target="_blank" rel="noopener noreferrer"
                              aria-label="<?php echo esc_attr__( 'WhatsApp saved phone number', 'peracrm' ); ?>"
                              title="<?php echo esc_attr__( 'WhatsApp saved phone number', 'peracrm' ); ?>">
-                            <svg class="icon" width="20" height="20" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use></svg>
+                            <svg class="icon" width="20" height="20" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( '#icon-whatsapp' ); ?>"></use></svg>
                           </a>
                           <?php endif; ?>
                         </div>
@@ -942,17 +942,11 @@ peracrm_frontend_render_shell_header();
                                 'general'      => 'icon-notes',
                               );
                               if ( isset( $note_type_labels[ $note_type ] ) ) :
-                                // Version the external SVG sprite: browsers can otherwise keep a
-                                // cached copy that predates newly added icon-phone-call.
-                                $sprite_path = get_stylesheet_directory() . '/logos-icons/icons.svg';
-                                $sprite_url = get_stylesheet_directory_uri() . '/logos-icons/icons.svg';
-                                if ( is_file( $sprite_path ) ) {
-                                  $sprite_url = add_query_arg( 'ver', (string) filemtime( $sprite_path ), $sprite_url );
-                                }
+                                $sprite_url = '#';
                               ?>
                                 <span class="crm-chip crm-chip--selected crm-note-activity-chip">
                                   <svg class="crm-note-activity-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <use href="<?php echo esc_url( $sprite_url . '#' . $note_type_icons[ $note_type ] ); ?>"></use>
+                                    <use href="<?php echo esc_url( $sprite_url . $note_type_icons[ $note_type ] ); ?>"></use>
                                   </svg>
                                   <span><?php echo esc_html( $note_type_labels[ $note_type ] ); ?></span>
                                 </span>
