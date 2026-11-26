@@ -652,7 +652,7 @@
 }
 
 /* Keep the saved-phone WhatsApp shortcut as a compact round icon button. */
-.crm-page--client-view .crm-phone-row .crm-phone-wa-shortcut {
+.crm-page--client-view .crm-phone-row a.crm-phone-wa-shortcut.btn {
   flex: 0 0 18px;
   width: 18px;
   min-width: 18px;
@@ -665,12 +665,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0;
   padding: 0;
   line-height: 1;
   border-radius: 50%;
   box-sizing: border-box;
 }
-.crm-page--client-view .crm-phone-row .crm-phone-wa-shortcut .icon {
+.crm-page--client-view .crm-phone-row a.crm-phone-wa-shortcut.btn .icon {
   display: block;
   flex: 0 0 14px;
   width: 14px;
