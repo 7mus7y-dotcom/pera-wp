@@ -27,22 +27,14 @@ get_header();
 			}
 		}
 
-		$field = static function ( string $name ) use ( $listing_id ) {
-			return function_exists( 'get_field' ) ? get_field( $name, $listing_id ) : get_post_meta( $listing_id, $name, true );
+		$text_field = static function ( string $name ) use ( $listing_id ): string {
+			return pera_land_text_field( $listing_id, $name );
 		};
-		$text_field = static function ( string $name ) use ( $field ): string {
-			$value = $field( $name );
-			return is_scalar( $value ) ? trim( (string) $value ) : '';
-		};
-		$format_number = static function ( float $number ): string {
-			return number_format_i18n( $number, floor( $number ) === $number ? 0 : 2 );
-		};
-
-		$area     = (float) $text_field( 'land_plot_area_sqm' );
-		$price    = (float) $text_field( 'land_asking_price' );
-		$currency = $text_field( 'land_asking_currency' );
-		$has_price = 'public' === $text_field( 'land_price_visibility' ) && $price > 0
-			&& in_array( $currency, array( 'TRY', 'USD', 'EUR', 'GBP', 'CNY' ), true );
+		$area        = (float) $text_field( 'land_plot_area_sqm' );
+		$price       = pera_land_public_price( $listing_id );
+		$price_label = $price
+			? $price['currency'] . ' ' . pera_land_format_number( $price['amount'] )
+			: pera_ml_ui( 'Price on request', 'theme.template.single_land.price_on_request' );
 
 		$availability_labels = array(
 			'available'   => pera_ml_ui( 'Available', 'theme.template.single_land.available' ),
@@ -51,9 +43,7 @@ get_header();
 		);
 		$availability_key = $text_field( 'land_availability' );
 		$availability = $availability_labels[ $availability_key ] ?? '';
-		$verified = 'verified' === $text_field( 'land_planning_status' )
-			&& '' !== $text_field( 'land_planning_source' )
-			&& '' !== $text_field( 'land_planning_checked_on' );
+		$verified = pera_land_planning_is_verified( $listing_id );
 		$planning = $verified ? array_filter(
 			array(
 				pera_ml_ui( 'Documented planning use', 'theme.template.single_land.planning_use' ) => $text_field( 'land_planning_use' ),
@@ -76,7 +66,7 @@ get_header();
 				pera_ml_ui( 'Title deed description', 'theme.template.single_land.title_description' ) => $text_field( 'land_title_description' ),
 				pera_ml_ui( 'Parcels in this offer', 'theme.template.single_land.parcel_count' ) => $text_field( 'land_parcel_count' ),
 				pera_ml_ui( 'Road access', 'theme.template.single_land.road_access' ) => $access_labels[ $text_field( 'land_road_access' ) ] ?? '',
-				pera_ml_ui( 'Road frontage', 'theme.template.single_land.frontage' ) => $frontage > 0 ? $format_number( $frontage ) . ' m' : '',
+				pera_ml_ui( 'Road frontage', 'theme.template.single_land.frontage' ) => $frontage > 0 ? pera_land_format_number( $frontage ) . ' m' : '',
 				pera_ml_ui( 'Slope', 'theme.template.single_land.slope' ) => $text_field( 'land_slope' ),
 				pera_ml_ui( 'Utilities', 'theme.template.single_land.utilities' ) => $text_field( 'land_utilities' ),
 			),
@@ -84,20 +74,20 @@ get_header();
 		);
 
 		$map_mode = $text_field( 'land_map_visibility' );
-		$pin      = in_array( $map_mode, array( 'approximate', 'exact' ), true ) ? $field( 'land_' . $map_mode . '_map_pin' ) : null;
+		$pin      = in_array( $map_mode, array( 'approximate', 'exact' ), true ) ? pera_land_field( $listing_id, 'land_' . $map_mode . '_map_pin' ) : null;
 		$map_url  = '';
 		if ( is_array( $pin ) && is_numeric( $pin['lat'] ?? null ) && is_numeric( $pin['lng'] ?? null )
 			&& abs( (float) $pin['lat'] ) <= 90 && abs( (float) $pin['lng'] ) <= 180 ) {
 			$map_url = 'https://www.google.com/maps?q=' . rawurlencode( $pin['lat'] . ',' . $pin['lng'] );
 		}
 
-		$plan_id  = absint( $field( 'land_public_plot_plan' ) );
+		$plan_id  = absint( pera_land_field( $listing_id, 'land_public_plot_plan' ) );
 		$plan_url = $plan_id && 'attachment' === get_post_type( $plan_id ) && 'trash' !== get_post_status( $plan_id )
 			? wp_get_attachment_url( $plan_id )
 			: '';
 		$featured_id = (int) get_post_thumbnail_id( $listing_id );
-		$gallery_ids = (array) $field( 'land_gallery' );
-		$gallery_ids[] = $field( 'land_drone_video' );
+		$gallery_ids = (array) pera_land_field( $listing_id, 'land_gallery' );
+		$gallery_ids[] = pera_land_field( $listing_id, 'land_drone_video' );
 		$whatsapp_url = pera_get_whatsapp_url(
 			sprintf(
 				/* translators: 1: listing title, 2: listing reference, 3: listing URL. */
@@ -148,9 +138,9 @@ get_header();
 
 				<div class="property-hero__meta">
 					<div class="property-hero__price price--xl">
-						<span class="property-price__current"><?php echo esc_html( $has_price ? $currency . ' ' . $format_number( $price ) : pera_ml_ui( 'Price on request', 'theme.template.single_land.price_on_request' ) ); ?></span>
-						<?php if ( $has_price && $area > 0 ) : ?>
-							<span class="property-hero__price-link text-light text-sm"><?php echo esc_html( $currency . ' ' . $format_number( round( $price / $area, 2 ) ) . ' / m²' ); ?></span>
+						<span class="property-price__current"><?php echo esc_html( $price_label ); ?></span>
+						<?php if ( $price && $area > 0 ) : ?>
+							<span class="property-hero__price-link text-light text-sm"><?php echo esc_html( $price['currency'] . ' ' . pera_land_format_number( round( $price['amount'] / $area, 2 ) ) . ' / m²' ); ?></span>
 						<?php endif; ?>
 					</div>
 					<?php if ( $area > 0 ) : ?>
@@ -158,7 +148,7 @@ get_header();
 							<span class="pill pill--green">
 								<svg class="pill__icon" width="14" height="14" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . 'icon-arrows-expand' ); ?>"></use></svg>
 								<span class="screen-reader-text"><?php echo esc_html( pera_ml_ui( 'Plot area', 'theme.template.single_land.plot_area' ) ); ?></span>
-								<?php echo esc_html( $format_number( $area ) . ' m²' ); ?>
+								<?php echo esc_html( pera_land_format_number( $area ) . ' m²' ); ?>
 							</span>
 						</div>
 					<?php endif; ?>
@@ -261,6 +251,9 @@ get_header();
 					)
 				);
 				?>
+				<p class="mt-sm">
+					<a href="<?php echo esc_url( get_post_type_archive_link( 'land' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View all land for sale in Istanbul', 'theme.template.single_land.view_all_land' ) ); ?></a>
+				</p>
 			</div>
 		</section>
 	<?php endwhile; ?>

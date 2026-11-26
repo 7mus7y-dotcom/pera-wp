@@ -3,6 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 require_once get_stylesheet_directory() . '/inc/modules/property-archive-safety.php';
 require_once get_stylesheet_directory() . '/inc/modules/property-archive-settings.php';
+require_once get_stylesheet_directory() . '/inc/land-listings.php';
 require_once get_stylesheet_directory() . '/inc/modules/seo-loader.php';
 require_once get_stylesheet_directory() . '/inc/modules/author-archives.php';
 require_once get_stylesheet_directory() . '/inc/modules/template-routing.php';

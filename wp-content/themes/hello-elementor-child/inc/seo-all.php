@@ -425,6 +425,7 @@ if ( ! function_exists( 'pera_seo_all_get_context_key' ) ) {
     if ( is_front_page() ) return 'homepage';
     if ( is_singular( 'post' ) ) return 'blog_post';
     if ( is_singular( 'land' ) ) return 'land_listing';
+    if ( is_post_type_archive( 'land' ) ) return 'land_archive';
     if ( is_page() ) return 'static_page';
     if ( is_home() && ! is_front_page() ) return 'blog_home';
     if ( is_category() ) return 'blog_category';
@@ -685,6 +686,16 @@ add_filter( 'pre_get_document_title', function ( $title ) {
     return $manual_title !== '' ? $manual_title : $title;
   }
 
+  if ( $context === 'land_archive' ) {
+    $manual_title = pera_seo_all_get_manual_post_text_field( pera_land_archive_settings_id(), 'seo_title' );
+    $archive_title = $manual_title !== '' ? $manual_title : pera_ml_ui( 'Land for Sale in Istanbul', 'theme.template.archive_land.title' ) . ' | ' . get_bloginfo( 'name' );
+    $paged = (int) get_query_var( 'paged' );
+    if ( $paged > 1 ) {
+      $archive_title .= sprintf( __( ' (Page %d)', 'peraproperty' ), $paged );
+    }
+    return $archive_title;
+  }
+
   if ( in_array( $context, array( 'blog_home', 'blog_category', 'blog_tag', 'blog_date', 'blog_author' ), true ) ) {
     if ( $context === 'blog_home' ) {
       $posts_page_id = (int) get_option( 'page_for_posts' );
@@ -845,6 +856,10 @@ if ( ! function_exists( 'pera_seo_all_should_apply_query_noindex' ) ) {
       return true;
     }
 
+    if ( is_post_type_archive( 'land' ) ) {
+      return ! empty( pera_land_archive_filters( $_GET ) );
+    }
+
     return is_archive() && ! empty( $_GET );
   }
 }
@@ -964,6 +979,9 @@ add_action( 'wp_head', function () {
     $posts_page_id = (int) get_option('page_for_posts');
     if ( $posts_page_id > 0 ) $post_id = $posts_page_id;
   }
+  if ( $context === 'land_archive' ) {
+    $post_id = pera_land_archive_settings_id();
+  }
 
   // ---------- Canonical ----------
   $canonical = '';
@@ -971,7 +989,15 @@ add_action( 'wp_head', function () {
   $has_query_string = ! empty( $_GET );
   $apply_query_noindex = pera_seo_all_should_apply_query_noindex();
 
-  if ( $property_context ) {
+  if ( $context === 'land_archive' ) {
+    $canonical = (string) get_post_type_archive_link( 'land' );
+    $paged = (int) get_query_var( 'paged' );
+    if ( $paged > 1 && ! $apply_query_noindex ) {
+      $canonical = get_option( 'permalink_structure' )
+        ? strtok( get_pagenum_link( $paged, false ), '?' )
+        : add_query_arg( 'paged', $paged, $canonical );
+    }
+  } elseif ( $property_context ) {
     $canonical = function_exists( 'pera_property_archive_canonical_url' )
       ? pera_property_archive_canonical_url()
       : '';
@@ -988,7 +1014,7 @@ add_action( 'wp_head', function () {
     }
   }
 
-  if ( $apply_query_noindex ) {
+  if ( $apply_query_noindex && $context !== 'land_archive' ) {
     $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
     $canonical = home_url( strtok( $request_uri, '?' ) );
   }
@@ -1101,6 +1127,12 @@ add_action( 'wp_head', function () {
       $schema_type = 'WebPage';
       break;
 
+    case 'land_archive':
+      $desc = pera_seo_all_get_manual_post_text_field( $post_id, 'seo_meta_description' );
+      if ( $desc === '' ) $desc = pera_land_archive_description();
+      $schema_type = 'CollectionPage';
+      break;
+
     default:
       if ( $post_id > 0 ) {
         $desc = pera_seo_all_get_description( $post_id );
@@ -1115,7 +1147,7 @@ add_action( 'wp_head', function () {
   $img_height = 0;
   $img_attachment_id = 0;
 
-  if ( in_array( $context, array( 'homepage', 'static_page', 'blog_home', 'blog_post', 'land_listing' ), true ) && $post_id > 0 ) {
+  if ( in_array( $context, array( 'homepage', 'static_page', 'blog_home', 'blog_post', 'land_listing', 'land_archive' ), true ) && $post_id > 0 ) {
     $manual_img = pera_seo_all_get_post_manual_social_image( $post_id );
     if ( ! empty( $manual_img['url'] ) ) {
       $img_url = (string) $manual_img['url'];
@@ -1183,7 +1215,7 @@ add_action( 'wp_head', function () {
   echo '<meta property="og:type" content="' . esc_attr($og_type) . '">' . "\n";
   echo '<meta property="og:title" content="' . esc_attr($title) . '">' . "\n";
   $og_url = $canonical;
-  if ( $apply_query_noindex && $has_query_string ) {
+  if ( $apply_query_noindex && $has_query_string && $context !== 'land_archive' ) {
     $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
     $og_url = home_url( add_query_arg( array(), $request_uri ) );
   }
