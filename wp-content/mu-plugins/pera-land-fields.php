@@ -118,7 +118,7 @@ function pera_land_register_fields(): void {
 				),
 				array(
 					'key'   => 'field_pera_land_planning_use',
-					'label' => __( 'Documented planning use', 'pera-land' ),
+					'label' => __( 'Planning use', 'pera-land' ),
 					'name'  => 'land_planning_use',
 					'type'  => 'text',
 				),

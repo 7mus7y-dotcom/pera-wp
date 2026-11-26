@@ -45,7 +45,7 @@ get_header();
 		$availability = $availability_labels[ $availability_key ] ?? '';
 		$verified = pera_land_planning_is_verified( $listing_id );
 		$planning = $verified ? array(
-			array( 'icon-zoning', pera_ml_ui( 'Documented planning use', 'theme.template.single_land.planning_use' ), $text_field( 'land_planning_use' ) ),
+			array( 'icon-zoning', pera_ml_ui( 'Planning use', 'theme.template.single_land.planning_use' ), $text_field( 'land_planning_use' ) ),
 		) : array();
 		$planning_notes = $verified ? $text_field( 'land_planning_notes' ) : '';
 
@@ -204,6 +204,14 @@ get_header();
 							<?php endforeach; ?>
 						</ul>
 					<?php endif; ?>
+					<?php if ( $utilities !== '' ) : ?>
+						<h3 class="text-base mt-sm"><?php echo esc_html( pera_ml_ui( 'Utilities', 'theme.template.single_land.utilities' ) ); ?></h3>
+						<p><?php echo esc_html( $utilities ); ?></p>
+					<?php endif; ?>
+					<?php if ( $planning_notes !== '' ) : ?>
+						<h3 class="text-base mt-sm"><?php echo esc_html( pera_ml_ui( 'Planning notes', 'theme.template.single_land.planning_notes' ) ); ?></h3>
+						<p><?php echo esc_html( $planning_notes ); ?></p>
+					<?php endif; ?>
 				</div>
 				<aside class="property-overview__aside">
 					<div class="card-shell">
@@ -228,12 +236,8 @@ get_header();
 								</div>
 							<?php endforeach; ?>
 						</div>
-						<?php if ( $utilities !== '' ) : ?>
-							<p class="mt-sm"><strong><?php echo esc_html( pera_ml_ui( 'Utilities', 'theme.template.single_land.utilities' ) ); ?></strong><br><?php echo esc_html( $utilities ); ?></p>
-						<?php endif; ?>
-						<?php if ( $planning_notes !== '' ) : ?><p class="mt-sm"><?php echo esc_html( $planning_notes ); ?></p><?php endif; ?>
 						<?php if ( $plan_url ) : ?>
-							<a class="btn btn--ghost btn--blue mt-sm" href="<?php echo esc_url( $plan_url ); ?>">
+							<a class="btn btn--ghost btn--blue mt-sm land-plot-plan" href="<?php echo esc_url( $plan_url ); ?>">
 								<svg class="icon" width="18" height="18" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . 'icon-floor-plan' ); ?>"></use></svg>
 								<?php echo esc_html( pera_ml_ui( 'View plot plan', 'theme.template.single_land.view_plan' ) ); ?>
 							</a>

@@ -1050,6 +1050,10 @@ body.has-open-dialog{
 
 .media-grid__item.card-shell{ padding: 0 !important; }
 
+.land-plot-plan {
+  gap: var(--space-xs, 8px);
+}
+
 .land-planning-info {
   display: inline-grid;
   place-items: center;
