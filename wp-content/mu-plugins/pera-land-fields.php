@@ -112,7 +112,7 @@ function pera_land_register_fields(): void {
 						'verified' => __( 'Verified', 'pera-land' ),
 					),
 					'default_value' => 'pending',
-					'instructions'  => __( 'Record the source and date checked on the Internal Records tab before marking planning as verified.', 'pera-land' ),
+					'instructions'  => __( 'Select Verified to show the planning details entered below on the public listing.', 'pera-land' ),
 				),
 				array(
 					'key'   => 'field_pera_land_planning_use',
@@ -139,10 +139,11 @@ function pera_land_register_fields(): void {
 					'instructions' => __( 'Enter the ratio as a decimal, for example 0.25.', 'pera-land' ),
 				),
 				array(
-					'key'   => 'field_pera_land_height_limit',
-					'label' => __( 'Documented height limit', 'pera-land' ),
-					'name'  => 'land_height_limit',
-					'type'  => 'text',
+					'key'          => 'field_pera_land_height_limit',
+					'label'        => __( 'Documented height limit', 'pera-land' ),
+					'name'         => 'land_height_limit',
+					'type'         => 'text',
+					'instructions' => __( 'Enter the height limit as documented, including its unit where applicable, for example 9.50 m.', 'pera-land' ),
 				),
 				array(
 					'key'   => 'field_pera_land_planning_notes',

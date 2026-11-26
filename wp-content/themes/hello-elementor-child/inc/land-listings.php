@@ -59,9 +59,7 @@ function pera_land_budget_usd( array $filters ): ?float {
 }
 
 function pera_land_planning_is_verified( int $post_id ): bool {
-	return 'verified' === pera_land_text_field( $post_id, 'land_planning_status' )
-		&& '' !== pera_land_text_field( $post_id, 'land_planning_source' )
-		&& '' !== pera_land_text_field( $post_id, 'land_planning_checked_on' );
+	return 'verified' === pera_land_text_field( $post_id, 'land_planning_status' );
 }
 
 function pera_land_archive_settings_id(): int {

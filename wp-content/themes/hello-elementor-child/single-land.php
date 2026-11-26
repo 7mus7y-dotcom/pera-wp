@@ -47,7 +47,6 @@ get_header();
 		$verified = pera_land_planning_is_verified( $listing_id );
 		$planning = $verified ? array(
 			array( 'icon-zoning', pera_ml_ui( 'Documented planning use', 'theme.template.single_land.planning_use' ), $text_field( 'land_planning_use' ) ),
-			array( 'icon-height-limit', pera_ml_ui( 'Height limit', 'theme.template.single_land.height_limit' ), $text_field( 'land_height_limit' ) ),
 		) : array();
 		$planning_notes = $verified ? $text_field( 'land_planning_notes' ) : '';
 
@@ -87,6 +86,10 @@ get_header();
 			$taks !== '' ? $taks : $ratio_placeholder,
 			pera_ml_ui( 'The share of the plot that the building footprint may cover. For example, TAKS 0.30 on a 1,000 m² plot allows up to 300 m² of coverage, subject to setbacks and other planning rules.', 'theme.template.single_land.taks_help' ),
 		);
+		$height_limit = $verified ? $text_field( 'land_height_limit' ) : '';
+		if ( $height_limit !== '' ) {
+			$plot_facts[] = array( 'icon-height-limit', pera_ml_ui( 'Height limit', 'theme.template.single_land.height_limit' ), $height_limit );
+		}
 		$utilities  = $text_field( 'land_utilities' );
 
 		$map_mode = $text_field( 'land_map_visibility' );
