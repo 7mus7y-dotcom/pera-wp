@@ -149,6 +149,10 @@ if ( $is_leads && ! $is_header_search && ! $is_new72 && 'leads' === $clients_typ
 		: array();
 }
 
+$repeat_enquiries_items = ( ! $is_leads && ! $is_tasks && function_exists( 'peracrm_repeat_enquiries_get_pending' ) )
+	? peracrm_repeat_enquiries_get_pending( 10 )
+	: array();
+
 $crm_active_view = ! $is_leads && ! $is_tasks ? 'overview' : ( $is_leads ? 'clients' : 'tasks' );
 
 $build_overview_task_cards = static function ( array $tasks, int $cap ) {
@@ -296,6 +300,53 @@ peracrm_frontend_render_shell_header();
 	    <div class="content-panel-box crm-layout">
       <div class="crm-layout__main">
 			<?php if ( ! $is_leads && ! $is_tasks ) : ?>
+      <?php if ( ! empty( $repeat_enquiries_items ) ) : ?>
+      <section class="crm-panel-surface crm-section crm-repeat-enquiries" aria-labelledby="crm-repeat-enquiries-heading">
+        <header class="crm-section__header">
+          <div class="crm-section__heading-group">
+            <h2 id="crm-repeat-enquiries-heading" class="crm-section__title"><?php echo esc_html__( 'New enquiries from existing clients', 'peracrm' ); ?></h2>
+            <p class="crm-section__description"><?php echo esc_html__( 'These website enquiries need review and stay here until you mark them reviewed.', 'peracrm' ); ?></p>
+          </div>
+          <span class="crm-chip crm-chip--selected"><?php echo esc_html( (string) count( $repeat_enquiries_items ) ); ?></span>
+        </header>
+        <div class="crm-section__body">
+          <ul class="crm-row-list">
+            <?php foreach ( $repeat_enquiries_items as $repeat_enquiry ) : ?>
+            <?php
+              $repeat_activity_id = absint( $repeat_enquiry['activity_id'] ?? 0 );
+              $repeat_client_id   = absint( $repeat_enquiry['client_id'] ?? 0 );
+              $repeat_received    = '' !== (string) ( $repeat_enquiry['created_at'] ?? '' ) ? mysql2date( 'd/m/Y H:i', (string) $repeat_enquiry['created_at'] ) : '';
+              $repeat_message     = wp_html_excerpt( (string) ( $repeat_enquiry['message'] ?? '' ), 180, '…' );
+            ?>
+            <li class="crm-row-list__item">
+              <div class="crm-row-list__content">
+                <div class="crm-row-list__header">
+                  <h3 class="crm-row-list__title"><a href="<?php echo esc_url( (string) ( $repeat_enquiry['client_url'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $repeat_enquiry['title'] ?? __( 'Existing client', 'peracrm' ) ) ); ?></a></h3>
+                  <span class="crm-chip crm-chip--selected"><?php echo esc_html__( 'New enquiry', 'peracrm' ); ?></span>
+                </div>
+                <div class="crm-meta-line">
+                  <?php if ( '' !== $repeat_received ) : ?><span><strong><?php esc_html_e( 'Received:', 'peracrm' ); ?></strong> <?php echo esc_html( $repeat_received ); ?></span><?php endif; ?>
+                  <?php if ( '' !== (string) ( $repeat_enquiry['source'] ?? '' ) ) : ?><span><strong><?php esc_html_e( 'Source:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $repeat_enquiry['source'] ); ?></span><?php endif; ?>
+                  <?php if ( '' !== (string) ( $repeat_enquiry['property'] ?? '' ) ) : ?><span><strong><?php esc_html_e( 'Property:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $repeat_enquiry['property'] ); ?></span><?php endif; ?>
+                </div>
+                <?php if ( '' !== $repeat_message ) : ?><p class="crm-row-list__summary"><?php echo esc_html( $repeat_message ); ?></p><?php endif; ?>
+              </div>
+              <div class="crm-row-list__aside">
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                  <input type="hidden" name="action" value="peracrm_repeat_enquiry_review" />
+                  <input type="hidden" name="activity_id" value="<?php echo esc_attr( (string) $repeat_activity_id ); ?>" />
+                  <input type="hidden" name="client_id" value="<?php echo esc_attr( (string) $repeat_client_id ); ?>" />
+                  <?php wp_nonce_field( 'peracrm_repeat_enquiry_review_' . $repeat_activity_id ); ?>
+                  <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Mark reviewed', 'peracrm' ); ?></button>
+                </form>
+              </div>
+            </li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      </section>
+      <?php endif; ?>
+
       <section class="crm-overview-band crm-overview-band--primary" aria-labelledby="crm-priority-work-heading">
         <article class="crm-panel-surface crm-panel-surface--gradient crm-panel-surface--gradient-warm crm-section crm-overview-priority">
           <header class="crm-section__header">
