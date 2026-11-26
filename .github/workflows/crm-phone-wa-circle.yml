@@ -3,7 +3,7 @@ on:
   pull_request:
     paths:
       - 'wp-content/plugins/peracrm/assets/frontend/crm.css'
-      - 'wp-content/plugins/peracrm/tests/trello-nov-quick-wins.test.js'
+      - 'wp-content/plugins/peracrm/tests/crm-wa-circle-test.js'
       - '.github/workflows/crm-phone-wa-circle.yml'
   workflow_dispatch:
 permissions:
@@ -17,4 +17,4 @@ jobs:
         with:
           node-version: '22'
       - name: CRM WhatsApp shortcut regression
-        run: node wp-content/plugins/peracrm/tests/trello-nov-quick-wins.test.js
+        run: node wp-content/plugins/peracrm/tests/crm-wa-circle-test.js
