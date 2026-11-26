@@ -646,4 +646,66 @@
       d="M9 17V7h4a3 3 0 0 1 0 6H9"/>
   </symbol>
 
+  <!-- Land property icons -->
+  <symbol id="icon-land-plot" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M4 7l12-3 4 13-13 3L4 7Z"/>
+    <g fill="currentColor"><circle cx="4" cy="7" r="1.5"/><circle cx="16" cy="4" r="1.5"/><circle cx="20" cy="17" r="1.5"/><circle cx="7" cy="20" r="1.5"/></g>
+  </symbol>
+
+  <symbol id="icon-zoning" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M3 3h18v18H3zM3 10h18M10 3v7m4 0v11M3 16h11"/>
+  </symbol>
+
+  <symbol id="icon-far" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M3 20h18M5 16h14v4H5zM7 10h10v6H7zM9 4h6v6H9z"/>
+  </symbol>
+
+  <symbol id="icon-site-coverage" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M3 3h18v18H3zM7 7h10v10H7zM7 7l10 10M7 12l5 5m0-10 5 5"/>
+  </symbol>
+
+  <symbol id="icon-height-limit" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M3 21h11V6H3zM3 11h11M3 16h11M19 3v18m-3-15 3-3 3 3m-6 12 3 3 3-3"/>
+  </symbol>
+
+  <symbol id="icon-road" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M7 3 4 21M17 3l3 18M12 3v3m0 4v4m0 4v3"/>
+  </symbol>
+
+  <symbol id="icon-road-frontage" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M3 3h18v10H3zM3 17h18M3 21h18M5 13v4m14-4v4"/>
+  </symbol>
+
+  <symbol id="icon-terrain" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M3 20h18M3 17l6-10 5 6 3-3 4 7M7 4h10"/>
+  </symbol>
+
+  <symbol id="icon-electricity" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="m13 2-9 12h7l-1 8 10-13h-8l1-7Z"/>
+  </symbol>
+
+  <symbol id="icon-water" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M12 3C9 7 5 11 5 15a7 7 0 0 0 14 0c0-4-4-8-7-12ZM8 15a4 4 0 0 0 4 4"/>
+  </symbol>
+
+  <symbol id="icon-agriculture" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M12 21V8M12 13C5 13 3 9 3 5c6 0 9 3 9 8Zm0 4c7 0 9-4 9-8-6 0-9 3-9 8ZM3 21h18"/>
+  </symbol>
+
+  <symbol id="icon-setback" viewBox="0 0 24 24">
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      d="M3 3h18v18H3zM8 8h8v8H8zM3 12h5m8 0h5M12 3v5m0 8v5"/>
+  </symbol>
+
 </svg>
