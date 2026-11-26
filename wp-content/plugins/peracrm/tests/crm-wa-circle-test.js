@@ -49,12 +49,12 @@ assert.ok(waIconRule, 'WhatsApp glyph has a dedicated size rule');
 assert.match(waIconRule[1], /width:\s*14px;/);
 assert.match(waIconRule[1], /height:\s*14px;/);
 
-assert.match(client, /class="crm-client-profile-panel"/, 'Save profile panel remains present');
+assert.match(client, /class="[^"]*crm-client-profile-panel/, 'Save profile panel remains present');
 assert.match(client, /id="crm-add-reminder"[\s\S]*?data-crm-ajax-form="reminder"/, 'Add reminder form remains present');
 assert.match(client, /data-crm-ajax-form="note"/, 'Add note form remains present');
 assert.match(client, /class="[^"]*crm-danger-zone__trigger/, 'client danger-zone trigger remains present');
 assert.match(helpers, /class="button">\s*' \. esc_html\('Reassign'\)/, 'advisor reassign control remains a WordPress button');
-assert.match(whatsapp, /class="btn btn--green" type="submit">.*Send WhatsApp text/, 'WhatsApp send control remains present');
+assert.match(whatsapp, /class="btn btn--green" type="submit"[\\s\\S]*?esc_html__\('Send WhatsApp text'/, 'WhatsApp send control remains present');
 assert.match(whatsapp, /class="btn btn--ghost" type="button" data-wa-refresh/, 'WhatsApp refresh control remains present');
 
 console.log('PASS CRM client actions use compact sizing; WhatsApp shortcut remains 18x18px round with a 14x14px icon.');
