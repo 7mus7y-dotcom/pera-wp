@@ -19,10 +19,33 @@ function peracrm_render_frontend_svg_sprite(): void {
 	if ( ! is_string( $sprite ) || '' === trim( $sprite ) ) {
 		return;
 	}
-	$sprite = preg_replace( '/^\s*<\?xml[^>]*>\s*/i', '', $sprite );
+	$sprite = preg_replace( '/<\?xml[^>]*\?>/i', '', $sprite );
 	if ( ! is_string( $sprite ) ) {
 		return;
 	}
-	echo '<div class="peracrm-svg-sprite" aria-hidden="true" hidden>' . $sprite . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted plugin-owned SVG sprite.
+
+	if ( preg_match( '/<svg\b[^>]*>/i', $sprite, $match ) ) {
+		$svg_tag = $match[0];
+		$new_tag = $svg_tag;
+		if ( stripos( $new_tag, 'style=' ) !== false ) {
+			$new_tag = preg_replace(
+				'/style=(["\'])(.*?)\1/i',
+				'style=$1$2;position:absolute;width:0;height:0;overflow:hidden$1',
+				$new_tag,
+				1
+			);
+		} else {
+			$new_tag = rtrim( substr( $new_tag, 0, -1 ) ) . ' style="position:absolute;width:0;height:0;overflow:hidden">';
+		}
+		if ( stripos( $new_tag, 'aria-hidden=' ) === false ) {
+			$new_tag = rtrim( substr( $new_tag, 0, -1 ) ) . ' aria-hidden="true">';
+		}
+		if ( stripos( $new_tag, 'focusable=' ) === false ) {
+			$new_tag = rtrim( substr( $new_tag, 0, -1 ) ) . ' focusable="false">';
+		}
+		$sprite = preg_replace( '/<svg\b[^>]*>/i', $new_tag, $sprite, 1 );
+	}
+
+	echo $sprite; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted plugin-owned SVG sprite.
 }
-add_action( 'wp_footer', 'peracrm_render_frontend_svg_sprite', 1 );
+add_action( 'wp_footer', 'peracrm_render_frontend_svg_sprite', 20 );
