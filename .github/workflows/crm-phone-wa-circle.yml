@@ -1,0 +1,23 @@
+name: CRM WhatsApp shortcut circle
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/peracrm/assets/frontend/crm.css'
+      - 'wp-content/plugins/peracrm/inc/views/pages/crm-client.php'
+      - 'wp-content/plugins/peracrm/inc/helpers.php'
+      - 'wp-content/plugins/peracrm/inc/whatsapp.php'
+      - 'wp-content/plugins/peracrm/tests/crm-wa-circle-test.js'
+      - '.github/workflows/crm-phone-wa-circle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  whatsapp-circle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: CRM WhatsApp shortcut regression
+        run: node wp-content/plugins/peracrm/tests/crm-wa-circle-test.js

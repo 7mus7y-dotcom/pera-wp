@@ -652,7 +652,7 @@
 }
 
 /* Keep the saved-phone WhatsApp shortcut as a compact round icon button. */
-.crm-page--client-view .crm-phone-row .crm-phone-wa-shortcut {
+.crm-page--client-view .crm-phone-row a.crm-phone-wa-shortcut.btn {
   flex: 0 0 18px;
   width: 18px;
   min-width: 18px;
@@ -665,12 +665,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0;
   padding: 0;
   line-height: 1;
   border-radius: 50%;
   box-sizing: border-box;
 }
-.crm-page--client-view .crm-phone-row .crm-phone-wa-shortcut .icon {
+.crm-page--client-view .crm-phone-row a.crm-phone-wa-shortcut.btn .icon {
   display: block;
   flex: 0 0 14px;
   width: 14px;
@@ -6343,6 +6344,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page--client-view .crm-summary-header__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page--client-view .crm-client-quick-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page--client-view .crm-status-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-client-profile-panel .crm-field--actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view #crm-add-reminder > .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view form[data-crm-ajax-form="note"] > .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-danger-zone__trigger:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-danger-zone__block--advisor .peracrm-advisor-reassign-row .button,
+.crm-page--client-view .crm-whatsapp__composer .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page--client-view .crm-danger-dialog__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page--client-view .crm-linked-workspace__toolbar .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page--client-view .crm-linked-workspace__portfolio-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
