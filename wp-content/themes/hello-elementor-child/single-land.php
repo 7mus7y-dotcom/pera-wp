@@ -32,6 +32,10 @@ get_header();
 		};
 		$area        = (float) $text_field( 'land_plot_area_sqm' );
 		$price       = pera_land_public_price( $listing_id );
+		$area_label  = $area > 0 ? pera_land_format_number( $area ) . ' m²' : '';
+		$quick_facts = preg_split( '/\R/u', $text_field( 'land_quick_facts' ) ) ?: array();
+		$quick_facts = array_slice( array_filter( array_map( 'trim', $quick_facts ), 'strlen' ), 0, 5 );
+		$archive_url = get_post_type_archive_link( 'land' );
 
 		$availability_labels = array(
 			'available'   => pera_ml_ui( 'Available', 'theme.template.single_land.available' ),
@@ -55,19 +59,20 @@ get_header();
 			'unknown' => pera_ml_ui( 'Unknown', 'theme.template.single_land.unknown' ),
 		);
 		$frontage = (float) $text_field( 'land_frontage_m' );
-		$site_facts = array(
+		$plot_facts = array(
+			array( 'icon-land-plot', pera_ml_ui( 'Plot area', 'theme.template.single_land.plot_area' ), $area_label ),
+			array( 'icon-map', pera_ml_ui( 'Location', 'theme.template.single_land.location' ), $location ),
 			array( 'icon-tapu', pera_ml_ui( 'Title deed description', 'theme.template.single_land.title_description' ), $text_field( 'land_title_description' ) ),
 			array( 'icon-land-plot', pera_ml_ui( 'Parcels in this offer', 'theme.template.single_land.parcel_count' ), $text_field( 'land_parcel_count' ) ),
 			array( 'icon-road', pera_ml_ui( 'Road access', 'theme.template.single_land.road_access' ), $access_labels[ $text_field( 'land_road_access' ) ] ?? '' ),
 			array( 'icon-road-frontage', pera_ml_ui( 'Road frontage', 'theme.template.single_land.frontage' ), $frontage > 0 ? pera_land_format_number( $frontage ) . ' m' : '' ),
 			array( 'icon-terrain', pera_ml_ui( 'Slope', 'theme.template.single_land.slope' ), $text_field( 'land_slope' ) ),
-			array( '', pera_ml_ui( 'Utilities', 'theme.template.single_land.utilities' ), $text_field( 'land_utilities' ) ),
 		);
 		$has_value = static function ( array $fact ): bool {
 			return '' !== $fact[2];
 		};
-		$planning   = array_filter( $planning, $has_value );
-		$site_facts = array_filter( $site_facts, $has_value );
+		$plot_facts = array_filter( array_merge( $plot_facts, $planning ), $has_value );
+		$utilities  = $text_field( 'land_utilities' );
 
 		$map_mode = $text_field( 'land_map_visibility' );
 		$pin      = in_array( $map_mode, array( 'approximate', 'exact' ), true ) ? pera_land_field( $listing_id, 'land_' . $map_mode . '_map_pin' ) : null;
@@ -144,7 +149,7 @@ get_header();
 							<span class="pill pill--green">
 								<svg class="pill__icon" width="14" height="14" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . 'icon-land-plot' ); ?>"></use></svg>
 								<span class="screen-reader-text"><?php echo esc_html( pera_ml_ui( 'Plot area', 'theme.template.single_land.plot_area' ) ); ?></span>
-								<?php echo esc_html( pera_land_format_number( $area ) . ' m²' ); ?>
+								<?php echo esc_html( $area_label ); ?>
 							</span>
 						</div>
 					<?php endif; ?>
@@ -164,71 +169,75 @@ get_header();
 			</div>
 		</section>
 
+		<section class="section section-soft property-overview" id="property-overview">
+			<div class="grid-2--tight">
+				<div class="property-overview__main">
+					<?php if ( $quick_facts ) : ?>
+						<h2><?php echo esc_html( pera_ml_ui( 'Quick facts', 'theme.template.single_land.quick_facts' ) ); ?></h2>
+					<?php endif; ?>
+					<?php if ( $archive_url ) : ?>
+						<p class="text-sm"><a href="<?php echo esc_url( $archive_url ); ?>"><?php echo esc_html( pera_ml_ui( 'Browse all land for sale in Istanbul', 'theme.template.single_land.browse_all_land' ) ); ?></a></p>
+					<?php endif; ?>
+					<?php if ( $quick_facts ) : ?>
+						<ul class="checklist checklist--circle">
+							<?php foreach ( $quick_facts as $fact ) : ?>
+								<li><?php echo esc_html( $fact ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
+				</div>
+				<aside class="property-overview__aside">
+					<div class="card-shell">
+						<h2><?php echo esc_html( pera_ml_ui( 'Plot information', 'theme.template.single_land.plot_information' ) ); ?></h2>
+						<p class="text-soft"><?php echo esc_html( $verified ? pera_ml_ui( 'Planning verified', 'theme.template.single_land.planning_verified' ) : pera_ml_ui( 'Planning status pending verification', 'theme.template.single_land.planning_pending' ) ); ?></p>
+						<?php if ( $plot_facts ) : ?>
+							<div class="property-facts">
+								<?php foreach ( $plot_facts as list( $symbol, $label, $value ) ) : ?>
+									<div class="property-fact">
+										<svg class="icon" width="18" height="18" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . $symbol ); ?>"></use></svg>
+										<span><span class="text-sm text-soft"><?php echo esc_html( $label ); ?></span> <strong><?php echo esc_html( $value ); ?></strong></span>
+									</div>
+								<?php endforeach; ?>
+							</div>
+						<?php endif; ?>
+						<?php if ( $utilities !== '' ) : ?>
+							<p class="mt-sm"><strong><?php echo esc_html( pera_ml_ui( 'Utilities', 'theme.template.single_land.utilities' ) ); ?></strong><br><?php echo esc_html( $utilities ); ?></p>
+						<?php endif; ?>
+						<?php if ( $planning_notes !== '' ) : ?><p class="mt-sm"><?php echo esc_html( $planning_notes ); ?></p><?php endif; ?>
+						<?php if ( $plan_url ) : ?>
+							<a class="btn btn--ghost btn--blue mt-sm" href="<?php echo esc_url( $plan_url ); ?>">
+								<svg class="icon" width="18" height="18" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . 'icon-floor-plan' ); ?>"></use></svg>
+								<?php echo esc_html( pera_ml_ui( 'View plot plan', 'theme.template.single_land.view_plan' ) ); ?>
+							</a>
+						<?php endif; ?>
+					</div>
+				</aside>
+			</div>
+		</section>
+
 		<?php get_template_part( 'parts/land-gallery', null, array( 'ids' => $gallery_ids, 'featured_id' => $featured_id ) ); ?>
 
 		<?php if ( trim( get_the_content() ) !== '' ) : ?>
 			<section class="section"><div class="container article-body"><?php the_content(); ?></div></section>
 		<?php endif; ?>
 
-		<section class="section section-soft">
-			<div class="content-panel-box">
-				<h2><?php echo esc_html( pera_ml_ui( 'Planning details', 'theme.template.single_land.planning' ) ); ?></h2>
-				<p><?php echo esc_html( $verified ? pera_ml_ui( 'Planning verified', 'theme.template.single_land.planning_verified' ) : pera_ml_ui( 'Planning status pending verification', 'theme.template.single_land.planning_pending' ) ); ?></p>
-				<?php if ( $planning ) : ?>
-					<div class="grid-2 mb-sm">
-						<?php foreach ( $planning as list( $symbol, $label, $value ) ) : ?>
-							<p>
-								<?php if ( '' !== $symbol ) : ?>
-									<svg class="pill__icon" width="16" height="16" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . $symbol ); ?>"></use></svg>
-								<?php endif; ?>
-								<strong><?php echo esc_html( $label ); ?></strong><br>
-								<?php echo esc_html( $value ); ?>
-							</p>
-						<?php endforeach; ?>
-					</div>
-				<?php endif; ?>
-				<?php if ( $planning_notes !== '' ) : ?><p><?php echo esc_html( $planning_notes ); ?></p><?php endif; ?>
-				<?php if ( $plan_url ) : ?>
-					<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $plan_url ); ?>">
-						<svg class="icon" width="18" height="18" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . 'icon-floor-plan' ); ?>"></use></svg>
-						<?php echo esc_html( pera_ml_ui( 'View plot plan', 'theme.template.single_land.view_plan' ) ); ?>
-					</a>
-				<?php endif; ?>
-			</div>
-		</section>
-
-		<?php if ( $site_facts || $map_url ) : ?>
+		<?php if ( $map_url ) : ?>
 			<section class="section property-location">
 				<div class="card-shell property-location__panel">
-					<h2 class="inline-row property-location__heading"><svg class="icon" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . 'icon-map' ); ?>"></use></svg><?php echo esc_html( pera_ml_ui( 'Site and access', 'theme.template.single_land.site_access' ) ); ?></h2>
-					<?php if ( $site_facts ) : ?>
-						<div class="grid-2 mb-sm">
-							<?php foreach ( $site_facts as list( $symbol, $label, $value ) ) : ?>
-								<p>
-									<?php if ( '' !== $symbol ) : ?>
-										<svg class="pill__icon" width="16" height="16" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . $symbol ); ?>"></use></svg>
-									<?php endif; ?>
-									<strong><?php echo esc_html( $label ); ?></strong><br>
-									<?php echo esc_html( $value ); ?>
-								</p>
-							<?php endforeach; ?>
+					<h2 class="inline-row property-location__heading"><svg class="icon" aria-hidden="true" focusable="false"><use href="<?php echo esc_url( $icons . 'icon-map' ); ?>"></use></svg><?php echo esc_html( pera_ml_ui( 'Location map', 'theme.template.single_land.location_map' ) ); ?></h2>
+					<?php
+					$approximate = 'approximate' === $map_mode;
+					$map_title = $approximate ? pera_ml_ui( 'Approximate location', 'theme.template.single_land.approximate_location' ) : pera_ml_ui( 'Plot location', 'theme.template.single_land.plot_location' );
+					?>
+					<div class="property-map-card">
+						<p class="property-map-card__address text-soft"><?php echo esc_html( $map_title ); ?></p>
+						<div class="media-frame media-frame--map">
+							<iframe class="media-embed--map" src="<?php echo esc_url( $map_url . ( $approximate ? '&z=13' : '&z=16' ) . '&output=embed' ); ?>" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="<?php echo esc_attr( $map_title ); ?>"></iframe>
 						</div>
-					<?php endif; ?>
-					<?php if ( $map_url ) : ?>
-						<?php
-						$approximate = 'approximate' === $map_mode;
-						$map_title = $approximate ? pera_ml_ui( 'Approximate location', 'theme.template.single_land.approximate_location' ) : pera_ml_ui( 'Plot location', 'theme.template.single_land.plot_location' );
-						?>
-						<div class="property-map-card">
-							<p class="property-map-card__address text-soft"><?php echo esc_html( $map_title ); ?></p>
-							<div class="media-frame media-frame--map">
-								<iframe class="media-embed--map" src="<?php echo esc_url( $map_url . ( $approximate ? '&z=13' : '&z=16' ) . '&output=embed' ); ?>" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="<?php echo esc_attr( $map_title ); ?>"></iframe>
-							</div>
-							<div class="property-map-card__actions">
-								<a class="btn btn--solid btn--green" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( pera_ml_ui( 'Open in Google Maps', 'theme.template.single_land.open_map' ) ); ?></a>
-							</div>
+						<div class="property-map-card__actions">
+							<a class="btn btn--solid btn--green" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( pera_ml_ui( 'Open in Google Maps', 'theme.template.single_land.open_map' ) ); ?></a>
 						</div>
-					<?php endif; ?>
+					</div>
 				</div>
 			</section>
 		<?php endif; ?>
@@ -259,9 +268,6 @@ get_header();
 					)
 				);
 				?>
-				<p class="mt-sm">
-					<a href="<?php echo esc_url( get_post_type_archive_link( 'land' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View all land for sale in Istanbul', 'theme.template.single_land.view_all_land' ) ); ?></a>
-				</p>
 			</div>
 		</section>
 	<?php endwhile; ?>

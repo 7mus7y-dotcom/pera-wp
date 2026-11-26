@@ -32,6 +32,14 @@ function pera_land_register_fields(): void {
 					'type'  => 'tab',
 				),
 				array(
+					'key'          => 'field_pera_land_quick_facts',
+					'label'        => __( 'Quick facts', 'pera-land' ),
+					'name'         => 'land_quick_facts',
+					'type'         => 'textarea',
+					'rows'         => 5,
+					'instructions' => __( 'Add up to five short buyer-facing highlights, one per line.', 'pera-land' ),
+				),
+				array(
 					'key'           => 'field_pera_land_availability',
 					'label'         => __( 'Availability', 'pera-land' ),
 					'name'          => 'land_availability',
