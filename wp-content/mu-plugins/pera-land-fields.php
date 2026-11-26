@@ -145,7 +145,7 @@ function pera_land_register_fields(): void {
 					'label'        => __( 'Documented height limit', 'pera-land' ),
 					'name'         => 'land_height_limit',
 					'type'         => 'text',
-					'instructions' => __( 'Enter the height limit as documented, including its unit where applicable, for example 9.50 m.', 'pera-land' ),
+					'instructions' => __( 'Enter the height limit in metres as a number, for example 9.50. The listing adds the unit.', 'pera-land' ),
 				),
 				array(
 					'key'   => 'field_pera_land_planning_notes',

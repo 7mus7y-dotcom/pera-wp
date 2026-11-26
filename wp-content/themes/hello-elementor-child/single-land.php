@@ -87,6 +87,9 @@ get_header();
 		);
 		$height_limit = $verified ? $text_field( 'land_height_limit' ) : '';
 		if ( $height_limit !== '' ) {
+			if ( preg_match( '/^\d+(?:[.,]\d+)?$/D', $height_limit ) ) {
+				$height_limit .= ' m';
+			}
 			$plot_facts[] = array( 'icon-height-limit', pera_ml_ui( 'Height limit', 'theme.template.single_land.height_limit' ), $height_limit );
 		}
 		$utilities  = $text_field( 'land_utilities' );
