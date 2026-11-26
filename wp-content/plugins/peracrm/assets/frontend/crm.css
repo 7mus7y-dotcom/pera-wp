@@ -671,8 +671,11 @@
   box-sizing: border-box;
 }
 .crm-page--client-view .crm-phone-row .crm-phone-wa-shortcut .icon {
-  width: 12px;
-  height: 12px;
+  display: block;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  color: currentColor;
   fill: currentColor;
 }
 .crm-page--client-view .crm-phone-row:has(.crm-phone-wa-shortcut) {
