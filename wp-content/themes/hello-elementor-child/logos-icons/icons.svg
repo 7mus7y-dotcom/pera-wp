@@ -487,6 +487,10 @@
       />
     </symbol>
 
+<symbol id="icon-play" viewBox="0 0 24 24">
+  <path fill="currentColor" d="M8 5v14l11-7z" />
+</symbol>
+
 <symbol id="icon-image" viewBox="0 0 24 24">
   <path
     fill="none"
