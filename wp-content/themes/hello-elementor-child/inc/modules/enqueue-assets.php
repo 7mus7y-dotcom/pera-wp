@@ -235,7 +235,7 @@ if ( $is_home || $is_citizenship_page ) {
      Rule: property archive OR single property OR home
   ========================= */
 
-  if ( $is_property_archive || $is_portfolio_token || $is_property_map ) {
+  if ( $is_property_archive || is_post_type_archive( 'land' ) || $is_portfolio_token || $is_property_map ) {
     pera_enqueue_property_archive_assets( $needs_slider );
   }
 
