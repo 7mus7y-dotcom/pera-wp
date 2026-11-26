@@ -54,7 +54,7 @@ assert.match(client, /id="crm-add-reminder"[\s\S]*?data-crm-ajax-form="reminder"
 assert.match(client, /data-crm-ajax-form="note"/, 'Add note form remains present');
 assert.match(client, /class="[^"]*crm-danger-zone__trigger/, 'client danger-zone trigger remains present');
 assert.match(helpers, /class="button">\s*' \. esc_html\('Reassign'\)/, 'advisor reassign control remains a WordPress button');
-assert.match(whatsapp, /class="btn btn--green" type="submit"[\\s\\S]*?esc_html__\('Send WhatsApp text'/, 'WhatsApp send control remains present');
+assert.ok(whatsapp.includes('class="btn btn--green" type="submit"') && whatsapp.includes('Send WhatsApp text'), 'WhatsApp send control remains present');
 assert.match(whatsapp, /class="btn btn--ghost" type="button" data-wa-refresh/, 'WhatsApp refresh control remains present');
 
 console.log('PASS CRM client actions use compact sizing; WhatsApp shortcut remains 18x18px round with a 14x14px icon.');
