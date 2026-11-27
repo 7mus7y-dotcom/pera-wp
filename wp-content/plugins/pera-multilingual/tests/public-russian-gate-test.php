@@ -34,6 +34,11 @@ gate_expect( 'tr-TR', $registry->enabled()['tr']['hreflang'], 'Turkish has the t
 gate_expect( 'Türkçe', $registry->enabled()['tr']['native_name'], 'Turkish has its native name' );
 gate_expect( ! isset( $registry->publicly_available()['tr'] ), 'Turkish is hidden from public discovery by default' );
 
+gate_expect( isset( $registry->enabled()['fr'] ), 'French is enabled internally' );
+gate_expect( 'Français' === $registry->enabled()['fr']['native_name'], 'French native name' );
+gate_expect( 'fr' === $registry->from_prefix( 'fr' )['code'], 'French route is available for preview' );
+gate_expect( ! isset( $registry->publicly_available()['fr'] ), 'French is hidden by default' );
+
 $_SERVER['REQUEST_URI'] = '/page/';
 $seo = new Pera_ML_SEO( $registry, new Public_Gate_Router(), new Public_Gate_Storage() );
 ob_start();
@@ -44,4 +49,6 @@ gate_expect( false === strpos( $alternates, 'hreflang="tr-TR"' ), 'public hrefla
 gate_expect( false !== strpos( $alternates, 'hreflang="de-DE"' ), 'public hreflang retains launched languages' );
 gate_expect( false !== strpos( $alternates, 'hreflang="x-default"' ), 'public hreflang retains x-default' );
 
-echo "Pera ML public Russian gate tests passed\n";
+gate_expect( false === strpos( $alternates, 'hreflang="fr"' ), 'public hreflang omits French while gated' );
+
+echo "Pera ML public language gate tests passed\n";
