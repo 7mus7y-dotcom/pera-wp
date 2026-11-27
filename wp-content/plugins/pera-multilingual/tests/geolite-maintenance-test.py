@@ -164,12 +164,26 @@ fi
     # Optional CI acceptance: the actual PHP reader/validator and synthetic MMDB.
     fixture = os.environ.get('PERA_ML_TEST_MMDB')
     if fixture and shutil.which('php'):
+        # Refresh only the synthetic fixture's fixed-width MMDB build_epoch metadata.
+        # The real validator still enforces its unchanged 30-day production limit.
+        data = Path(fixture).read_bytes()
+        marker = data.rindex(b'\xab\xcd\xefMaxMind.com')
+        key = data.index(b'build_epoch', marker)
+        offset = key + len(b'build_epoch')
+        control = data[offset]
+        assert control >> 5 == 0 and data[offset + 1] == 2, 'expected MMDB uint64 build_epoch'
+        size = control & 31
+        assert 4 <= size <= 8, 'unexpected build_epoch encoding'
+        start = offset + 2
+        fresh = root / 'fresh-country.mmdb'
+        fresh.write_bytes(data[:start] + int(time.time()).to_bytes(size, 'big') + data[start + size:])
+        env['PERA_ML_TEST_MMDB'] = str(fresh)
         reset()
         executable(updater, '#!/bin/bash\ncp -- "$PERA_ML_TEST_MMDB" "$4/GeoLite2-Country.mmdb"\n')
         result = subprocess.run(['/bin/bash', str(SCRIPT)], env=dict(env, PERA_GEO_PHP=shutil.which('php')),
                                 text=True, capture_output=True, timeout=12)
         assert result.returncode == 0, result.stderr
-        assert active.read_bytes() == Path(fixture).read_bytes()
+        assert active.read_bytes() == fresh.read_bytes()
         assert not list(private.glob('.GeoLite2-Country.candidate.*'))
         checks += 1
 
