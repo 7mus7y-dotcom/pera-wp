@@ -35,19 +35,20 @@ for (const declaration of [
 const waButtonRule = css.match(/\.crm-page--client-view \.crm-phone-row a\.crm-phone-wa-shortcut\.btn\s*\{([^}]+)\}/);
 assert.ok(waButtonRule, 'WhatsApp shortcut has a scoped rule that overrides shared button padding');
 for (const declaration of [
-  /flex:\s*0 0 18px;/,
-  /width:\s*18px;/,
-  /height:\s*18px;/,
+  /flex:\s*0 0 30px;/,
+  /width:\s*30px;/,
+  /height:\s*30px;/,
   /gap:\s*0;/,
   /padding:\s*0;/,
   /border-radius:\s*50%;/,
 ]) {
-  assert.match(waButtonRule[1], declaration, 'WhatsApp shortcut remains an 18px round icon control');
+  assert.match(waButtonRule[1], declaration, 'WhatsApp shortcut remains an 30px round icon control');
 }
+assert.doesNotMatch(waButtonRule[1], /max-(?:width|height)\s*:/, 'shortcut has no maximum dimension constraints');
 const waIconRule = css.match(/a\.crm-phone-wa-shortcut\.btn \.icon\s*\{([^}]+)\}/);
 assert.ok(waIconRule, 'WhatsApp glyph has a dedicated size rule');
-assert.match(waIconRule[1], /width:\s*14px;/);
-assert.match(waIconRule[1], /height:\s*14px;/);
+assert.match(waIconRule[1], /width:\s*18px;/);
+assert.match(waIconRule[1], /height:\s*18px;/);
 
 assert.match(client, /class="[^"]*crm-client-profile-panel/, 'Save profile panel remains present');
 assert.match(client, /id="crm-add-reminder"[\s\S]*?data-crm-ajax-form="reminder"/, 'Add reminder form remains present');
@@ -57,4 +58,4 @@ assert.match(helpers, /class="button">\s*' \. esc_html\('Reassign'\)/, 'advisor 
 assert.ok(whatsapp.includes('class="btn btn--green" type="submit"') && whatsapp.includes('Send WhatsApp text'), 'WhatsApp send control remains present');
 assert.match(whatsapp, /class="btn btn--ghost" type="button" data-wa-refresh/, 'WhatsApp refresh control remains present');
 
-console.log('PASS CRM client actions use compact sizing; WhatsApp shortcut remains 18x18px round with a 14x14px icon.');
+console.log('PASS CRM client actions use compact sizing; WhatsApp shortcut remains 18x30px round with a 14x18px icon.');
