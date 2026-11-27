@@ -166,3 +166,11 @@ Before translated `post_content` is stored, indentation-only ASCII or Unicode wh
 Disabled by default. See [country-language-redirection.md](docs/country-language-redirection.md)
 for the architecture audit, trusted GeoIP and audience-classification requirements,
 cache bypass prerequisites, activation flags, tests and rollback procedure.
+
+### Staged French support
+
+French (`fr`) is enabled internally for translation generation and directly routable at `/fr/`, like staged Turkish. It is hidden from public discovery by default. Set `PERA_ML_PUBLIC_FRENCH_ENABLED` to true only when ready to launch. To inspect missing French translations, run:
+
+```sh
+wp eval-file wp-content/plugins/pera-multilingual/tools/pera-translate-latest.php dry-run status=missing language=fr
+```
