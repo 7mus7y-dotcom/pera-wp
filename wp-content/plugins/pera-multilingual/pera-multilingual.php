@@ -2,14 +2,14 @@
 /**
  * Plugin Name: Pera Multilingual
  * Description: Server-rendered, stored multilingual versions of Pera Property content.
- * Version: 0.4.0
+ * Version: 0.4.1
  * Author: Pera Property
  * Text Domain: pera-multilingual
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PERA_ML_VERSION', '0.4.0' );
+define( 'PERA_ML_VERSION', '0.4.1' );
 define( 'PERA_ML_FILE', __FILE__ );
 define( 'PERA_ML_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PERA_ML_URL', plugin_dir_url( __FILE__ ) );
@@ -18,6 +18,9 @@ define( 'PERA_ML_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED' ) ) define( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED', true );
 // Turkish is directly routable for targeted pages but hidden from global discovery.
 if ( ! defined( 'PERA_ML_PUBLIC_TURKISH_ENABLED' ) ) define( 'PERA_ML_PUBLIC_TURKISH_ENABLED', false );
+
+// French is internally enabled but hidden from public discovery until launch.
+if ( ! defined( 'PERA_ML_PUBLIC_FRENCH_ENABLED' ) ) define( 'PERA_ML_PUBLIC_FRENCH_ENABLED', false );
 
 require_once PERA_ML_DIR . 'includes/class-language-registry.php';
 require_once PERA_ML_DIR . 'includes/class-storage.php';
